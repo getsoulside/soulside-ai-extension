@@ -10,8 +10,6 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
-build/scripts
-build/manifet.json
 *.local
 
 # Editor directories and files
