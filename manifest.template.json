@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Soulside AI",
-  "version": "1.0",
+  "version": "1.0.1",
   "description": "Latest Behavioral Health AI for IOPs",
   "permissions": ["storage", "activeTab", "scripting", "background", "tabs", "cookies"],
   "host_permissions": ["https://*.soulsidehealth.com/*", "https://*.advancedmd.com/*"],
