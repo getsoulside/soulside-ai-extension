@@ -11,7 +11,14 @@ const elemSelectors = [
 const observers = new Map(); // Track MutationObservers
 
 export const setupNotesEventListener = (doc, selector, callback) => {
-  const element = doc.querySelector(selector);
+  let element = null;
+  if (selector === "spanChiefComplaint") {
+    element = Array.from(doc.querySelectorAll("span, div")).find(
+      elem => elem.innerText.trim() === "Chief Complaint"
+    );
+  } else {
+    element = doc.querySelector(selector);
+  }
   if (element) {
     fetchSessionNotes(doc);
     if (selector.includes("input")) {
@@ -42,14 +49,13 @@ const setupEventListeners = (iframeDoc, selectors) => {
 const handleAddedNodes = (iframeDoc, nodes, type) => {
   nodes.forEach(node => {
     if (type === IFRAME_TYPES.CHART_NOTES) {
-      if (node.tagName === "TEXTAREA" && node.name === CHIEF_COMPLAINT_FIELD_ID) {
-        setupNotesEventListener(
-          iframeDoc,
-          `textarea[name="${CHIEF_COMPLAINT_FIELD_ID}"]`,
-          event => {
-            fetchSessionNotes(iframeDoc);
-          }
-        );
+      if (
+        (node.tagName === "SPAN" || node.tagName === "DIV") &&
+        node.innerText?.trim?.() === "Chief Complaint"
+      ) {
+        setupNotesEventListener(iframeDoc, "spanChiefComplaint", event => {
+          fetchSessionNotes(iframeDoc);
+        });
       } else if (node.tagName === "INPUT" && node.name === "hidParentID") {
         setupNotesEventListener(iframeDoc, 'input[name="hidParentID"]', event => {
           fetchSessionNotes(iframeDoc);

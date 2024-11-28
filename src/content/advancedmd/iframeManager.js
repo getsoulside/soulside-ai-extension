@@ -1,4 +1,4 @@
-import { observeIframe } from "./observerUtils.js";
+import { disconnectObservers, observeIframe } from "./observerUtils.js";
 import { IFRAME_TYPES } from "./constants.js";
 
 const iframeHierarchy = new Map();

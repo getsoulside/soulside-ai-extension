@@ -11,19 +11,48 @@ export const getUserInfo = async () => {
   if (userInfo) {
     return userInfo;
   }
-  if (authCookies?.authToken && authCookies?.selectedPractitionerRoleId) {
-    let url = "practitioner-role/profile/info";
+  if (!authCookies?.authToken || !authCookies?.selectedPractitionerRoleId) {
     try {
-      let response = await get(url);
-      if (response?.data) {
-        userInfo = response.data;
-      }
+      authCookies = await loginRedirect(authCookies);
     } catch (error) {
-      console.log("error", error);
+      console.log("Login Redirect Error:", error);
+      return Promise.reject(error);
+    }
+  } else {
+    try {
+      userInfo = await fetchUserInfo();
+    } catch (error) {
+      console.log("Get user info error:", error);
+      return Promise.reject(error);
     }
   }
   await changeStorageValue("userInfo", userInfo);
   await changeStorageValue("userInfoLoading", false);
+  return userInfo;
+};
+
+const fetchUserInfo = async (retryCount = 0) => {
+  let userInfo = null;
+  let url = "practitioner-role/profile/info";
+  try {
+    let response = await get(url);
+    if (response?.data) {
+      userInfo = response.data;
+    }
+  } catch (error) {
+    console.log("Fetch user info error:", error);
+    if (retryCount === 0) {
+      try {
+        await loginRedirect();
+      } catch (error) {
+        console.log("Login Redirect Error on fetch userinfo retry:", error);
+        return Promise.reject(error);
+      }
+      return await fetchUserInfo(retryCount + 1);
+    } else {
+      return Promise.reject(error);
+    }
+  }
   return userInfo;
 };
 
@@ -37,7 +66,6 @@ export const getAuthCookies = async () => {
   if (authToken && selectedPractitionerRoleId) {
     return authCookies;
   }
-  authCookies = await loginRedirect(authCookies);
   return authCookies;
 };
 
@@ -109,8 +137,9 @@ export const loginRedirect = async options => {
   });
   try {
     authCookies = await loginRedirectPromise;
+    return authCookies;
   } catch (error) {
     console.log("error", error);
+    return Promise.reject(error);
   }
-  return authCookies;
 };

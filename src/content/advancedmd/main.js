@@ -1,6 +1,8 @@
 import { addIframe, findAndRemovePatientChartIframes } from "./iframeManager.js";
 import { IFRAME_TYPES } from "./constants.js";
 
+console.log("Soulside Extension Script Injected");
+
 const rootObserver = new MutationObserver(mutations => {
   mutations.forEach(mutation => {
     mutation.addedNodes.forEach(node => {

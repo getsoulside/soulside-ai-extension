@@ -31,12 +31,8 @@ const ensureAuthToken = async () => {
 const isAuthTokenPresent = async () => {
   let cookie = await getCookie("authtoken");
   if (!cookie) {
-    ({ authToken: cookie = null } = await loginRedirect());
-    if (!cookie) {
-      return false;
-    }
-  }
-  if (!instance.defaults.headers.Authorization && cookie) {
+    return false;
+  } else {
     instance.defaults.headers.Authorization = "Bearer " + cookie;
   }
   return true;
@@ -58,34 +54,24 @@ instance.interceptors.response.use(
   },
   async error => {
     console.log(error);
-    const originalRequest = error.config;
+    const errorMsg = error.response?.data?.message || error.message || "API Error";
     if (
       error?.response?.status === 403 ||
       (error?.response?.status === 500 &&
         (!!error.response.data?.message?.includes("JWT expired") ||
           !!error.response.data?.message?.includes("JWT validity")))
     ) {
-      try {
-        // Attempt re-authentication
-        await loginRedirect({ invalidAuthToken: true });
-        // Retry the original request
-        const newAuthToken = await getCookie("authtoken");
-        if (newAuthToken) {
-          originalRequest.headers.Authorization = "Bearer " + newAuthToken;
-          return instance(originalRequest);
-        }
-      } catch (authError) {
-        console.error("Reauthentication failed:", authError);
-        return Promise.reject(authError);
-      }
+      return Promise.reject({ ...error, message: errorMsg, code: "AUTH_ERROR" });
     }
-    return Promise.reject(error);
+    return Promise.reject({ ...error, message: errorMsg });
   }
 );
 
 const apiRequest = async (method, url, data = null, extraHeaders = {}) => {
   const authTokenPresent = await ensureAuthToken();
-  if (!authTokenPresent) throw new Error("User not logged in");
+  if (!authTokenPresent) {
+    return Promise.reject({ message: "User not logged in", code: "AUTH_ERROR" });
+  }
 
   const config = { method, url, headers: extraHeaders };
   if (method === "get") config.params = data;
