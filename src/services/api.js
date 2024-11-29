@@ -53,7 +53,6 @@ instance.interceptors.response.use(
     return response;
   },
   async error => {
-    console.log(error);
     const errorMsg = error.response?.data?.message || error.message || "API Error";
     if (
       error?.response?.status === 403 ||

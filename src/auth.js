@@ -15,14 +15,14 @@ export const getUserInfo = async () => {
     try {
       authCookies = await loginRedirect(authCookies);
     } catch (error) {
-      console.log("Login Redirect Error:", error);
+      console.error("Login Redirect Error:", error);
       return Promise.reject(error);
     }
   } else {
     try {
       userInfo = await fetchUserInfo();
     } catch (error) {
-      console.log("Get user info error:", error);
+      console.error("Get user info error:", error);
       return Promise.reject(error);
     }
   }
@@ -40,12 +40,12 @@ const fetchUserInfo = async (retryCount = 0) => {
       userInfo = response.data;
     }
   } catch (error) {
-    console.log("Fetch user info error:", error);
+    console.error("Fetch user info error:", error);
     if (retryCount === 0) {
       try {
         await loginRedirect();
       } catch (error) {
-        console.log("Login Redirect Error on fetch userinfo retry:", error);
+        console.error("Login Redirect Error on fetch userinfo retry:", error);
         return Promise.reject(error);
       }
       return await fetchUserInfo(retryCount + 1);
@@ -139,7 +139,7 @@ export const loginRedirect = async options => {
     authCookies = await loginRedirectPromise;
     return authCookies;
   } catch (error) {
-    console.log("error", error);
+    console.error("error", error);
     return Promise.reject(error);
   }
 };

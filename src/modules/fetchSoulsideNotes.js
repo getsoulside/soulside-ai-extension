@@ -25,7 +25,7 @@ const fetchEnhancedChiefComplaint = async (visitId, organizationId) => {
       enhancedChiefComplaint = response.data;
     }
   } catch (error) {
-    console.log("error", error);
+    console.error("CC Fetch error", error);
     return Promise.reject(error);
   }
   return enhancedChiefComplaint;
@@ -40,7 +40,7 @@ const fetchAssessmentChiefComplaint = async (visitId, organizationId) => {
       chiefComplaint = response.data;
     }
   } catch (error) {
-    console.log("error", error);
+    console.error("CC Fetch error", error);
     return Promise.reject(error);
   }
   return chiefComplaint;
@@ -54,7 +54,7 @@ export const getSoulsideNotes = async visitId => {
         soulsideChiefComplaint = response.value || "";
         resolve(soulsideChiefComplaint);
       } else {
-        console.log("Error getting chief complaint:", response.error || "");
+        console.error("Error getting chief complaint:", response.error || "");
         reject(response.error || "Error getting chief complaint");
       }
     });

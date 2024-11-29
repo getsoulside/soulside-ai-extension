@@ -23,6 +23,7 @@
     "webpack-dev-server": "^5.1.0"
   },
   "dependencies": {
+    "@sentry/browser": "^8.41.0",
     "axios": "^1.7.7"
   }
 }

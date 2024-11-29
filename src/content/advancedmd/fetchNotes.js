@@ -24,6 +24,9 @@ export const fetchSessionNotes = async doc => {
         };
         try {
           let soulsideChiefComplaint = await getSoulsideNotes(visitId);
+          if (soulsideChiefComplaint) {
+            console.log("CC Fetched", { visitId, soulsideChiefComplaint });
+          }
           notesData = {
             ...notesData,
             [visitId]: notesData[visitId]
@@ -38,7 +41,7 @@ export const fetchSessionNotes = async doc => {
                 },
           };
         } catch (error) {
-          console.log("CC Fetch Error:", error);
+          console.error("CC Fetch Error:", error);
           let authError = false;
           let noteError = "";
           if (
