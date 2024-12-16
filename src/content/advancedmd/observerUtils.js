@@ -16,6 +16,10 @@ export const setupNotesEventListener = (doc, selector, callback) => {
     element = Array.from(doc.querySelectorAll("span, div")).find(
       elem => elem.innerText.trim() === "Chief Complaint"
     );
+  } else if (selector === "spanHPINote") {
+    element = Array.from(doc.querySelectorAll("span, div")).find(
+      elem => elem.innerText.trim() === "History of Present Illness"
+    );
   } else {
     element = doc.querySelector(selector);
   }
@@ -54,6 +58,13 @@ const handleAddedNodes = (iframeDoc, nodes, type) => {
         node.innerText?.trim?.() === "Chief Complaint"
       ) {
         setupNotesEventListener(iframeDoc, "spanChiefComplaint", event => {
+          fetchSessionNotes(iframeDoc);
+        });
+      } else if (
+        (node.tagName === "SPAN" || node.tagName === "DIV") &&
+        node.innerText?.trim?.() === "History of Present Illness"
+      ) {
+        setupNotesEventListener(iframeDoc, "spanHPINote", event => {
           fetchSessionNotes(iframeDoc);
         });
       } else if (node.tagName === "INPUT" && node.name === "hidParentID") {

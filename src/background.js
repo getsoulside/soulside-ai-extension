@@ -1,5 +1,5 @@
 import { getUserInfo, loginRedirect } from "./auth.js";
-import { fetchNotesFromSoulside } from "./modules/fetchSoulsideNotes.js";
+import { fetchSoulsideData } from "./modules/fetchSoulsideNotes.js";
 import { getCookieName, changeStorageValue } from "./services/utils.js";
 import {
   BrowserClient,
@@ -95,21 +95,6 @@ function removeTabListener(tabId, removeInfo) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "getSoulsideChiefComplaint") {
-    fetchNotesFromSoulside(message.visitId)
-      .then(soulsideChiefComplaint => {
-        sendResponse({ success: true, value: soulsideChiefComplaint });
-      })
-      .catch(error => {
-        console.error("CC Fetch error", error);
-        sendResponse({ success: false, error });
-      });
-
-    return true; // Keep the message channel open for async response
-  }
-});
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "soulsideLoginExpired") {
     loginRedirect()
       .then(() => {
@@ -117,6 +102,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       })
       .catch(error => {
         console.error("error", error);
+        sendResponse({ success: false, error });
+      });
+
+    return true; // Keep the message channel open for async response
+  }
+  if (message.action === "getSoulsideData") {
+    fetchSoulsideData(message.visitId)
+      .then(soulsideData => {
+        sendResponse({ success: true, value: soulsideData });
+      })
+      .catch(error => {
+        console.error("Soulside Data error", error);
         sendResponse({ success: false, error });
       });
 
