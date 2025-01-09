@@ -23,7 +23,11 @@ const template = fs.readFileSync(path.resolve(__dirname, "manifest.template.json
 // Replace placeholders with environment-specific values
 const manifest = template.replace(/\$\{(.*?)\}/g, (_, key) => config[APP_ENV][key]);
 
+// Ensure the directory exists
+const outputDir = path.resolve(__dirname, "extension-build");
+fs.mkdirSync(outputDir, { recursive: true });
+
 // Write the final manifest.json
-fs.writeFileSync(path.resolve(__dirname + "/build", "manifest.json"), manifest);
+fs.writeFileSync(path.join(outputDir, "manifest.json"), manifest);
 
 console.log(`Manifest generated for ${APP_ENV} environment.`);

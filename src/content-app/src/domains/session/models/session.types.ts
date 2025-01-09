@@ -1,0 +1,38 @@
+export enum ModeOfDelivery {
+  IN_PERSON = "IN_PERSON",
+  VIRTUAL = "VIRTUAL",
+}
+
+export enum SoulsideVertical {
+  PREGNANCY = "PREGNANCY",
+  POSTPARTUM = "POSTPARTUM",
+}
+
+export enum SessionStatus {
+  SCHEDULED = "SCHEDULED",
+  ENDED = "ENDED",
+  CANCELED = "CANCELED",
+}
+
+export enum SessionCategory {
+  INDIVIDUAL = "INDIVIDUAL",
+  COUPLES_THERAPY = "COUPLES_THERAPY",
+  FAMILY_THERAPY = "FAMILY_THERAPY",
+  GROUP = "GROUP",
+}
+
+export enum AppointmentType {
+  INTAKE = "INTAKE",
+  FOLLOW_UP = "FOLLOW_UP",
+  CONSULTATION = "CONSULTATION",
+  THERAPY = "THERAPY",
+  MEDICATION_MANAGEMENT = "MEDICATION_MANAGEMENT",
+  CRISIS_INTERVENTION = "CRISIS_INTERVENTION",
+  ASSESSMENT = "ASSESSMENT",
+  DISCHARGE_PLANNING = "DISCHARGE_PLANNING",
+}
+
+export enum BehavioralHealthDataType {
+  GAD7 = "GAD7",
+  PHQ9 = "PHQ9",
+}

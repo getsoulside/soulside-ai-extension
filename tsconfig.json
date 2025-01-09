@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES6", // Target modern JavaScript
+    "module": "ESNext", // Use ESNext modules
+    "moduleResolution": "Node",
+    "jsx": "react-jsx", // Use React JSX
+    "strict": true, // Enable strict type checking
+    "esModuleInterop": true, // Support ES module interop
+    "skipLibCheck": true, // Skip library type checking
+    "outDir": "./extension-build", // Output directory for compiled files
+    "baseUrl": "./src", // Base URL for module resolution
+    "paths": {
+      "*": ["node_modules/*", "src/*"]
+    }
+  },
+  "include": ["src/**/*"], // Include all files in src folder
+  "exclude": ["node_modules", "extension-build", "src/content-app"] // Exclude node_modules and dist folder
+}

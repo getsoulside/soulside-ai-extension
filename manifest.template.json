@@ -4,7 +4,11 @@
   "version": "1.0.3",
   "description": "Latest Behavioral Health AI for IOPs",
   "permissions": ["storage", "activeTab", "scripting", "background", "tabs", "cookies"],
-  "host_permissions": ["https://*.soulsidehealth.com/*", "https://*.advancedmd.com/*"],
+  "host_permissions": [
+    "http://localhost:5173",
+    "https://*.soulsidehealth.com/*",
+    "https://*.advancedmd.com/*"
+  ],
   "action": {
     "default_title": "Soulside AI"
   },
@@ -12,6 +16,13 @@
     "service_worker": "scripts/background.bundle.js",
     "type": "module"
   },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["scripts/content.bundle.js"],
+      "type": "module"
+    }
+  ],
   "icons": {
     "16": "./assets/icons/icon-16.png",
     "32": "./assets/icons/icon-32.png",
