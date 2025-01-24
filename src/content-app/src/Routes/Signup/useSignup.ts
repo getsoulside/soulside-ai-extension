@@ -21,10 +21,6 @@ const useSignup = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    document.title = "Signup | Soulside";
-  }, []);
-
-  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const urlEmail = urlParams.get("email");
     const urlToken = urlParams.get("token");

@@ -5,6 +5,7 @@ import patientReducer from "@/domains/patient/state/patient.slice";
 import groupReducer from "@/domains/group/state/group.slice";
 import practitionerRoleReducer from "@/domains/practitionerRole/state/practitionerRole.slice";
 import sessionReducer from "@/domains/session/state/session.slice";
+import sessionNotesReducer from "@/domains/sessionNotes/state/sessionNotes.slice";
 
 const appReducer = combineReducers({
   userProfile: userProfileReducer,
@@ -12,6 +13,7 @@ const appReducer = combineReducers({
   group: groupReducer,
   practitionerRole: practitionerRoleReducer,
   session: sessionReducer,
+  sessionNotes: sessionNotesReducer,
 });
 
 const rootReducer = (state: ReturnType<typeof appReducer> | undefined, action: Action) => {
@@ -26,6 +28,7 @@ const rootReducer = (state: ReturnType<typeof appReducer> | undefined, action: A
       group: groupReducer(undefined, action),
       practitionerRole: practitionerRoleReducer(undefined, action),
       session: sessionReducer(undefined, action),
+      sessionNotes: sessionNotesReducer(undefined, action),
     }; // Reset other parts of the state
   }
   return appReducer(state, action);

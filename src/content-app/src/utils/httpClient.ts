@@ -1,105 +1,97 @@
-import axios, { InternalAxiosRequestConfig, CancelTokenSource } from "axios";
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  CancelTokenSource,
+  InternalAxiosRequestConfig,
+} from "axios";
 import { getCookie } from "./storage";
 import { API_BASE_URL } from "@/constants";
 import { logout } from "@/services/auth";
 
-const authToken = getCookie("authtoken");
+class HttpClient {
+  private isRawApiCall: boolean;
 
-console.log("API_BASE_URL", import.meta.env.API_BASE_URL);
-
-const httpClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    Authorization: authToken ? "Bearer " + authToken : "",
-  },
-});
-
-const pendingRequests = new Map<string, CancelTokenSource>();
-
-function loginRedirect(): void {
-  if (!window.location.href.includes("/login") && !window.location.href.includes("/signup")) {
-    httpClient.defaults.headers.Authorization = "";
-    logout();
+  constructor(isRawApiCall: boolean) {
+    this.isRawApiCall = isRawApiCall;
   }
-}
+  private async makeApiRequest(
+    apiMethod: "get" | "post" | "put" | "delete",
+    apiOptions: any
+  ): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const requestId = Date.now() + Math.random(); // Generate a unique requestId
 
-function isAuthTokenPresent(): boolean {
-  const cookie = getCookie("authtoken");
-  if (!cookie) {
-    loginRedirect();
-    return false;
-  } else if (!httpClient.defaults.headers.Authorization) {
-    httpClient.defaults.headers.Authorization = "Bearer " + cookie;
-  }
-  return true;
-}
+      // Create a message listener
+      interface MessageEventData {
+        type: string;
+        requestId: number;
+        value?: any;
+        success: boolean;
+      }
 
-function getRequestKey(config: InternalAxiosRequestConfig): string {
-  return config.headers.apiId || "";
-}
+      function handleMessage(event: MessageEvent): void {
+        const data: MessageEventData = event.data;
 
-httpClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const authTokenPresent = isAuthTokenPresent();
-  if (!authTokenPresent) {
-    return Promise.reject("No auth token");
-  }
-  if (!config.headers.Authorization) {
-    const cookie = getCookie("authtoken");
-    config.headers.Authorization = "Bearer " + cookie;
-  }
-
-  const requestKey = getRequestKey(config);
-
-  if (requestKey) {
-    if (pendingRequests.has(requestKey)) {
-      const cancelTokenSource = pendingRequests.get(requestKey);
-      cancelTokenSource?.cancel("Duplicate request canceled");
-    }
-
-    const cancelTokenSource = axios.CancelToken.source();
-    config.cancelToken = cancelTokenSource.token;
-    pendingRequests.set(requestKey, cancelTokenSource);
-  }
-
-  return config;
-});
-
-httpClient.interceptors.response.use(
-  response => {
-    const requestKey = getRequestKey(response.config);
-    if (requestKey) {
-      pendingRequests.delete(requestKey);
-    }
-    return response;
-  },
-  error => {
-    if (axios.isCancel(error)) {
-      console.error("Request canceled:", error.message);
-    } else {
-      if (error && error.response && error.response.status) {
-        const requestKey = getRequestKey(error.config);
-        if (requestKey) {
-          pendingRequests.delete(requestKey);
+        // Ensure the message contains the requestId
+        if (data.type === "MAKE_SOULSIDE_API_CALL_RESULT" && data.requestId === requestId) {
+          window.removeEventListener("message", handleMessage); // Clean up the listener
+          if (data.success) {
+            resolve(data.value); // Resolve with the cookie value
+          } else {
+            reject(data.value);
+          }
         }
       }
-    }
-    if (error && error.response && error.response.status) {
-      if (
-        error.response.status === 403 ||
-        (error.response.status === 500 &&
-          (!!error.response.data?.message?.includes("JWT expired") ||
-            !!error.response.data?.message?.includes("JWT validity") ||
-            !!error.response.data?.message?.includes("JWT ")))
-      ) {
-        loginRedirect();
-      }
-    }
-    return Promise.reject(error);
-  }
-);
 
-export const rawHttpClient = axios.create({
+      // Listen for the response
+      window.addEventListener("message", handleMessage);
+
+      // Post the request to the window
+      window.postMessage(
+        {
+          type: "MAKE_SOULSIDE_API_CALL",
+          requestId,
+          apiMethod,
+          apiOptions,
+          isRawApiCall: this.isRawApiCall,
+        },
+        "*"
+      );
+
+      // Optional: Add a timeout to reject the promise if no response is received
+      setTimeout(() => {
+        window.removeEventListener("message", handleMessage);
+        reject("No response"); // Resolve with null if the request times out
+      }, 5000); // Adjust timeout duration as needed
+    });
+  }
+
+  public async get(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse> {
+    const response = await this.makeApiRequest("get", { url, config });
+    return response;
+  }
+
+  public async post(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse> {
+    const response = await this.makeApiRequest("post", { url, data, config });
+    return response;
+  }
+
+  public async put(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse> {
+    const response = await this.makeApiRequest("put", { url, data, config });
+    return response;
+  }
+
+  public async delete(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse> {
+    const response = await this.makeApiRequest("delete", { url, config });
+    return response;
+  }
+}
+
+export default new HttpClient(false);
+
+export const rawHttpClient = new HttpClient(true);
+
+export const rawHttpClientOld = axios.create({
   baseURL: API_BASE_URL,
 });
-
-export default httpClient;

@@ -1,14 +1,18 @@
 import { defineConfig } from "vite";
 import { loadEnv } from "vite";
-import react from "@vitejs/plugin-react";
+import reactRefresh from "@vitejs/plugin-react-refresh";
 import tsconfigPaths from "vite-tsconfig-paths";
+import svgLoader from "vite-svg-loader";
 import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   // Load all environment variables for the current mode
-  const envDir = path.resolve(__dirname, "../../../");
+  const envDir = path.resolve(__dirname, "../../env/");
+  console.log("envDir", envDir);
+
   const env = loadEnv(mode, envDir, "SOULSIDE_");
+  console.log("env", JSON.stringify(env), mode);
 
   // Return the configuration
   return {
@@ -16,6 +20,7 @@ export default defineConfig(({ mode }) => {
       // Expose variables with your custom prefix
       __APP_ENV__: JSON.stringify(env),
     },
-    plugins: [react(), tsconfigPaths()],
+    plugins: [reactRefresh(), tsconfigPaths(), svgLoader()],
+    envDir,
   };
 });

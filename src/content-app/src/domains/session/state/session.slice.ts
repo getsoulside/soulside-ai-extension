@@ -43,7 +43,7 @@ const initialState: SessionState = {
     loading: false,
   },
   sessionNotesStatus: {
-    data: getSessionNotesStatusFromLocal(),
+    data: {},
     loading: {},
   },
 };
@@ -73,15 +73,34 @@ const sessionSlice = createSlice({
     ) {
       state.sessionNotesStatus.loading[action.payload.sessionId] = action.payload.show;
     },
+    addSessionNotesStatusInitialData(
+      state,
+      action: PayloadAction<Record<NonNullable<Session["id"]>, SessionNotesStatus>>
+    ) {
+      state.sessionNotesStatus.data = action.payload;
+    },
     addSessionNotesStatusData(
       state,
       action: PayloadAction<{ sessionId: UUIDString; notesStatus: SessionNotesStatus }>
     ) {
       state.sessionNotesStatus.data[action.payload.sessionId] = action.payload.notesStatus;
-      addLocalStorage(LOCAL_STORAGE_KEYS.SESSION_NOTES_STATUS, state.sessionNotesStatus.data);
+      addLocalStorage(
+        LOCAL_STORAGE_KEYS.SESSION_NOTES_STATUS,
+        JSON.parse(JSON.stringify(state.sessionNotesStatus.data))
+      );
     },
   },
 });
+
+export const initializeSession = () => {
+  return async (dispatch: any): Promise<void> => {
+    const sessionNotesStatus: Record<
+      NonNullable<Session["id"]>,
+      SessionNotesStatus
+    > = await getSessionNotesStatusFromLocal();
+    dispatch(addSessionNotesStatusInitialData(sessionNotesStatus));
+  };
+};
 
 export const {
   toggleSessionsLoading,
@@ -89,6 +108,7 @@ export const {
   addScheduleSessionData,
   editSessionData,
   toggleSessionNotesStatusData,
+  addSessionNotesStatusInitialData,
   addSessionNotesStatusData,
 } = sessionSlice.actions;
 

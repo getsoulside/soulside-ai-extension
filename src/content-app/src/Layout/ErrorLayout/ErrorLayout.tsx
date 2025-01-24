@@ -1,14 +1,22 @@
 import React from "react";
-import { Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 import useErrorLayout from "./useErrorLayout";
-
-import "./ErrorLayout.scss";
 
 const ErrorLayout: React.FC = (): React.ReactNode => {
   const { error } = useErrorLayout();
   return (
-    <div className="error-layout">
+    <Box
+      className="error-layout"
+      sx={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        padding: "20px",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
       <Typography
         variant="h1"
         color="error"
@@ -27,7 +35,7 @@ const ErrorLayout: React.FC = (): React.ReactNode => {
       >
         {(error as any).statusText || (error as any).message}
       </Typography>
-    </div>
+    </Box>
   );
 };
 

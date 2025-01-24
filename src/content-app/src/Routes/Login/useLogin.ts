@@ -15,10 +15,6 @@ const useLogin = () => {
 
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    document.title = "Login | Soulside";
-  }, []);
-
   const handleClickShowPassword = () => {
     setShowPassword(prev => !prev);
   };

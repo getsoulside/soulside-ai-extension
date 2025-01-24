@@ -3,11 +3,20 @@
   "name": "Soulside AI",
   "version": "1.0.3",
   "description": "Latest Behavioral Health AI for IOPs",
-  "permissions": ["storage", "activeTab", "scripting", "background", "tabs", "cookies"],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "background",
+    "tabs",
+    "cookies",
+    "declarativeNetRequest"
+  ],
   "host_permissions": [
-    "http://localhost:5173",
+    "http://localhost:5173/*",
     "https://*.soulsidehealth.com/*",
-    "https://*.advancedmd.com/*"
+    "https://*.advancedmd.com/*",
+    "https://www.soulside.ai/*"
   ],
   "action": {
     "default_title": "Soulside AI"
@@ -18,7 +27,12 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*/*"],
+      "matches": [
+        "http://localhost:5173/*",
+        "https://*.soulsidehealth.com/*",
+        "https://*.advancedmd.com/*",
+        "https://www.soulside.ai/*"
+      ],
       "js": ["scripts/content.bundle.js"],
       "type": "module"
     }
@@ -29,10 +43,5 @@
     "48": "./assets/icons/icon-64.png",
     "128": "./assets/icons/icon-128.png",
     "256": "./assets/icons/icon-256.png"
-  },
-  "environment": {
-    "APP_ENV": "${APP_ENV}",
-    "API_ENDPOINT": "${API_ENDPOINT}",
-    "PLATFORM_URL": "${PLATFORM_URL}"
   }
 }

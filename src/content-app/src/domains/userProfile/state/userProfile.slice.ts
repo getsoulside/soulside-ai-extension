@@ -3,6 +3,7 @@ import { TimeZone, User, UserAssignedRole } from "../models/userProfile.model";
 import { PractitionerRole } from "@/domains/practitionerRole/models";
 import {
   getSelectedPractitionerRoleFromLocal,
+  getDefaultValueForTimezone,
   getSelectedTimezoneFromLocal,
 } from "@/utils/storage";
 
@@ -15,6 +16,7 @@ export interface UserProfileState {
   selectedRole: { data: PractitionerRole | null; loading: boolean };
   selectedTimezone: TimeZone;
   currentPageTitle: string;
+  extensionDrawerOpen: boolean;
 }
 
 const initialState: UserProfileState = {
@@ -23,9 +25,10 @@ const initialState: UserProfileState = {
     loading: true,
   },
   assignedRoles: { data: null, loading: true },
-  selectedRole: { data: getSelectedPractitionerRoleFromLocal(), loading: false },
-  selectedTimezone: getSelectedTimezoneFromLocal(),
+  selectedRole: { data: null, loading: false },
+  selectedTimezone: getDefaultValueForTimezone(),
   currentPageTitle: "",
+  extensionDrawerOpen: false,
 };
 
 const userProfileSlice = createSlice({
@@ -38,7 +41,7 @@ const userProfileSlice = createSlice({
     addUserProfileData(state, action: PayloadAction<User | null>) {
       state.info.data = action.payload;
     },
-    toggleSelectedUserRole(state, action: PayloadAction<boolean>) {
+    toggleSelectedUserRoleLoading(state, action: PayloadAction<boolean>) {
       state.selectedRole.loading = action.payload;
     },
     addSelectedUserRole(state, action: PayloadAction<PractitionerRole | null>) {
@@ -56,17 +59,33 @@ const userProfileSlice = createSlice({
     addCurrentPageTitle(state, action: PayloadAction<string>) {
       state.currentPageTitle = action.payload;
     },
+    toggleExtensionDrawer(state, action: PayloadAction<boolean>) {
+      state.extensionDrawerOpen = action.payload;
+    },
   },
 });
+
+export const initializeUserProfile = () => {
+  return async (dispatch: any): Promise<void> => {
+    dispatch(toggleSelectedUserRoleLoading(true));
+    const selectedRole = await getSelectedPractitionerRoleFromLocal();
+    const selectedTimezone = await getSelectedTimezoneFromLocal();
+    dispatch(addSelectedUserRole(selectedRole));
+    dispatch(addSelectedTimezone(selectedTimezone));
+    dispatch(toggleSelectedUserRoleLoading(false));
+  };
+};
 
 export const {
   toggleUserProfileLoading,
   addUserProfileData,
+  toggleSelectedUserRoleLoading,
   addSelectedUserRole,
   toggleUserAssignedRolesLoading,
   addUserAssignedRolesData,
   addSelectedTimezone,
   addCurrentPageTitle,
+  toggleExtensionDrawer,
 } = userProfileSlice.actions;
 
 export default userProfileSlice.reducer;

@@ -3,14 +3,12 @@ import React from "react";
 import Search from "@/components/Search";
 import { DateFilter, DropdownMultiFilter } from "@/components/Filters";
 
-import ScheduleSession from "./components/ScheduleSession";
 import useAppointments from "./useAppointments";
 
-import "./Appointments.scss";
-import AppointmentsTable from "./components/AppointmentsTable/AppointmentsTable";
+import AppointmentsList from "./components/AppointmentsList/AppointmentsList";
 import { SyncRounded } from "@mui/icons-material";
-import { Box, Button, Chip, IconButton, Stack, Tooltip } from "@mui/material";
-import { PractitionerRole } from "@/domains/practitionerRole";
+import { Box, Chip, IconButton, Stack, Tooltip } from "@mui/material";
+import { BusinessFunction, PractitionerRole } from "@/domains/practitionerRole";
 
 const Appointments: React.FC = (): React.ReactNode => {
   const {
@@ -23,13 +21,35 @@ const Appointments: React.FC = (): React.ReactNode => {
     selectedProviders,
     setSelectedProviders,
     providersList,
-    scheduleSessionOpen,
-    setScheduleSessionOpen,
+    selectedRole,
   } = useAppointments();
   return (
-    <div className="appointments-page">
-      <div className="appointments-filters-container">
-        <div className="appointments-filters">
+    <Box
+      className="appointments-page"
+      sx={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        maxHeight: "100%",
+        gap: 2,
+      }}
+    >
+      <Box
+        className="appointments-filters-container"
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Box
+          className="appointments-filters"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
           <Search
             onSearch={setSearchTerm}
             placeholder="Search by patient name"
@@ -38,49 +58,15 @@ const Appointments: React.FC = (): React.ReactNode => {
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
           />
-          <DropdownMultiFilter
-            options={providersList.data}
-            loading={providersList.loading}
-            keyLabel="id"
-            valueLabel="practitionerFirstName"
-            searchContexts={["practitionerFirstName", "practitionerLastName", "practitionerEmail"]}
-            selectedValues={selectedProviders}
-            onSelect={setSelectedProviders}
-            dropdownLabel="Select Providers"
-            optionRenderer={(provider: PractitionerRole | null) => {
-              return (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 1,
-                    width: "100%",
-                  }}
-                >
-                  <Stack
-                    direction="row"
-                    gap={1}
-                  >
-                    {`${provider?.practitionerFirstName || ""}${
-                      provider?.practitionerLastName ? " " : ""
-                    }${provider?.practitionerLastName || ""}`}
-                    <Chip
-                      label={provider?.practitionerEmail || ""}
-                      sx={{ borderRadius: 0.5, fontWeight: 600 }}
-                    />
-                  </Stack>
-                  <Chip
-                    label={provider?.behaviorHealthRole || ""}
-                    sx={{ borderRadius: 0.5, fontWeight: 600 }}
-                  />
-                </Box>
-              );
-            }}
-            noDataText="No Providers Found"
-          />
-        </div>
-        <div className="appointments-filters">
+        </Box>
+        <Box
+          className="appointments-filters"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
           <Tooltip title="Refresh Appointments">
             <IconButton
               onClick={getSessionsList}
@@ -89,26 +75,89 @@ const Appointments: React.FC = (): React.ReactNode => {
               <SyncRounded />
             </IconButton>
           </Tooltip>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setScheduleSessionOpen(true)}
+        </Box>
+      </Box>
+      {selectedRole.data?.businessFunction !== BusinessFunction.CLINICAL_CARE && (
+        <Box
+          className="appointments-filters-container"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Box
+            className="appointments-filters"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
           >
-            Schedule Appointment
-          </Button>
-          <ScheduleSession
-            open={scheduleSessionOpen}
-            onClose={() => setScheduleSessionOpen(false)}
-          />
-        </div>
-      </div>
-      <div className="appointments-table">
-        <AppointmentsTable
+            <DropdownMultiFilter
+              options={providersList.data}
+              loading={providersList.loading}
+              keyLabel="id"
+              valueLabel="practitionerFirstName"
+              searchContexts={[
+                "practitionerFirstName",
+                "practitionerLastName",
+                "practitionerEmail",
+              ]}
+              selectedValues={selectedProviders}
+              onSelect={setSelectedProviders}
+              dropdownLabel="Select Providers"
+              optionRenderer={(provider: PractitionerRole | null) => {
+                return (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 1,
+                      width: "100%",
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      gap={1}
+                    >
+                      {`${provider?.practitionerFirstName || ""}${
+                        provider?.practitionerLastName ? " " : ""
+                      }${provider?.practitionerLastName || ""}`}
+                      <Chip
+                        label={provider?.practitionerEmail || ""}
+                        sx={{ borderRadius: 0.5, fontWeight: 600 }}
+                      />
+                    </Stack>
+                    <Chip
+                      label={provider?.behaviorHealthRole || ""}
+                      sx={{ borderRadius: 0.5, fontWeight: 600 }}
+                    />
+                  </Box>
+                );
+              }}
+              noDataText="No Providers Found"
+            />
+          </Box>
+        </Box>
+      )}
+      <Box
+        className="appointments-table"
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          maxHeight: "100%",
+          overflow: "auto",
+        }}
+      >
+        <AppointmentsList
           data={sessionsList}
           loading={sessionsListLoading}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

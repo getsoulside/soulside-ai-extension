@@ -10,3 +10,8 @@ type UUIDString = string;
 type DayOfWeek = "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
 
 type Callback = () => void;
+
+type Pagination = {
+  page: number;
+  pageSize: number;
+};

@@ -10,6 +10,7 @@ import {
   ListItemText,
   MenuItem,
   ListItemAvatar,
+  Box,
 } from "@mui/material";
 import {
   ArrowForwardIosSharp,
@@ -19,27 +20,26 @@ import {
 
 import useOrgRoleLayout from "./useOrgRoleLayout";
 
-import SoulsideLogo from "@/assets/soulside-logo-white.svg";
-
-import "./OrgRoleLayout.scss";
-
 const OrgRoleLayout: React.FC = (): React.ReactNode => {
   const { userProfile, assignedRoles, expanded, handleChange, onSelectRole } = useOrgRoleLayout();
   return (
-    <div className="org-role-layout">
-      <div className="org-role-nav-bar">
-        <img
-          src={SoulsideLogo}
-          alt="Soulside"
-          className="soulside-logo"
-        />
-      </div>
+    <Box
+      className="org-role-layout"
+      sx={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "4rem",
+        padding: "30px",
+      }}
+    >
       <Paper
         elevation={3}
         square={false}
         className="org-role-container"
         sx={{
-          padding: "clamp(1rem, 5vw, 2rem)",
+          padding: 2,
           width: "clamp(300px, 100%, 800px)",
           display: "flex",
           flexDirection: "column",
@@ -52,14 +52,14 @@ const OrgRoleLayout: React.FC = (): React.ReactNode => {
           alignItems={"center"}
         >
           <Typography
-            variant="h5"
+            variant="h6"
             align="center"
             sx={{ fontWeight: "500" }}
           >
             Hello {userProfile.info.data?.firstName}!
           </Typography>
           <Typography
-            variant="h5"
+            variant="h6"
             align="center"
             sx={{ fontWeight: "500" }}
           >
@@ -159,7 +159,7 @@ const OrgRoleLayout: React.FC = (): React.ReactNode => {
           })}
         </Stack>
       </Paper>
-    </div>
+    </Box>
   );
 };
 

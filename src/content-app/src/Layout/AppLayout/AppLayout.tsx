@@ -3,28 +3,41 @@ import { Outlet } from "react-router-dom";
 
 import Loader from "@/components/Loader";
 
-import SideNav from "../SideNav";
-import TopNav from "../TopNav";
 import OrgRoleLayout from "../OrgRoleLayout";
 
 import useAppLayout from "./useAppLayout";
 
-import "./AppLayout.scss";
+import { Box } from "@mui/material";
 
 const AppLayout: React.FC = (): React.ReactNode => {
   const { selectedRole, userProfileLoading, assignedRolesLoading } = useAppLayout();
   return (
     <Loader loading={userProfileLoading || assignedRolesLoading || selectedRole.loading}>
       {selectedRole.data ? (
-        <div className="app-layout">
-          <SideNav />
-          <div className="app-content-container">
-            <TopNav />
-            <div className="app-outlet-container">
-              <Outlet />
-            </div>
-          </div>
-        </div>
+        <Box
+          className="app-layout"
+          sx={{
+            display: "flex",
+            flex: 1,
+            maxHeight: "100%",
+            overflow: "auto",
+          }}
+        >
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              maxHeight: "100%",
+              overflow: "auto",
+              padding: "15px",
+              borderRadius: 1,
+              backgroundColor: "#fff",
+            }}
+          >
+            <Outlet />
+          </Box>
+        </Box>
       ) : (
         <OrgRoleLayout />
       )}

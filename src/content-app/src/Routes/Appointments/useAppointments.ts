@@ -11,7 +11,6 @@ import {
   SessionCategory,
   SoulsideSession,
 } from "@/domains/session";
-import { setCurrentPageTitle } from "@/domains/userProfile";
 import { RootState, AppDispatch } from "@/store";
 import { getDateTime } from "@/utils/date";
 import { addLocalStorage, getLocalStorage } from "@/utils/storage";
@@ -20,15 +19,20 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 const useAppointments = () => {
-  useEffect(() => {
-    setCurrentPageTitle("Appointments");
-    document.title = "Appointments";
-  }, []);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Moment | null>(getDateTime());
-  const [selectedProviders, setSelectedProviders] = useState<PractitionerRole[]>(
-    getLocalStorage(LOCAL_STORAGE_KEYS.SELECTED_PROVIDERS_FILTERS) || []
-  );
+  const [selectedProviders, setSelectedProviders] = useState<PractitionerRole[]>([]);
+  useEffect(() => {
+    const getSelectedProvidersFromLocalStorage = async () => {
+      const selectedProviders = await getLocalStorage(
+        LOCAL_STORAGE_KEYS.SELECTED_PROVIDERS_FILTERS
+      );
+      if (selectedProviders) {
+        setSelectedProviders(selectedProviders);
+      }
+    };
+    getSelectedProvidersFromLocalStorage();
+  }, []);
   const [scheduleSessionOpen, setScheduleSessionOpen] = useState<boolean>(false);
 
   const dispatch: AppDispatch = useDispatch();
@@ -120,7 +124,7 @@ const useAppointments = () => {
         if (session.id) {
           const notesExists = sessionNotesStatus.data[session.id]?.notesExists;
           if (session.id && !notesExists && !sessionNotesStatus.loading[session.id]) {
-            await dispatch(loadSessionNotesStatus(session));
+            // await dispatch(loadSessionNotesStatus(session));
           }
         }
       });
@@ -140,6 +144,7 @@ const useAppointments = () => {
     providersList: { data: providersList, loading: orgPractitionersRoles.loading },
     scheduleSessionOpen,
     setScheduleSessionOpen,
+    selectedRole,
   };
 };
 

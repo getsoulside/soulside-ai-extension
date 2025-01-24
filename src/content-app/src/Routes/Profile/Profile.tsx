@@ -1,7 +1,6 @@
 import React from "react";
 import useProfile from "./useProfile";
 
-import "./Profile.scss";
 import {
   Avatar,
   Box,
@@ -15,16 +14,18 @@ import {
 } from "@mui/material";
 import { LogoutRounded } from "@mui/icons-material";
 import { logout } from "@/services/auth";
+import RoleSelect from "./RoleSelect";
+import TimezoneSelect from "./TimezoneSelect";
 
 const Profile: React.FC = (): React.ReactNode => {
-  const { userProfileInfo, userAssignedRoles, selectedRole } = useProfile();
+  const { userProfileInfo, assignedRoles, selectedRole } = useProfile();
   const userName = `${userProfileInfo?.data?.firstName || ""}${
     userProfileInfo?.data?.lastName ? " " : ""
   }${userProfileInfo?.data?.lastName || ""}`;
   const theme: Theme = useTheme();
   const styles = {
     card: {
-      p: 4,
+      p: 2,
     },
     avatarText: {
       fontWeight: 500,
@@ -42,75 +43,79 @@ const Profile: React.FC = (): React.ReactNode => {
     },
   };
   return (
-    <div className="profile-page">
+    <Box
+      className="profile-page"
+      sx={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        maxHeight: "100%",
+        overflow: "auto",
+      }}
+    >
       <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
         <Stack
-          gap={3}
+          gap={2}
           direction={"row"}
-          justifyContent={"space-between"}
-          sx={{ width: "100%" }}
+          alignItems={"center"}
         >
+          <Avatar
+            alt={userName}
+            src={userName}
+            sx={{ width: 50, height: 50 }}
+          />
           <Stack
-            gap={3}
-            direction={"row"}
-            alignItems={"center"}
-          >
-            <Avatar
-              alt={userName}
-              src={userName}
-              sx={{ width: 100, height: 100 }}
-            />
-            <Stack
-              gap={1}
-              direction={"column"}
-            >
-              <Typography
-                variant="h4"
-                sx={styles.avatarText}
-              >
-                {userName}
-              </Typography>
-              <Stack
-                gap={1}
-                direction={"row"}
-              >
-                <Typography
-                  variant="subtitle1"
-                  sx={styles.avatarText}
-                >
-                  {selectedRole?.data?.behaviorHealthRole}
-                </Typography>
-                <Typography
-                  variant="subtitle1"
-                  sx={styles.avatarText}
-                >
-                  |
-                </Typography>
-                <Typography
-                  variant="subtitle1"
-                  sx={styles.avatarText}
-                >
-                  {selectedRole?.data?.organizationName}
-                </Typography>
-              </Stack>
-            </Stack>
-          </Stack>
-          <Button
-            variant="contained"
-            size="medium"
-            endIcon={<LogoutRounded />}
-            onClick={logout}
-          >
-            Logout
-          </Button>
-        </Stack>
-        <Card sx={styles.card}>
-          <Stack
-            gap={2.5}
+            gap={1}
             direction={"column"}
           >
             <Typography
-              variant="h5"
+              variant="h6"
+              sx={styles.avatarText}
+            >
+              {userName}
+            </Typography>
+            <Stack
+              gap={1}
+              direction={"row"}
+            >
+              <Typography
+                variant="body1"
+                sx={styles.avatarText}
+              >
+                {selectedRole?.data?.behaviorHealthRole}
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={styles.avatarText}
+              >
+                |
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={styles.avatarText}
+              >
+                {selectedRole?.data?.organizationName}
+              </Typography>
+            </Stack>
+          </Stack>
+        </Stack>
+        <Stack
+          alignItems={"stretch"}
+          gap={1}
+        >
+          <RoleSelect
+            selectedRole={selectedRole.data}
+            assignedRoles={assignedRoles.data || []}
+          />
+          <TimezoneSelect />
+        </Stack>
+        <Card sx={styles.card}>
+          <Stack
+            gap={1.5}
+            direction={"column"}
+          >
+            <Typography
+              variant="subtitle2"
               sx={styles.widgetTitle}
             >
               Personal Information
@@ -122,13 +127,13 @@ const Profile: React.FC = (): React.ReactNode => {
             >
               <Stack>
                 <Typography
-                  variant="subtitle1"
+                  variant="subtitle2"
                   sx={styles.infoLabel}
                 >
                   First Name
                 </Typography>
                 <Typography
-                  variant="subtitle1"
+                  variant="body1"
                   sx={styles.infoValue}
                 >
                   {userProfileInfo?.data?.firstName}
@@ -136,13 +141,13 @@ const Profile: React.FC = (): React.ReactNode => {
               </Stack>
               <Stack>
                 <Typography
-                  variant="subtitle1"
+                  variant="subtitle2"
                   sx={styles.infoLabel}
                 >
                   Last Name
                 </Typography>
                 <Typography
-                  variant="subtitle1"
+                  variant="body1"
                   sx={styles.infoValue}
                 >
                   {userProfileInfo?.data?.lastName}
@@ -155,13 +160,13 @@ const Profile: React.FC = (): React.ReactNode => {
             >
               <Stack>
                 <Typography
-                  variant="subtitle1"
+                  variant="subtitle2"
                   sx={styles.infoLabel}
                 >
                   Email
                 </Typography>
                 <Typography
-                  variant="subtitle1"
+                  variant="body1"
                   sx={styles.infoValue}
                 >
                   {userProfileInfo?.data?.email || "-"}
@@ -169,13 +174,13 @@ const Profile: React.FC = (): React.ReactNode => {
               </Stack>
               <Stack>
                 <Typography
-                  variant="subtitle1"
+                  variant="subtitle2"
                   sx={styles.infoLabel}
                 >
                   Phone
                 </Typography>
                 <Typography
-                  variant="subtitle1"
+                  variant="body1"
                   sx={styles.infoValue}
                 >
                   {userProfileInfo?.data?.phoneNumber || "-"}
@@ -186,17 +191,17 @@ const Profile: React.FC = (): React.ReactNode => {
         </Card>
         <Card sx={styles.card}>
           <Stack
-            gap={2.5}
+            gap={1.5}
             direction={"column"}
           >
             <Typography
-              variant="h5"
+              variant="subtitle2"
               sx={styles.widgetTitle}
             >
               Your Clinics
             </Typography>
             <Divider />
-            {userAssignedRoles?.data?.map(role => {
+            {assignedRoles?.data?.map(role => {
               return (
                 <Stack
                   direction={"row"}
@@ -205,13 +210,13 @@ const Profile: React.FC = (): React.ReactNode => {
                 >
                   <Stack>
                     <Typography
-                      variant="subtitle1"
+                      variant="subtitle2"
                       sx={styles.infoLabel}
                     >
                       Clinic Name
                     </Typography>
                     <Typography
-                      variant="subtitle1"
+                      variant="body1"
                       sx={styles.infoValue}
                     >
                       {role.organizationName}
@@ -219,7 +224,7 @@ const Profile: React.FC = (): React.ReactNode => {
                   </Stack>
                   <Stack>
                     <Typography
-                      variant="subtitle1"
+                      variant="subtitle2"
                       sx={styles.infoLabel}
                     >
                       Roles
@@ -231,7 +236,7 @@ const Profile: React.FC = (): React.ReactNode => {
                       {role.roles.map((role, index) => (
                         <Typography
                           key={index}
-                          variant="subtitle1"
+                          variant="body1"
                           sx={styles.infoValue}
                         >
                           {role.behaviorHealthRole}
@@ -244,8 +249,16 @@ const Profile: React.FC = (): React.ReactNode => {
             })}
           </Stack>
         </Card>
+        <Button
+          variant="contained"
+          size="medium"
+          endIcon={<LogoutRounded />}
+          onClick={logout}
+        >
+          Logout
+        </Button>
       </Box>
-    </div>
+    </Box>
   );
 };
 

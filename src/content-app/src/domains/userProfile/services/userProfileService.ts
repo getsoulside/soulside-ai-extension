@@ -1,4 +1,4 @@
-import { addLocalStorage, saveCookie } from "@/utils/storage";
+import { addLocalStorage } from "@/utils/storage";
 import { TimeZone } from "../models";
 import { PractitionerRole } from "@/domains/practitionerRole/models";
 import { BusinessFunction } from "@/domains/practitionerRole/models";
@@ -13,7 +13,7 @@ import {
 import moment from "moment-timezone";
 import LOCAL_STORAGE_KEYS from "@/constants/localStorageKeys";
 
-export const selectPractitionerRole = (selectedRole: PractitionerRole | null) => {
+export const selectPractitionerRole = async (selectedRole: PractitionerRole | null) => {
   const navigate = getNavigateFunction();
   navigate("/", { replace: true });
   store.dispatch(toggleUserProfileLoading(true));
@@ -22,9 +22,7 @@ export const selectPractitionerRole = (selectedRole: PractitionerRole | null) =>
   setTimeout(() => {
     store.dispatch(toggleUserProfileLoading(false));
   }, 1000);
-  addLocalStorage(LOCAL_STORAGE_KEYS.SELECTED_PRACTITIONER_ROLE, selectedRole);
-  saveCookie(LOCAL_STORAGE_KEYS.SELECTED_PRACTITIONER_ROLE, selectedRole?.id || "");
-  saveCookie(LOCAL_STORAGE_KEYS.SELECTED_ORGANIZATION, selectedRole?.organizationId || "");
+  await addLocalStorage(LOCAL_STORAGE_KEYS.SELECTED_PRACTITIONER_ROLE, selectedRole);
 };
 
 export const businessFunctions: {
@@ -281,15 +279,14 @@ export const roleBusinessFunctionMapping = (role: string): BusinessFunction | nu
   return businessFunction;
 };
 
-export const selectTimezone = (timezone: TimeZone) => {
+export const selectTimezone = async (timezone: TimeZone) => {
   store.dispatch(toggleUserProfileLoading(true));
   store.dispatch(addSelectedTimezone(timezone));
   setTimeout(() => {
     store.dispatch(toggleUserProfileLoading(false));
   }, 1000);
-  addLocalStorage(LOCAL_STORAGE_KEYS.SELECTED_TIMEZONE, timezone);
-  saveCookie(LOCAL_STORAGE_KEYS.SELECTED_TIMEZONE, timezone?.name || "");
   moment.tz.setDefault(timezone?.name || "America/Chicago");
+  await addLocalStorage(LOCAL_STORAGE_KEYS.SELECTED_TIMEZONE, timezone);
 };
 
 export const setCurrentPageTitle = (title: string) => {

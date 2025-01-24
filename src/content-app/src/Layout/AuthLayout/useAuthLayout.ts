@@ -4,12 +4,13 @@ import { getCookie } from "@/utils/storage";
 
 const useAuthLayout = () => {
   const navigate = useNavigateFunction();
-  useEffect(() => {
-    let authtoken = getCookie("authtoken");
-    if (authtoken) {
-      navigate("/", { replace: true });
-    }
-  }, []);
+  // useEffect(() => {
+  //   const
+  //   let authtoken = getCookie("authtoken");
+  //   if (authtoken) {
+  //     navigate("/", { replace: true });
+  //   }
+  // }, []);
   return {};
 };
 

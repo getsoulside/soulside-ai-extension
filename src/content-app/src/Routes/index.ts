@@ -4,5 +4,6 @@ import Signup from "./Signup";
 
 import Appointments from "./Appointments";
 import Profile from "./Profile";
+import SessionDetails from "./SessionDetails";
 
-export { Login, ResetPassword, Signup, Appointments, Profile };
+export { Login, ResetPassword, Signup, Appointments, Profile, SessionDetails };

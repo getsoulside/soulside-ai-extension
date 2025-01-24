@@ -5,13 +5,15 @@ import { roleBusinessFunctionMapping } from "./userProfileService";
 
 export const getUserInfo = async (): Promise<User> => {
   const url = "practitioner-role/profile/info";
-  const response = await httpClient.get(url, { headers: { apiId: "getUserInfo" } });
+  const response: any = await httpClient.get(url, { headers: { apiId: "getUserInfo" } });
   return response.data;
 };
 
 export const getUserAssignedRoles = async (): Promise<UserAssignedRole[]> => {
   const url = `practitioner-role/find-all-practitioner-roles`;
-  const response = await httpClient.get(url, { headers: { apiId: "getUserAssignedRoles" } });
+  const response: any = await httpClient.get(url, {
+    headers: { apiId: "getUserAssignedRoles" } as any,
+  });
   let data: UserAssignedRole[] = [];
   if (response?.data) {
     let practitionerRoles: PractitionerRole[] = response.data;
@@ -26,14 +28,18 @@ export const getUserAssignedRoles = async (): Promise<UserAssignedRole[]> => {
             roles: [
               {
                 ...role,
-                businessFunction: roleBusinessFunctionMapping(role.behaviorHealthRole),
+                businessFunction: role.behaviorHealthRole
+                  ? roleBusinessFunctionMapping(role.behaviorHealthRole)
+                  : null,
               },
             ],
           });
         } else {
           acc[orgIndex].roles.push({
             ...role,
-            businessFunction: roleBusinessFunctionMapping(role.behaviorHealthRole),
+            businessFunction: role.behaviorHealthRole
+              ? roleBusinessFunctionMapping(role.behaviorHealthRole)
+              : null,
           });
         }
         return acc;

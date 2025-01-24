@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "origin",
+          "operation": "remove"
+        }
+      ]
+    },
+    "condition": {
+      "urlFilter": "https://*.soulsidehealth.com/*",
+      "requestHeaders": [{ "header": "Background-Script", "operation": "equals", "value": "true" }],
+      "resourceTypes": ["xmlhttprequest"]
+    }
+  }
+]
