@@ -50,7 +50,7 @@ const SoulsideExtensionButton = () => {
           right: "0px",
           top: "10vh",
           zIndex: 2000000,
-          padding: "15px",
+          padding: "10px",
           backgroundColor: theme.palette.primary.main,
           borderRadius: "12px",
           borderTopRightRadius: "0",
@@ -84,13 +84,13 @@ const SoulsideExtensionDrawer = () => {
               element: (
                 <Navigate
                   to={"/appointments"}
-                  // to="/session-details/INDIVIDUAL/VIRTUAL/1742cffe-eb90-4f2b-8dfe-5894deba85a4/b7a44209-fef5-4a7a-becd-867b651f06a5"
+                  // to="/session-details/INDIVIDUAL/VIRTUAL/1742cffe-eb90-4f2b-8dfe-5894deba85a4"
                   replace
                 />
               ),
             },
             {
-              path: "/session-details/:sessionCategory/:modeOfDelivery/:sessionId/:patientId",
+              path: "/session-details/:sessionCategory/:modeOfDelivery/:sessionId",
               element: <SessionDetails />,
             },
             {

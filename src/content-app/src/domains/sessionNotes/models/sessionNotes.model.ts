@@ -7,7 +7,7 @@ import {
 import FollowUpAssessmentNotes, {
   FollowUpAssessmentNotesValue,
 } from "./sessionNotes.follow_up_assessment.types";
-import IntakeAssessmentNotes from "./sessionNotes.intake.types";
+import { IntakeAssessmentNotes } from "./sessionNotes.intake.types";
 
 export interface SessionNotes {
   id: UUIDString | null;

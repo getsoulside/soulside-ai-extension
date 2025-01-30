@@ -4,7 +4,6 @@ import type { PickerComponents } from "@mui/x-date-pickers/themeAugmentation";
 import { pickersYearClasses, pickersMonthClasses, pickersDayClasses } from "@mui/x-date-pickers";
 import { menuItemClasses } from "@mui/material/MenuItem";
 import { brand } from "../themePrimitives";
-import { buttonClasses } from "@mui/material";
 
 /* eslint-disable import/prefer-default-export */
 export const datePickersCustomizations: PickersProComponents<Theme> & PickerComponents<Theme> = {

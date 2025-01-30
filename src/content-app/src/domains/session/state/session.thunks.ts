@@ -27,7 +27,7 @@ import {
   SessionNotesStatus,
 } from "../models";
 import { BusinessFunction } from "@/domains/practitionerRole";
-import { getSessionNotes } from "@/domains/sessionNotes";
+import { getSessionNotesBySessionId } from "@/domains/sessionNotes";
 import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNotes.types";
 
 export const loadSessions =
@@ -176,8 +176,8 @@ export const loadSessionNotesStatus =
       }
       dispatch(toggleSessionNotesStatusData({ sessionId: session.id, show: true }));
       try {
-        let sessionNotes = await getSessionNotes(session);
-        sessionNotes = sessionNotes.sort((a, b) => {
+        let sessionNotes = await getSessionNotesBySessionId(session.id);
+        sessionNotes = sessionNotes?.sort((a, b) => {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
         const jsonSoapNote = sessionNotes?.[0]?.jsonSoapNote;

@@ -1,99 +1,80 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { IndividualSession, ModeOfDelivery, SessionCategory } from "@/domains/session";
-import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNotes.types";
+import {
+  IndividualSession,
+  ModeOfDelivery,
+  SessionCategory,
+  SoulsideSession,
+} from "@/domains/session";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
-import { loadSessionDetails, loadSessionTranscript } from "@/domains/sessionNotes";
-import { Box, Link, Stack, Typography, Tabs, Tab, Avatar } from "@mui/material";
+import { Box, Link, Stack, Typography, Tab, Avatar, IconButton, Tooltip } from "@mui/material";
+import { ArrowBack, OpenInNew } from "@mui/icons-material";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { Link as NavLink } from "react-router-dom";
 import Loader from "@/components/Loader";
 import { getFormattedDateTime } from "@/utils/date";
-import Transcript from "./components/Transcript";
-import SoapNotesTemplate from "./components/SoapNotesTemplate";
-
-const defaultData = {
-  sessionDetails: {
-    data: null,
-    loading: false,
-  },
-  memberNotes: {
-    data: {},
-    loading: false,
-    updateLoading: false,
-  },
-  soapNotes: {
-    [SessionNotesTemplates.DEFAULT_SOAP]: "",
-    notesId: "",
-    loading: false,
-    soapNotesJson: null,
-  },
-  narrative: {
-    data: "",
-    loading: false,
-  },
-  bhPredictions: {
-    data: null,
-    notesId: "",
-    loading: false,
-  },
-  sessionTranscript: {
-    data: [],
-    loading: false,
-  },
-  treatmentPlan: {
-    data: null,
-    loading: false,
-  },
-  speakerProfileEnrollment: {
-    loading: false,
-    data: [],
-  },
-  speakerRecognition: {
-    loading: false,
-    data: {},
-  },
-  saveSpeakerMappingLoading: false,
-  sessionDetailsData: {},
-};
+import { loadProviderSessions, loadTranscript, loadSessionDetails } from "@/domains/meeting";
+import { loadSessionNotes } from "@/domains/sessionNotes";
+import SessionNotes from "./components/SessionNotes";
+import SessionTranscript from "./components/SessionTranscript";
+import { PLATFORM_URL } from "@/constants/envVariables";
 
 const SessionDetails: React.FC = (): React.ReactNode => {
   const dispatch: AppDispatch = useDispatch();
   const { sessionId } = useParams<{ sessionId: string }>();
-  // const { patientId } = useParams<{ patientId: string }>();
   const { sessionCategory } = useParams<{ sessionCategory: SessionCategory }>();
-  // const { modeOfDelivery } = useParams<{ modeOfDelivery: ModeOfDelivery }>();
-  const sessionNotes = useSelector((state: RootState) => state.sessionNotes);
-  if (!sessionId) return <></>;
-  const {
-    soapNotes = defaultData.soapNotes,
-    sessionTranscript = defaultData.sessionTranscript,
-    sessionDetails = defaultData.sessionDetails,
-  } = sessionNotes.sessionDetailsData?.[sessionId || ""] || {};
-  console.log(sessionNotes.sessionDetailsData?.[sessionId || ""]);
-  const getData = async () => {
-    dispatch(loadSessionDetails(sessionId, sessionCategory as SessionCategory));
-    const triggerTime = new Date();
-    dispatch(loadSessionTranscript(sessionId, sessionCategory as SessionCategory, triggerTime));
-    // props.getSessionMemberNotes({ sessionId, patientId, groupId: patientId });
-  };
+  const { modeOfDelivery } = useParams<{ modeOfDelivery: string }>();
+  if (!sessionId || !sessionCategory) return <></>;
+  const sessionDetails = useSelector((state: RootState) => state.meeting.sessionDetails[sessionId]);
+  const providerSessions = useSelector(
+    (state: RootState) => state.meeting.providerSessions[sessionId]
+  );
+  const transcriptData = useSelector((state: RootState) => state.meeting.transcript[sessionId]);
   useEffect(() => {
-    getData();
+    dispatch(loadSessionDetails(sessionId, sessionCategory as SessionCategory));
+    dispatch(loadProviderSessions(sessionId, sessionCategory as SessionCategory));
+    dispatch(loadSessionNotes(sessionId));
   }, [sessionId]);
+  useEffect(() => {
+    if (providerSessions?.data.length > 0) {
+      providerSessions?.data.forEach(providerSession => {
+        if (
+          providerSession.id &&
+          !transcriptData?.[providerSession.id]?.loading &&
+          (!transcriptData?.[providerSession.id]?.data ||
+            transcriptData?.[providerSession.id]?.data?.length === 0)
+        ) {
+          dispatch(loadTranscript(providerSession));
+        }
+      });
+    }
+  }, [providerSessions?.data]);
   const [activeTab, setActiveTab] = useState("notes");
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     setActiveTab(newValue);
   };
 
-  const patientName = sessionDetails.data
+  const patientName = sessionDetails?.data
     ? `${(sessionDetails.data as IndividualSession).patientFirstName} ${
         (sessionDetails.data as IndividualSession).patientLastName
       }`
     : "";
+  const groupName = (sessionDetails?.data as SoulsideSession)?.groupName || "";
+  const transcriptLoading = Object.keys(transcriptData || {}).reduce((acc, providerSessionId) => {
+    return acc && transcriptData[providerSessionId]?.loading;
+  }, Object.keys(transcriptData || {}).length > 0);
+  const soulsidePlatformUrl = `${PLATFORM_URL}/session-details/${
+    sessionCategory === SessionCategory.INDIVIDUAL ? "individual" : "group"
+  }/${modeOfDelivery === ModeOfDelivery.IN_PERSON ? "in-person" : "virtual"}/${sessionId}/${
+    sessionCategory === SessionCategory.INDIVIDUAL
+      ? (sessionDetails?.data as IndividualSession)?.patientId
+      : (sessionDetails?.data as SoulsideSession)?.groupId
+  }`;
+  const loading = sessionDetails?.loading || providerSessions?.loading || transcriptLoading;
   return (
     <Box
       sx={{
@@ -104,12 +85,19 @@ const SessionDetails: React.FC = (): React.ReactNode => {
         overflow: "auto",
       }}
     >
-      <Loader loading={sessionTranscript.loading || sessionDetails.loading}>
+      <Loader loading={loading}>
         <Link
           component={NavLink}
-          to={`/appointments`}
-          sx={{ fontSize: "0.85rem", fontWeight: "regular" }}
+          to="/appointments"
+          sx={{
+            fontSize: "0.75rem",
+            fontWeight: "semi-bold",
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+          }}
         >
+          <ArrowBack sx={{ fontSize: "0.75rem" }} />
           Back to Appointments
         </Link>
         <Stack
@@ -126,18 +114,39 @@ const SessionDetails: React.FC = (): React.ReactNode => {
             alignItems={"center"}
           >
             <Avatar
-              alt={patientName}
-              src={patientName}
+              alt={sessionCategory === SessionCategory.INDIVIDUAL ? patientName : groupName}
+              src={sessionCategory === SessionCategory.INDIVIDUAL ? patientName : groupName}
               sx={{ width: 30, height: 30 }}
             />
-            <Typography variant={"subtitle2"}>{patientName}</Typography>
+            <Typography variant={"subtitle2"}>
+              {sessionCategory === SessionCategory.INDIVIDUAL ? patientName : groupName}
+            </Typography>
+            <Tooltip title="Open on Soulside Platform">
+              <IconButton
+                component="a"
+                href={soulsidePlatformUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <OpenInNew sx={{ fontSize: "0.8rem", color: "primary.main" }} />
+              </IconButton>
+            </Tooltip>
           </Stack>
-
           <Typography variant={"subtitle2"}>
             {getFormattedDateTime(sessionDetails?.data?.startTime || null, "MMM DD, h:mm A")}
           </Typography>
         </Stack>
-        <Box sx={{ width: "100%", flex: 1, display: "flex", flexDirection: "column", mt: 2 }}>
+        <Box
+          sx={{
+            width: "100%",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            mt: 1,
+            maxHeight: "100%",
+            overflow: "auto",
+          }}
+        >
           <TabContext value={activeTab}>
             <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
               <TabList
@@ -156,22 +165,26 @@ const SessionDetails: React.FC = (): React.ReactNode => {
             </Box>
             <TabPanel
               value="notes"
-              sx={{ p: 1 }}
+              sx={{
+                p: 1,
+                maxHeight: "100%",
+                overflow: "auto",
+              }}
             >
-              <SoapNotesTemplate
-                data={soapNotes.soapNotesJson}
-                sessionData={sessionDetails.data}
-              />
+              <SessionNotes session={sessionDetails?.data} />
             </TabPanel>
             <TabPanel
               value="transcript"
-              sx={{ p: 1 }}
+              sx={{
+                p: 1,
+                maxHeight: "100%",
+                overflow: "auto",
+              }}
             >
-              <Transcript
-                {...sessionTranscript}
-                sessionId={sessionId}
-                sessionCategory={sessionCategory}
-                sessionData={sessionDetails.data}
+              <SessionTranscript
+                session={sessionDetails?.data}
+                transcriptData={transcriptData}
+                providerSessionsData={providerSessions?.data}
               />
             </TabPanel>
           </TabContext>

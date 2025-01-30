@@ -1,4 +1,6 @@
-const useSoapNotesData = (props: any) => {
+import { FollowUpAssessmentProps } from "./FollowUpAssessment";
+
+const useFollowUpAssessment = ({ notesData }: FollowUpAssessmentProps): any => {
   const subjectiveOrder = [
     "chief_complaint",
     "appetite",
@@ -36,11 +38,13 @@ const useSoapNotesData = (props: any) => {
 
   const planOrder = ["follow_up_plans", "homework_assignments"];
 
-  const subjectiveData = props.data?.subjective || props.data?.Subjective || null;
-  const objectiveData = props.data?.objective || props.data?.Objective || null;
-  const assessmentData = props.data?.assessment || props.data?.Assessment || null;
-  const planData = props.data?.plan || props.data?.Plan || null;
-  const notesData = [
+  const jsonSoapNotes = notesData?.jsonSoapNote;
+
+  const subjectiveData = jsonSoapNotes?.subjective || jsonSoapNotes?.Subjective || null;
+  const objectiveData = jsonSoapNotes?.objective || jsonSoapNotes?.Objective || null;
+  const assessmentData = jsonSoapNotes?.assessment || jsonSoapNotes?.Assessment || null;
+  const planData = jsonSoapNotes?.plan || jsonSoapNotes?.Plan || null;
+  const followUpNotesData = [
     {
       label: "Subjective",
       data: subjectiveData,
@@ -82,18 +86,7 @@ const useSoapNotesData = (props: any) => {
 
     return 0;
   };
-  return { notesData, sortSections };
+  return { followUpNotesData, sortSections };
 };
 
-export default useSoapNotesData;
-
-export const convertToTitleCase = (str: string) => {
-  return str
-    .split("_") // Split the string by underscores
-    .map(
-      (
-        word // Map over each word
-      ) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() // Capitalize the first letter and make the rest lowercase
-    )
-    .join(" "); // Join the words back with spaces
-};
+export default useFollowUpAssessment;

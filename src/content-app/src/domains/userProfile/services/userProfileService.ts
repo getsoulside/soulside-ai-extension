@@ -9,8 +9,9 @@ import {
   addSelectedUserRole,
   toggleUserProfileLoading,
   addCurrentPageTitle,
+  setSessionListSelectedDate,
 } from "../state/userProfile.slice";
-import moment from "moment-timezone";
+import moment, { Moment } from "moment-timezone";
 import LOCAL_STORAGE_KEYS from "@/constants/localStorageKeys";
 
 export const selectPractitionerRole = async (selectedRole: PractitionerRole | null) => {
@@ -291,4 +292,8 @@ export const selectTimezone = async (timezone: TimeZone) => {
 
 export const setCurrentPageTitle = (title: string) => {
   store.dispatch(addCurrentPageTitle(title));
+};
+
+export const selectSessionListDate = (date: Moment | null) => {
+  store.dispatch(setSessionListSelectedDate(date ? date.toISOString() : null));
 };

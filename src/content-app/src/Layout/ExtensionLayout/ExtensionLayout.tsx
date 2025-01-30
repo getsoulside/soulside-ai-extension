@@ -7,14 +7,16 @@ import SoulsideLogo from "@/assets/soulside-logo.svg?raw";
 const ExtensionLayout: React.FC = (): React.ReactNode => {
   return (
     <Box
-      sx={{
+      sx={theme => ({
         flex: 1,
         display: "flex",
         flexDirection: "column",
         gap: 2,
         maxHeight: "100%",
         overflow: "auto",
-      }}
+        fontFamily: theme.typography.fontFamily,
+        p: 1,
+      })}
     >
       <DrawerToolbar />
       <Paper

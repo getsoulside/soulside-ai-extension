@@ -96,7 +96,7 @@ export const dataDisplayCustomizations: Components<Theme> = {
   },
   MuiListItemIcon: {
     styleOverrides: {
-      root: ({ theme }) => ({
+      root: () => ({
         minWidth: 0,
       }),
     },

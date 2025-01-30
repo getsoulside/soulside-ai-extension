@@ -71,7 +71,7 @@ interface EducationalAndEmploymentHistory {
   explanation?: string;
 }
 
-export default interface IntakeAssessmentNotes {
+export interface IntakeAssessmentNotes {
   intakeHPINote: string;
   Behavioral_Health_Screening: BehavioralHealthScreening;
   Risk_Screening_Tables: RiskScreeningTables;

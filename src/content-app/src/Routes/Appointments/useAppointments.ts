@@ -6,7 +6,6 @@ import {
 } from "@/domains/practitionerRole";
 import {
   IndividualSession,
-  loadSessionNotesStatus,
   loadSessions,
   SessionCategory,
   SoulsideSession,
@@ -14,13 +13,12 @@ import {
 import { RootState, AppDispatch } from "@/store";
 import { getDateTime } from "@/utils/date";
 import { addLocalStorage, getLocalStorage } from "@/utils/storage";
-import { Moment } from "moment";
+import moment from "moment-timezone";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 const useAppointments = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<Moment | null>(getDateTime());
   const [selectedProviders, setSelectedProviders] = useState<PractitionerRole[]>([]);
   useEffect(() => {
     const getSelectedProvidersFromLocalStorage = async () => {
@@ -38,9 +36,13 @@ const useAppointments = () => {
   const dispatch: AppDispatch = useDispatch();
   const session = useSelector((state: RootState) => state.session);
   const selectedRole = useSelector((state: RootState) => state.userProfile.selectedRole);
+  const sessionListSelectedDate = useSelector(
+    (state: RootState) => state.userProfile.sessionListSelectedDate
+  );
+  const selectedDate = sessionListSelectedDate ? moment(sessionListSelectedDate) : null;
   useEffect(() => {
     getSessionsList();
-  }, [dispatch, selectedDate]);
+  }, [dispatch, sessionListSelectedDate]);
   const orgPractitionersRoles = useSelector(
     (state: RootState) => state.practitionerRole.orgPractitionersRoles
   );
@@ -115,21 +117,8 @@ const useAppointments = () => {
       }
     });
     return data;
-  }, [session.sessionsList.data, selectedDate, selectedProviders, searchTerm]);
+  }, [session.sessionsList.data, sessionListSelectedDate, selectedProviders, searchTerm]);
 
-  const sessionNotesStatus = useSelector((state: RootState) => state.session.sessionNotesStatus);
-  useEffect(() => {
-    if (sessionsList?.length > 0) {
-      sessionsList.forEach(async session => {
-        if (session.id) {
-          const notesExists = sessionNotesStatus.data[session.id]?.notesExists;
-          if (session.id && !notesExists && !sessionNotesStatus.loading[session.id]) {
-            // await dispatch(loadSessionNotesStatus(session));
-          }
-        }
-      });
-    }
-  }, [sessionsList]);
   const sessionsListLoading = session.sessionsList.loading;
   return {
     sessionsList,
@@ -137,7 +126,6 @@ const useAppointments = () => {
     searchTerm,
     setSearchTerm,
     selectedDate,
-    setSelectedDate,
     getSessionsList,
     selectedProviders,
     setSelectedProviders,

@@ -61,23 +61,26 @@ class HttpClient {
     }
 
     const requestKey = this.getRequestKey(config);
-    if (this.pendingRequests.has(requestKey)) {
-      const cancelTokenSource = this.pendingRequests.get(requestKey);
-      cancelTokenSource?.cancel("Duplicate request canceled");
+    if (requestKey) {
+      if (this.pendingRequests.has(requestKey)) {
+        const cancelTokenSource = this.pendingRequests.get(requestKey);
+        cancelTokenSource?.cancel("Duplicate request canceled");
+      }
+
+      const cancelTokenSource = axios.CancelToken.source();
+      config.cancelToken = cancelTokenSource.token;
+      this.pendingRequests.set(requestKey, cancelTokenSource);
     }
-
-    const cancelTokenSource = axios.CancelToken.source();
-    config.cancelToken = cancelTokenSource.token;
-    this.pendingRequests.set(requestKey, cancelTokenSource);
-
-    config.headers["Background-Script"] = "true";
+    // config.headers["Background-Script"] = "true";
 
     return config;
   }
 
   private handleResponse(response: any): any {
     const requestKey = this.getRequestKey(response.config);
-    this.pendingRequests.delete(requestKey);
+    if (requestKey) {
+      this.pendingRequests.delete(requestKey);
+    }
     return response;
   }
 
@@ -87,7 +90,9 @@ class HttpClient {
     } else {
       if (error && error.response && error.response.status) {
         const requestKey = this.getRequestKey(error.config);
-        this.pendingRequests.delete(requestKey);
+        if (requestKey) {
+          this.pendingRequests.delete(requestKey);
+        }
       }
     }
     if (error && error.response && error.response.status) {
@@ -151,7 +156,7 @@ class RawHttpClient {
   }
 
   private handleRequest(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
-    config.headers["Background-Script"] = "true";
+    // config.headers["Background-Script"] = "true";
     return config;
   }
 

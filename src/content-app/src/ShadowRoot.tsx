@@ -21,6 +21,18 @@ const ShadowRootHost: React.FC<ShadowRootHostProps> = ({ children }) => {
     const shadowRoot =
       shadowHostRef.current.shadowRoot || shadowHostRef.current.attachShadow({ mode: "open" });
 
+    const style = document.createElement("style");
+    style.textContent = `
+      :host {
+        font-size: 14px !important;
+      }
+      *, *::before, *::after {
+        font-size: inherit !important;
+      }
+    `;
+
+    shadowRoot.appendChild(style);
+
     // Create or reuse container
     let container = shadowRoot.getElementById("soulside-shadow-root-container") as HTMLDivElement;
     if (!container) {

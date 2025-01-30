@@ -3,9 +3,9 @@ import { AppDispatch, RootState } from "@/store";
 import {
   CalendarMonthRounded,
   CloseRounded,
-  GroupsRounded,
+  // GroupsRounded,
   HomeRounded,
-  PeopleRounded,
+  // PeopleRounded,
   PersonRounded,
 } from "@mui/icons-material";
 import { IconButton as MuiIconButton, Paper, Stack, styled, Tooltip } from "@mui/material";
@@ -43,7 +43,7 @@ const DrawerToolbar = () => {
               Icon={CalendarMonthRounded}
             />
           </NavLink>
-          <NavLink to={"/"}>
+          {/* <NavLink to={"/"}>
             <DrawerToolbarOption
               title="Patients"
               Icon={PeopleRounded}
@@ -54,7 +54,7 @@ const DrawerToolbar = () => {
               title="Groups"
               Icon={GroupsRounded}
             />
-          </NavLink>
+          </NavLink> */}
         </Stack>
       ) : (
         <Stack

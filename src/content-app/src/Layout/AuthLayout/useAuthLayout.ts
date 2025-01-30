@@ -1,17 +1,8 @@
-import { useEffect } from "react";
 import { useNavigateFunction } from "@/hooks/useNavigate";
-import { getCookie } from "@/utils/storage";
 
 const useAuthLayout = () => {
   const navigate = useNavigateFunction();
-  // useEffect(() => {
-  //   const
-  //   let authtoken = getCookie("authtoken");
-  //   if (authtoken) {
-  //     navigate("/", { replace: true });
-  //   }
-  // }, []);
-  return {};
+  return { navigate };
 };
 
 export default useAuthLayout;

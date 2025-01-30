@@ -1,5 +1,3 @@
-import { getCookie } from "../background/utils/storage";
-
 const injectReactApp = () => {
   const rootDivId = "soulside-extension-root";
 
@@ -11,12 +9,50 @@ const injectReactApp = () => {
     document.body.appendChild(rootDiv);
   }
 
-  // Load React's main script
+  //get chrome tab id
+  // chrome.runtime.sendMessage({ action: "getCurrentTab" }, tab => {
+  //   chrome.scripting.executeScript({
+  //     target: { tabId: tab.id },
+  //     files: ["../../extension-build/scripts/content-app/index.bundle.js"],
+  //   });
+  // });
+
+  //execute the content-app script from '../../extension-build/scripts/content-app/index.bundle.js'
+  // const contentAppScript = document.createElement("script");
+  // contentAppScript.src = "../../extension-build/scripts/content-app/index.bundle.js";
+  // contentAppScript.type = "module";
+  // contentAppScript.async = true;
+  // contentAppScript.crossOrigin = "anonymous";
+  // document.body.appendChild(contentAppScript);
+
+  const scriptUrl = "http://localhost:5174";
+
+  //add a iframe to the tab for the scriptUrl
+  // const iframe = document.createElement("iframe");
+  // iframe.src = scriptUrl;
+  // iframe.style.width = "100%";
+  // iframe.style.height = "100%";
+  // iframe.style.border = "none";
+  // document.body.appendChild(iframe);
+
+  // Load React's main script from development server with CORS headers
   const script = document.createElement("script");
   script.src = "http://localhost:5174/src/main.tsx";
+  // script.src = "https://test-2.tiiny.site/assets/index-BazmBGmp.js";
   script.type = "module";
   script.async = true;
+  script.crossOrigin = "anonymous"; // Add CORS support
   document.body.appendChild(script);
+
+  // fetch("http://localhost:5174/src/main.tsx")
+  //   .then(response => response.text())
+  //   .then(scriptText => {
+  //     const scriptElement = document.createElement("script");
+  //     scriptElement.textContent = scriptText;
+  //     scriptElement.nonce = "randomNonce123";
+  //     document.body.appendChild(scriptElement);
+  //   })
+  //   .catch(err => console.error("Script loading failed:", err));
 };
 
 chrome.runtime.sendMessage({ action: "getCookie", key: "authtoken" }, response => {
@@ -83,6 +119,21 @@ window.addEventListener("message", async event => {
         );
       }
     );
+  }
+
+  if (event.data.type === "SOULSIDE_PARSE_PDF") {
+    const { pdfUrl, requestId } = event.data;
+    chrome.runtime.sendMessage({ action: "parseCsv", pdfUrl }, response => {
+      window.postMessage(
+        {
+          type: "SOULSIDE_PARSE_PDF_RESULT",
+          requestId,
+          value: response.value,
+          success: response.success,
+        },
+        "*"
+      );
+    });
   }
 });
 

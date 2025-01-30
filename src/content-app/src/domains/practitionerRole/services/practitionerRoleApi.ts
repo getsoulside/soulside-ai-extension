@@ -14,7 +14,7 @@ export const getPractitionerRolesByOrgId = async (
     response.data?.map((practitionerRole: PractitionerRole) => {
       return {
         ...practitionerRole,
-        businessFunction: roleBusinessFunctionMapping(practitionerRole.behaviorHealthRole),
+        businessFunction: roleBusinessFunctionMapping(practitionerRole.behaviorHealthRole || ""),
       };
     }) || [];
   return data;

@@ -9,6 +9,7 @@ import AppointmentsList from "./components/AppointmentsList/AppointmentsList";
 import { SyncRounded } from "@mui/icons-material";
 import { Box, Chip, IconButton, Stack, Tooltip } from "@mui/material";
 import { BusinessFunction, PractitionerRole } from "@/domains/practitionerRole";
+import { selectSessionListDate } from "@/domains/userProfile";
 
 const Appointments: React.FC = (): React.ReactNode => {
   const {
@@ -16,7 +17,6 @@ const Appointments: React.FC = (): React.ReactNode => {
     sessionsListLoading,
     setSearchTerm,
     selectedDate,
-    setSelectedDate,
     getSessionsList,
     selectedProviders,
     setSelectedProviders,
@@ -56,7 +56,7 @@ const Appointments: React.FC = (): React.ReactNode => {
           />
           <DateFilter
             selectedDate={selectedDate}
-            onSelectDate={setSelectedDate}
+            onSelectDate={selectSessionListDate}
           />
         </Box>
         <Box

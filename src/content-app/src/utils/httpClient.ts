@@ -1,13 +1,6 @@
-import axios, {
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
-  CancelTokenSource,
-  InternalAxiosRequestConfig,
-} from "axios";
-import { getCookie } from "./storage";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { API_BASE_URL } from "@/constants";
-import { logout } from "@/services/auth";
+// import { logout } from "@/services/auth";
 
 class HttpClient {
   private isRawApiCall: boolean;
@@ -37,7 +30,7 @@ class HttpClient {
         if (data.type === "MAKE_SOULSIDE_API_CALL_RESULT" && data.requestId === requestId) {
           window.removeEventListener("message", handleMessage); // Clean up the listener
           if (data.success) {
-            resolve(data.value); // Resolve with the cookie value
+            resolve(data.value);
           } else {
             reject(data.value);
           }
@@ -62,8 +55,8 @@ class HttpClient {
       // Optional: Add a timeout to reject the promise if no response is received
       setTimeout(() => {
         window.removeEventListener("message", handleMessage);
-        reject("No response"); // Resolve with null if the request times out
-      }, 5000); // Adjust timeout duration as needed
+        reject("Request timed out");
+      }, 5 * 60 * 1000);
     });
   }
 

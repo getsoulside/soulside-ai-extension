@@ -3,23 +3,20 @@
   "name": "Soulside AI",
   "version": "1.0.3",
   "description": "Latest Behavioral Health AI for IOPs",
-  "permissions": [
-    "storage",
-    "activeTab",
-    "scripting",
-    "background",
-    "tabs",
-    "cookies",
-    "declarativeNetRequest"
-  ],
+  "permissions": ["storage", "activeTab", "scripting", "background", "tabs", "cookies"],
   "host_permissions": [
     "http://localhost:5173/*",
     "https://*.soulsidehealth.com/*",
     "https://*.advancedmd.com/*",
-    "https://www.soulside.ai/*"
+    "https://*.allevasoft.com/*",
+    "https://www.soulside.ai/*",
+    "https://test-2.tiiny.site/*"
   ],
   "action": {
     "default_title": "Soulside AI"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none';"
   },
   "background": {
     "service_worker": "scripts/background.bundle.js",
@@ -29,8 +26,8 @@
     {
       "matches": [
         "http://localhost:5173/*",
-        "https://*.soulsidehealth.com/*",
         "https://*.advancedmd.com/*",
+        "https://*.allevasoft.com/*",
         "https://www.soulside.ai/*"
       ],
       "js": ["scripts/content.bundle.js"],

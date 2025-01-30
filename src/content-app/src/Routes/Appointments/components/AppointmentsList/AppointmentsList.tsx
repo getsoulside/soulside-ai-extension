@@ -6,6 +6,7 @@ import {
   SoulsideSession,
   IndividualSession,
   ModeOfDelivery,
+  AppointmentType,
 } from "@/domains/session";
 import {
   Box,
@@ -188,7 +189,6 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
               sx={{
                 display: "flex",
                 alignItems: "center",
-                flex: 1,
                 height: "100%",
                 gap: 0.5,
               }}
@@ -207,12 +207,22 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
               </Tooltip>
               <Typography variant="body2">{`${appointment.durationInMinutes} min`}</Typography>
             </Box>
-            <Chip
-              label={
-                appointment.sessionCategory === SessionCategory.INDIVIDUAL ? "Individual" : "Group"
-              }
-              size="small"
-            />
+            {appointment.sessionCategory === SessionCategory.INDIVIDUAL && (
+              <Chip
+                label={
+                  (appointment as IndividualSession).appointmentType === AppointmentType.INTAKE
+                    ? "Intake"
+                    : "Follow-up"
+                }
+                size="small"
+              />
+            )}
+            {appointment.sessionCategory === SessionCategory.GROUP && (
+              <Chip
+                label={"Group"}
+                size="small"
+              />
+            )}
           </Stack>
           {notesExists && (
             <Chip
@@ -224,6 +234,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
         </Stack>
         <Stack
           alignItems={"flex-end"}
+          justifyContent={"space-between"}
           gap={1}
         >
           <Typography variant="body2">
@@ -231,13 +242,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
           </Typography>
           <Link
             component={NavLink}
-            to={`/session-details/${appointment.sessionCategory}/${appointment.modeOfDelivery}/${
-              appointment.id
-            }/${
-              appointment.sessionCategory === SessionCategory.INDIVIDUAL
-                ? (appointment as IndividualSession).patientId
-                : (appointment as SoulsideSession).groupId
-            }`}
+            to={`/session-details/${appointment.sessionCategory}/${appointment.modeOfDelivery}/${appointment.id}`}
           >
             <Typography variant="body2">View Notes</Typography>
           </Link>

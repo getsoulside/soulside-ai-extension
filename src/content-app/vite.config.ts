@@ -21,6 +21,15 @@ export default defineConfig(({ mode }) => {
       __APP_ENV__: JSON.stringify(env),
     },
     plugins: [reactRefresh(), tsconfigPaths(), svgLoader()],
+    build: {
+      outDir: path.resolve(__dirname, "../../extension-build/scripts/content-app"),
+      rollupOptions: {
+        output: {
+          entryFileNames: "[name].bundle.js",
+        },
+      },
+      emptyOutDir: true,
+    },
     envDir,
   };
 });

@@ -42,3 +42,14 @@ export interface SoulsideMeetingSession {
   modeOfDelivery: ModeOfDelivery | null;
   sessionCategory: SessionCategory | null;
 }
+
+export interface SoulsideMeetingSessionTranscript {
+  participantId: string;
+  participantName: string;
+  providerParticipantId: string;
+  providerPeerId: string;
+  timestamp: number;
+  transcriptText: string;
+  mappedParticipantId: string | null;
+  mappedParticipantName: string | null;
+}

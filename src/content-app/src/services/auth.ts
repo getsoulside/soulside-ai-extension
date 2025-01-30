@@ -3,6 +3,7 @@ import { rawHttpClient } from "@/utils/httpClient";
 import { store } from "@/store";
 import { getNavigateFunction } from "@/hooks/useNavigate";
 import { selectPractitionerRole } from "@/domains/userProfile";
+import { IN_SESSION_SOCKET_URL, API_BASE_URL } from "@/constants";
 
 export async function login(email: string, password: string): Promise<void> {
   if (!email || !password) {
@@ -10,12 +11,19 @@ export async function login(email: string, password: string): Promise<void> {
   }
   const navigate = getNavigateFunction();
   try {
-    const url = "auth/practitioner/authenticate";
-    const payload = {
-      email,
-      password,
+    const proxyUrl = `${IN_SESSION_SOCKET_URL}/proxy-api`;
+    const url = `${API_BASE_URL}/auth/practitioner/authenticate`;
+    const proxyPayload = {
+      url,
+      method: "POST",
+      apiOptions: {
+        data: {
+          email,
+          password,
+        },
+      },
     };
-    const response = await rawHttpClient.post(url, payload);
+    const response = await rawHttpClient.post(proxyUrl, proxyPayload);
     if (response?.data?.jwt) {
       saveCookie("authtoken", response.data.jwt);
       saveCookie("soulside-email", email);

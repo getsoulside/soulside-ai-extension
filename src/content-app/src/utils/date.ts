@@ -10,9 +10,9 @@ export const getFormattedDateTime = (
   dateTimeFormat: string = "h:mm a",
   includeTimeZoneAbbr: boolean = false
 ): string => {
-  const preferredTimezone = store.getState().userProfile.selectedTimezone;
+  const preferredTimezone = store.getState().userProfile?.selectedTimezone;
   let formattedDateTime = getDateTime(dateTime).format(dateTimeFormat);
-  if (includeTimeZoneAbbr) {
+  if (includeTimeZoneAbbr && preferredTimezone) {
     formattedDateTime += ` ${preferredTimezone.abbr}`;
   }
   return formattedDateTime;

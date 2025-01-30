@@ -6,6 +6,7 @@ import {
   getDefaultValueForTimezone,
   getSelectedTimezoneFromLocal,
 } from "@/utils/storage";
+import moment from "moment-timezone";
 
 export interface UserProfileState {
   info: {
@@ -17,6 +18,7 @@ export interface UserProfileState {
   selectedTimezone: TimeZone;
   currentPageTitle: string;
   extensionDrawerOpen: boolean;
+  sessionListSelectedDate: ISO8601String | null;
 }
 
 const initialState: UserProfileState = {
@@ -29,6 +31,7 @@ const initialState: UserProfileState = {
   selectedTimezone: getDefaultValueForTimezone(),
   currentPageTitle: "",
   extensionDrawerOpen: false,
+  sessionListSelectedDate: null,
 };
 
 const userProfileSlice = createSlice({
@@ -62,6 +65,9 @@ const userProfileSlice = createSlice({
     toggleExtensionDrawer(state, action: PayloadAction<boolean>) {
       state.extensionDrawerOpen = action.payload;
     },
+    setSessionListSelectedDate(state, action: PayloadAction<ISO8601String | null>) {
+      state.sessionListSelectedDate = action.payload;
+    },
   },
 });
 
@@ -70,8 +76,10 @@ export const initializeUserProfile = () => {
     dispatch(toggleSelectedUserRoleLoading(true));
     const selectedRole = await getSelectedPractitionerRoleFromLocal();
     const selectedTimezone = await getSelectedTimezoneFromLocal();
+    const sessionListSelectedDate = moment().toISOString();
     dispatch(addSelectedUserRole(selectedRole));
     dispatch(addSelectedTimezone(selectedTimezone));
+    dispatch(setSessionListSelectedDate(sessionListSelectedDate));
     dispatch(toggleSelectedUserRoleLoading(false));
   };
 };
@@ -86,6 +94,7 @@ export const {
   addSelectedTimezone,
   addCurrentPageTitle,
   toggleExtensionDrawer,
+  setSessionListSelectedDate,
 } = userProfileSlice.actions;
 
 export default userProfileSlice.reducer;

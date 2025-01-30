@@ -3,6 +3,7 @@ import WebsocketClient from "@/utils/websocket";
 import { store } from "@/store";
 import { Session } from "../models";
 import { getDateTime } from "@/utils/date";
+import { SoulsideMeetingSession } from "@/domains/meeting";
 
 export const getSessionPatientSocket = (): Socket => {
   const selectedRole = store.getState().userProfile.selectedRole.data;
@@ -67,11 +68,16 @@ export const joinSessionGroupRooms = (groupIds: (UUIDString | null)[]): void => 
   });
 };
 
-export const checkTodaySession = (session: Session) => {
-  if (!session || !session.startTime) {
+export const checkTodaySession = (session: Session | SoulsideMeetingSession) => {
+  if (
+    !session ||
+    !((session as Session).startTime || (session as SoulsideMeetingSession).startedAt)
+  ) {
     return false;
   }
-  const sessionDate = getDateTime(session.startTime);
+  const sessionDate = getDateTime(
+    (session as Session).startTime || (session as SoulsideMeetingSession).startedAt
+  );
   const today = getDateTime().startOf("day");
   const isTodaysSession = sessionDate.isSame(today, "day");
   return isTodaysSession;

@@ -78,8 +78,10 @@ export default function AppTheme(props: AppThemeProps) {
           },
         },
         MuiPopover: {
-          container: () =>
-            props.shadowRoot?.getElementById("soulside-extension-app") as Element | null,
+          defaultProps: {
+            container: () =>
+              props.shadowRoot?.getElementById("soulside-extension-app") as Element | null,
+          },
         },
       },
     });
