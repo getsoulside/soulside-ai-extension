@@ -3,12 +3,15 @@ import {
   DefaultSoapNotes,
   GroupNotes,
   GroupExtendedNotes,
+  SessionNotesTemplateNames,
 } from "./sessionNotes.types";
 import FollowUpAssessmentNotes, {
   FollowUpAssessmentNotesValue,
 } from "./sessionNotes.follow_up_assessment.types";
 import { IntakeAssessmentNotes } from "./sessionNotes.intake.types";
-
+import BPSTemplate from "./sessionNotes.bps.types";
+import { SessionCategory, AppointmentType } from "@/domains/session/models";
+import { EhrClient } from "@/ehrClients/ehrClients.types";
 export interface SessionNotes {
   id: UUIDString | null;
   userId: UUIDString | null;
@@ -29,6 +32,7 @@ export interface JSONSoapNote {
   [SessionNotesTemplates.DEFAULT_SOAP]?: DefaultSoapNotes | null;
   [SessionNotesTemplates.FOLLOW_UP_ASSESSMENT]?: FollowUpAssessmentNotes | null;
   [SessionNotesTemplates.INTAKE]?: IntakeAssessmentNotes | null;
+  [SessionNotesTemplates.BPS]?: BPSTemplate | null;
   [SessionNotesTemplates.GROUP]?: GroupNotes | null;
   [SessionNotesTemplates.GROUP_EXTENDED_NOTES]?: GroupExtendedNotes | null;
   chiefCompliantEnhanced?: string | null;
@@ -52,3 +56,110 @@ export interface BehaviouralHealthPredictions {
     "Key symptoms observed for GAD-7": string[];
   };
 }
+
+// export interface NoteTemplatesItem {
+//   key: SessionNotesTemplates;
+//   name: (typeof SessionNotesTemplateNames)[SessionNotesTemplates];
+//   sessionCategories: SessionCategory[];
+//   appointmentTypes: AppointmentType[];
+//   ehrIntegrations: EhrClient[];
+//   isDefault?: Record<SessionCategory, Record<AppointmentType, boolean>>;
+// }
+
+// export const NoteTemplatesLibrary: NoteTemplatesItem[] = [
+//   {
+//     key: SessionNotesTemplates.DEFAULT_SOAP,
+//     name: SessionNotesTemplateNames[SessionNotesTemplates.DEFAULT_SOAP],
+//     sessionCategories: [SessionCategory.INDIVIDUAL],
+//     appointmentTypes: [AppointmentType.INTAKE, AppointmentType.FOLLOW_UP],
+//     ehrIntegrations: [EhrClient.ALLEVA],
+//   },
+//   {
+//     key: SessionNotesTemplates.FOLLOW_UP_ASSESSMENT,
+//     name: SessionNotesTemplateNames[SessionNotesTemplates.FOLLOW_UP_ASSESSMENT],
+//     sessionCategories: [SessionCategory.INDIVIDUAL],
+//     appointmentTypes: [AppointmentType.FOLLOW_UP],
+//     ehrIntegrations: [EhrClient.ADVANCED_MD],
+//   },
+//   {
+//     key: SessionNotesTemplates.INTAKE,
+//     name: SessionNotesTemplateNames[SessionNotesTemplates.INTAKE],
+//     sessionCategories: [SessionCategory.INDIVIDUAL],
+//     appointmentTypes: [AppointmentType.INTAKE],
+//     ehrIntegrations: [],
+//   },
+//   {
+//     key: SessionNotesTemplates.BPS,
+//     name: SessionNotesTemplateNames[SessionNotesTemplates.BPS],
+//     sessionCategories: [SessionCategory.INDIVIDUAL],
+//     appointmentTypes: [AppointmentType.INTAKE],
+//     ehrIntegrations: [EhrClient.ALLEVA],
+//   },
+//   {
+//     key: SessionNotesTemplates.GROUP,
+//     name: SessionNotesTemplateNames[SessionNotesTemplates.GROUP],
+//     sessionCategories: [SessionCategory.GROUP],
+//     appointmentTypes: [AppointmentType.FOLLOW_UP],
+//     ehrIntegrations: [EhrClient.ALLEVA],
+//   },
+// ];
+
+export type NoteTemplatesLibrary = Partial<
+  Record<
+    SessionCategory,
+    Partial<
+      Record<
+        AppointmentType,
+        {
+          key: SessionNotesTemplates;
+          name: (typeof SessionNotesTemplateNames)[SessionNotesTemplates];
+          isDefault: boolean;
+          ehrIntegrations: EhrClient[];
+        }[]
+      >
+    >
+  >
+>;
+
+export const defaultNoteTemplateLibrary: NoteTemplatesLibrary = {
+  [SessionCategory.INDIVIDUAL]: {
+    [AppointmentType.INTAKE]: [
+      {
+        key: SessionNotesTemplates.INTAKE,
+        name: SessionNotesTemplateNames[SessionNotesTemplates.INTAKE],
+        isDefault: true,
+        ehrIntegrations: [],
+      },
+      {
+        key: SessionNotesTemplates.BPS,
+        name: SessionNotesTemplateNames[SessionNotesTemplates.BPS],
+        isDefault: false,
+        ehrIntegrations: [EhrClient.ALLEVA],
+      },
+    ],
+    [AppointmentType.FOLLOW_UP]: [
+      {
+        key: SessionNotesTemplates.DEFAULT_SOAP,
+        name: SessionNotesTemplateNames[SessionNotesTemplates.DEFAULT_SOAP],
+        isDefault: false,
+        ehrIntegrations: [EhrClient.ALLEVA],
+      },
+      {
+        key: SessionNotesTemplates.FOLLOW_UP_ASSESSMENT,
+        name: SessionNotesTemplateNames[SessionNotesTemplates.FOLLOW_UP_ASSESSMENT],
+        isDefault: true,
+        ehrIntegrations: [EhrClient.ADVANCED_MD],
+      },
+    ],
+  },
+  [SessionCategory.GROUP]: {
+    [AppointmentType.FOLLOW_UP]: [
+      {
+        key: SessionNotesTemplates.GROUP,
+        name: SessionNotesTemplateNames[SessionNotesTemplates.GROUP],
+        isDefault: true,
+        ehrIntegrations: [EhrClient.ALLEVA, EhrClient.ADVANCED_MD],
+      },
+    ],
+  },
+};

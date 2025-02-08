@@ -4,6 +4,7 @@ const LOCAL_STORAGE_KEYS = {
   SELECTED_ORGANIZATION: "selected-organization",
   SELECTED_TIMEZONE: "selected-timezone",
   SESSION_NOTES_STATUS: "session-notes-status",
+  EXTENSION_DRAWER_POSITION: "extension-drawer-position",
 };
 
 export default LOCAL_STORAGE_KEYS;

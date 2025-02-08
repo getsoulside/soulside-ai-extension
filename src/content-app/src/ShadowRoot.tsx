@@ -6,7 +6,7 @@ import createCache from "@emotion/cache";
 import { ToastContainer, Bounce } from "react-toastify";
 import AppTheme from "./theme";
 import { store } from "./store";
-
+import ReactToastifyStyles from "./theme/ReactToastifyStyles";
 interface ShadowRootHostProps {
   children: React.ReactNode;
 }
@@ -21,17 +21,21 @@ const ShadowRootHost: React.FC<ShadowRootHostProps> = ({ children }) => {
     const shadowRoot =
       shadowHostRef.current.shadowRoot || shadowHostRef.current.attachShadow({ mode: "open" });
 
-    const style = document.createElement("style");
-    style.textContent = `
-      :host {
-        font-size: 14px !important;
-      }
-      *, *::before, *::after {
-        font-size: inherit !important;
-      }
-    `;
+    shadowRoot.addEventListener(
+      "keydown",
+      (event: Event) => {
+        const keyboardEvent = event as KeyboardEvent;
+        if (keyboardEvent.key === "Backspace") {
+          keyboardEvent.stopPropagation();
+        }
+      },
+      true
+    );
 
-    shadowRoot.appendChild(style);
+    //add styles from ./theme/ReactToastify.css to shadow root
+    const styleEl = document.createElement("style");
+    styleEl.innerHTML = ReactToastifyStyles;
+    shadowRoot.appendChild(styleEl);
 
     // Create or reuse container
     let container = shadowRoot.getElementById("soulside-shadow-root-container") as HTMLDivElement;
@@ -75,9 +79,9 @@ const ShadowRootHost: React.FC<ShadowRootHostProps> = ({ children }) => {
     );
 
     // Cleanup on unmount
-    // return () => {
-    //   root.unmount();
-    // };
+    return () => {
+      root.unmount();
+    };
   }, []);
 
   return (

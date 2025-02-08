@@ -4,10 +4,18 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_ENV=development APP_ENV=dev node build-manifest.js && NODE_ENV=development APP_ENV=dev npx webpack serve --config webpack.config.js",
-    "dev:prod": "NODE_ENV=development APP_ENV=prod node build-manifest.js && NODE_ENV=development APP_ENV=prod npx webpack serve --config webpack.config.js",
-    "build:dev": "NODE_ENV=production APP_ENV=dev node build-manifest.js && NODE_ENV=production APP_ENV=dev npx webpack --config webpack.config.js",
-    "build:prod": "NODE_ENV=production APP_ENV=prod node build-manifest.js && NODE_ENV=production APP_ENV=prod npx webpack --config webpack.config.js"
+    "local:dev": "npm run extension:local:dev & npm run content:local:dev",
+    "extension:local:dev": "npm i && NODE_ENV=development APP_ENV=dev node build-manifest.js && NODE_ENV=development APP_ENV=dev npx webpack serve --config webpack.config.js",
+    "content:local:dev": "cd src/content-app/ && npm i && npm run local:dev",
+    "local:prod": "npm run extension:local:prod & npm run content:local:prod",
+    "extension:local:prod": "npm i && NODE_ENV=development APP_ENV=prod node build-manifest.js && NODE_ENV=development APP_ENV=prod npx webpack serve --config webpack.config.js",
+    "content:local:prod": "cd src/content-app/ && npm i && npm run local:prod",
+    "build:dev": "npm run content:build:dev && npm run extension:build:dev",
+    "extension:build:dev": "npm i && NODE_ENV=production APP_ENV=dev node build-manifest.js && NODE_ENV=production APP_ENV=dev npx webpack --config webpack.config.js",
+    "content:build:dev": "cd src/content-app/ && npm i && npm run build:dev && cd ../../",
+    "build:prod": "npm run content:build:prod && npm run extension:build:prod",
+    "extension:build:prod": "npm i && NODE_ENV=production APP_ENV=prod node build-manifest.js && NODE_ENV=production APP_ENV=prod npx webpack --config webpack.config.js",
+    "content:build:prod": "cd src/content-app/ && npm i && npm run build:prod && cd ../../"
   },
   "author": "",
   "license": "ISC",

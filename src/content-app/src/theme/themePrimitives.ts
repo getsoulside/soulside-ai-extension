@@ -197,6 +197,7 @@ export const getDesignTokens = (mode: PaletteMode) => {
     typography: {
       fontFamily: "Inter, sans-serif",
       htmlFontSize: 16,
+      fontSize: 16,
       h1: {
         fontSize: defaultTheme.typography.pxToRem(48),
         fontWeight: 600,

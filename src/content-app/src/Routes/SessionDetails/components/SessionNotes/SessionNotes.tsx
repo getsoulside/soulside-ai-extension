@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppointmentType, IndividualSession, Session, SessionCategory } from "@/domains/session";
 import { loadSessionNotes } from "@/domains/sessionNotes";
+import { SessionNotes as SessionNotesType } from "@/domains/sessionNotes";
 import { AppDispatch, RootState } from "@/store";
-import { Box, Divider, MenuItem, Select, Stack, Typography } from "@mui/material";
+import { Box, Divider, MenuItem, Paper, Select, Stack, Typography } from "@mui/material";
 import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNotes.types";
 import { SoapNotes } from "./NoteTemplates";
 import FollowUpAssessment from "./NoteTemplates/FollowUpAssessment/FollowUpAssessment";
 import IntakeAssessment from "./NoteTemplates/IntakeAssessment/IntakeAssessment";
-
+import BPSAssessment from "./NoteTemplates/BPSAssessment/BPSAssessment";
+import { getEhrClient } from "@/utils/helpers";
+import { toast } from "react-toastify";
+import LoadingButton from "@mui/lab/LoadingButton";
 interface SessionNotesProps {
   session: Session | null;
 }
@@ -20,24 +24,51 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
   const appointmentType = (session as IndividualSession)?.appointmentType;
   if (!sessionId) return <></>;
   const sessionNotes = useSelector((state: RootState) => state.sessionNotes.notes[sessionId]);
+  const noteTemplatesLibrary = useSelector(
+    (state: RootState) => state.sessionNotes.noteTemplatesLibrary
+  );
+  const notesTemplates =
+    noteTemplatesLibrary?.[sessionCategory as SessionCategory]?.[
+      appointmentType as AppointmentType
+    ];
   const [notesTemplate, setNotesTemplate] = useState<string>(
-    sessionCategory === SessionCategory.INDIVIDUAL
-      ? appointmentType === AppointmentType.INTAKE
-        ? SessionNotesTemplates.INTAKE
-        : SessionNotesTemplates.FOLLOW_UP_ASSESSMENT
-      : SessionNotesTemplates.GROUP
+    notesTemplates?.find(template => template?.isDefault)?.key || notesTemplates?.[0]?.key || ""
+  );
+  const [notesAdded, setNotesAdded] = useState<boolean>(false);
+  const [notesAddedLoading, setNotesAddedLoading] = useState<boolean>(false);
+  const ehrClient = useMemo(() => getEhrClient(), []);
+  const showAddNotesButton = useMemo(
+    () =>
+      ehrClient &&
+      notesTemplates
+        ?.find(template => template?.key === notesTemplate)
+        ?.ehrIntegrations.includes(ehrClient.getEhrClientName()),
+    [ehrClient, notesTemplate, notesTemplates]
   );
   useEffect(() => {
     dispatch(loadSessionNotes(sessionId));
   }, [sessionId]);
-  const notesTemplates =
-    sessionCategory === SessionCategory.INDIVIDUAL
-      ? [
-          { key: SessionNotesTemplates.DEFAULT_SOAP, value: "SOAP" },
-          { key: SessionNotesTemplates.FOLLOW_UP_ASSESSMENT, value: "Assessment" },
-          { key: SessionNotesTemplates.INTAKE, value: "Intake" },
-        ]
-      : [{ key: SessionNotesTemplates.GROUP, value: "Group" }];
+  const addNotes = async (
+    notesData: SessionNotesType | null,
+    notesTemplate: SessionNotesTemplates
+  ) => {
+    if (!ehrClient) return;
+    const ehrClientInstance = ehrClient.getInstance();
+    setNotesAddedLoading(true);
+    try {
+      const notesAdded = await ehrClientInstance?.addNotes(notesData, notesTemplate);
+      if (notesAdded) {
+        toast.success("Notes added to EHR");
+        setNotesAdded(true);
+      } else {
+        toast.error("Failed to add notes to EHR");
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error?.message || "Failed to add notes to EHR");
+    }
+    setNotesAddedLoading(false);
+  };
   return (
     <Box
       sx={{
@@ -62,12 +93,12 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
             flex: 1,
           }}
         >
-          {notesTemplates.map(template => (
+          {notesTemplates?.map(template => (
             <MenuItem
               key={template.key}
               value={template.key}
             >
-              {template.value}
+              {template.name}
             </MenuItem>
           ))}
         </Select>
@@ -92,7 +123,48 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
         {notesTemplate === SessionNotesTemplates.INTAKE && (
           <IntakeAssessment notesData={sessionNotes.data} />
         )}
+        {notesTemplate === SessionNotesTemplates.BPS && (
+          <BPSAssessment notesData={sessionNotes.data} />
+        )}
       </Box>
+
+      {showAddNotesButton && (
+        <Paper
+          sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1, alignItems: "center" }}
+          elevation={2}
+        >
+          <LoadingButton
+            fullWidth
+            type="submit"
+            color="primary"
+            onClick={() => addNotes(sessionNotes.data, notesTemplate as SessionNotesTemplates)}
+            loading={notesAddedLoading}
+            loadingPosition="end"
+            endIcon={<i className="fas fa-sign-in-alt" />}
+            variant="contained"
+          >
+            {notesAddedLoading ? "Adding Notes..." : notesAdded ? "Add Again" : "Add Notes to EHR"}
+          </LoadingButton>
+          {notesAdded && (
+            <Typography
+              variant="body2"
+              color="success"
+              align="center"
+            >
+              Notes added to EHR
+            </Typography>
+          )}
+          {!notesAdded && (
+            <Typography
+              variant="body2"
+              color="info"
+              align="center"
+            >
+              *This might override your existing notes in EHR.
+            </Typography>
+          )}
+        </Paper>
+      )}
     </Box>
   );
 };

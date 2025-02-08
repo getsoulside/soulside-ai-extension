@@ -12,10 +12,12 @@ import {
   getReconciledIndividualProviderSessions,
   getReconciledGroupProviderSessions,
   getProviderSessionTranscriptData,
-  getIndividualSessionDetails,
-  getGroupSessionDetails,
 } from "../services";
 import { SoulsideMeetingSession, SoulsideMeetingSessionTranscript } from "../models";
+import {
+  getIndividualSessionBySessionId,
+  getGroupSessionBySessionId,
+} from "@/domains/session/services/sessionApi";
 
 export const loadSessionDetails =
   (sessionId: string, sessionCategory: SessionCategory): AppThunk =>
@@ -24,8 +26,8 @@ export const loadSessionDetails =
     try {
       const sessionDetails =
         sessionCategory === SessionCategory.INDIVIDUAL
-          ? await getIndividualSessionDetails(sessionId)
-          : await getGroupSessionDetails(sessionId);
+          ? await getIndividualSessionBySessionId(sessionId)
+          : await getGroupSessionBySessionId(sessionId);
       dispatch(addSessionDetailsData({ sessionId, sessionDetails }));
     } catch (error) {
       console.error(error);

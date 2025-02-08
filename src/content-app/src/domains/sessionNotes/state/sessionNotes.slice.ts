@@ -1,13 +1,18 @@
 import { Session } from "@/domains/session/models";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { SessionNotes } from "../models";
+import { NoteTemplatesLibrary, SessionNotes } from "../models";
+import { defaultNoteTemplateLibrary } from "../models/sessionNotes.model";
 
 interface SessionNotesState {
   notes: Record<NonNullable<Session["id"]>, { data: SessionNotes | null; loading: boolean }>;
+  noteTemplatesLibrary: NoteTemplatesLibrary;
+  ehrSessionNotesLoading: boolean;
 }
 
 const initialState: SessionNotesState = {
   notes: {},
+  noteTemplatesLibrary: defaultNoteTemplateLibrary,
+  ehrSessionNotesLoading: false,
 };
 
 const sessionNotesSlice = createSlice({
@@ -37,9 +42,20 @@ const sessionNotesSlice = createSlice({
       }
       state.notes[sessionId].data = notes;
     },
+    updateNoteTemplateLibrary(state, action: PayloadAction<NoteTemplatesLibrary>) {
+      state.noteTemplatesLibrary = action.payload;
+    },
+    toggleEhrSessionNotesLoadingAction(state, action: PayloadAction<boolean>) {
+      state.ehrSessionNotesLoading = action.payload;
+    },
   },
 });
 
-export const { toggleSessionNotesLoading, addSessionNotes } = sessionNotesSlice.actions;
+export const {
+  toggleSessionNotesLoading,
+  addSessionNotes,
+  updateNoteTemplateLibrary,
+  toggleEhrSessionNotesLoadingAction,
+} = sessionNotesSlice.actions;
 
 export default sessionNotesSlice.reducer;

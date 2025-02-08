@@ -1,6 +1,6 @@
 import moment from "moment-timezone";
 import { PractitionerRole } from "@/domains/practitionerRole";
-import { TimeZone } from "@/domains/userProfile";
+import { ExtensionDrawerPosition, TimeZone } from "@/domains/userProfile";
 import LOCAL_STORAGE_KEYS from "@/constants/localStorageKeys";
 import { Session, SessionNotesStatus } from "@/domains/session";
 
@@ -131,12 +131,9 @@ export async function deleteLocalStorage(key: string): Promise<void> {
 }
 
 export const getSelectedPractitionerRoleFromLocal = async () => {
-  console.log("date", Date.now());
-
   const selectedUserRole: PractitionerRole | null = await getLocalStorage(
     LOCAL_STORAGE_KEYS.SELECTED_PRACTITIONER_ROLE
   );
-  console.log("date end", Date.now());
   return selectedUserRole || null;
 };
 
@@ -179,4 +176,15 @@ export const getSessionNotesStatusFromLocal = async (): Promise<
 > => {
   const sessionNotesStatus = await getLocalStorage(LOCAL_STORAGE_KEYS.SESSION_NOTES_STATUS);
   return sessionNotesStatus || {};
+};
+
+export const getExtensionDrawerPositionFromLocal = async (): Promise<ExtensionDrawerPosition> => {
+  try {
+    const extensionDrawerPosition = await getLocalStorage(
+      LOCAL_STORAGE_KEYS.EXTENSION_DRAWER_POSITION
+    );
+    return extensionDrawerPosition || ExtensionDrawerPosition.TOP_RIGHT;
+  } catch (error) {
+    return ExtensionDrawerPosition.TOP_RIGHT;
+  }
 };

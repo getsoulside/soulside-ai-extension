@@ -25,8 +25,9 @@ export async function login(email: string, password: string): Promise<void> {
     };
     const response = await rawHttpClient.post(proxyUrl, proxyPayload);
     if (response?.data?.jwt) {
-      saveCookie("authtoken", response.data.jwt);
+      await saveCookie("authtoken", response.data.jwt);
       saveCookie("soulside-email", email);
+      window.postMessage({ type: "SOULSIDE_LOGGED_OUT" }, "*");
       navigate("/", { replace: true });
       return response.data.jwt;
     } else {
@@ -44,6 +45,7 @@ export function logout(): void {
   deleteCookie("soulside-email");
   selectPractitionerRole(null);
   store.dispatch({ type: "LOGOUT" });
+  window.postMessage({ type: "SOULSIDE_LOGGED_OUT" }, "*");
   if (navigate) {
     navigate("/login");
   }

@@ -194,6 +194,17 @@ const FollowUpAssessment: React.FC<FollowUpAssessmentProps> = ({ notesData }): R
                           <RadioGroup sx={{ flexDirection: "row", gap: 2, mt: 0 }}>
                             {section.data[subSection].values_identified
                               .concat(section.data[subSection].values_remaining)
+                              .concat(
+                                !section.data[subSection].values_identified.includes(
+                                  section.data[subSection].result
+                                ) &&
+                                  !section.data[subSection].values_remaining.includes(
+                                    section.data[subSection].result
+                                  ) &&
+                                  section.data[subSection].result
+                                  ? [section.data[subSection].result]
+                                  : []
+                              )
                               .map((value: string) => {
                                 return (
                                   <FormControlLabel

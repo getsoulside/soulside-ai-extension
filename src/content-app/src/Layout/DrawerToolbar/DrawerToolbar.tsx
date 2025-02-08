@@ -1,5 +1,6 @@
 import { toggleExtensionDrawer } from "@/domains/userProfile";
 import { AppDispatch, RootState } from "@/store";
+import { getEhrClient, openActiveSessionNotes } from "@/utils/helpers";
 import {
   CalendarMonthRounded,
   CloseRounded,
@@ -7,8 +8,11 @@ import {
   HomeRounded,
   // PeopleRounded,
   PersonRounded,
+  SettingsRounded,
+  SummarizeRounded,
 } from "@mui/icons-material";
 import { IconButton as MuiIconButton, Paper, Stack, styled, Tooltip } from "@mui/material";
+import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as NavLink } from "react-router-dom";
 
@@ -26,6 +30,7 @@ const DrawerToolbar = () => {
   const selectedRole = useSelector((state: RootState) => state.userProfile.selectedRole);
   const userInfo = useSelector((state: RootState) => state.userProfile.info);
   const isLoggedIn = !!userInfo.data && !!selectedRole.data;
+  const ehrClient = useMemo(() => getEhrClient(), []);
   return (
     <Stack
       direction="row"
@@ -43,6 +48,13 @@ const DrawerToolbar = () => {
               Icon={CalendarMonthRounded}
             />
           </NavLink>
+          {ehrClient && (
+            <DrawerToolbarOption
+              title="Open Active Session Notes"
+              Icon={SummarizeRounded}
+              onClick={() => openActiveSessionNotes()}
+            />
+          )}
           {/* <NavLink to={"/"}>
             <DrawerToolbarOption
               title="Patients"
@@ -61,10 +73,12 @@ const DrawerToolbar = () => {
           direction="row"
           spacing={2}
         >
-          <DrawerToolbarOption
-            title="Home"
-            Icon={HomeRounded}
-          />
+          <NavLink to={"/"}>
+            <DrawerToolbarOption
+              title="Home"
+              Icon={HomeRounded}
+            />
+          </NavLink>
         </Stack>
       )}
 
@@ -80,6 +94,12 @@ const DrawerToolbar = () => {
             />
           </NavLink>
         )}
+        <NavLink to={isLoggedIn ? "/settings" : "/auth/settings"}>
+          <DrawerToolbarOption
+            title="Settings"
+            Icon={SettingsRounded}
+          />
+        </NavLink>
         <DrawerToolbarOption
           title="Close"
           Icon={CloseRounded}

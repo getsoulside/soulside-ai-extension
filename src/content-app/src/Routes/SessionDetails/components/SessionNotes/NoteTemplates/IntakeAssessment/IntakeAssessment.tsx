@@ -8,7 +8,6 @@ import {
   FormControl,
   FormControlLabel,
   MenuItem,
-  Paper,
   Radio,
   RadioGroup,
   Select,
@@ -395,15 +394,15 @@ const IntakeTable = ({ data, tableName }: IntakeTableProps) => {
           {tableName}
         </Typography>
       )}
-      <TableContainer component={Paper}>
+      <TableContainer>
         <Table size="small">
-          <TableHead>
+          <TableHead sx={{ backgroundColor: "background.paper" }}>
             <TableRow>
               {tableColumns.map((tableColumn, index) => {
                 return (
                   <TableCell
                     key={index}
-                    sx={{ fontSize: "theme.typography.body2.fontSize" }}
+                    sx={{ fontSize: "0.75rem", px: 1 }}
                   >
                     {tableColumn}
                   </TableCell>
@@ -414,12 +413,18 @@ const IntakeTable = ({ data, tableName }: IntakeTableProps) => {
           <TableBody>
             {data?.map((i, index) => {
               return (
-                <TableRow key={index}>
+                <TableRow
+                  key={index}
+                  sx={{
+                    borderBottom: index === data?.length - 1 ? 0 : 1,
+                    borderColor: "divider",
+                  }}
+                >
                   {tableColumns.map((tableColumn, index2) => {
                     return (
                       <TableCell
                         key={index2}
-                        sx={{ fontSize: "theme.typography.body2.fontSize" }}
+                        sx={{ fontSize: "0.75rem", px: 1 }}
                       >
                         {i?.[tableColumn] || ""}
                       </TableCell>

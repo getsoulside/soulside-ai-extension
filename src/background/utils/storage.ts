@@ -36,8 +36,21 @@ export async function setCookie(key: string, value: string): Promise<string> {
     try {
       if (value) {
         chrome.cookies.set(
-          { url, name, domain: APP_DOMAIN, value, expirationDate, path: "/", secure: true },
+          {
+            url,
+            name,
+            value,
+            expirationDate,
+            path: "/",
+            secure: true,
+            sameSite: "no_restriction",
+          },
           cookie => {
+            if (chrome.runtime.lastError) {
+              console.error("Failed to set cookie:", chrome.runtime.lastError);
+              resolve("");
+              return;
+            }
             resolve(cookie?.value || "");
           }
         );

@@ -5,9 +5,15 @@ import {
   getSelectedPractitionerRoleFromLocal,
   getDefaultValueForTimezone,
   getSelectedTimezoneFromLocal,
+  getExtensionDrawerPositionFromLocal,
 } from "@/utils/storage";
 import moment from "moment-timezone";
-
+import { ExtensionDrawerPosition } from "../models/userProfile.types";
+import { AppointmentType } from "@/domains/session/models";
+import { defaultNoteTemplateLibrary } from "@/domains/sessionNotes/models/sessionNotes.model";
+import { SessionCategory } from "@/domains/session/models";
+import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNotes.types";
+import { updateNoteTemplateLibrary } from "@/domains/sessionNotes/state/sessionNotes.slice";
 export interface UserProfileState {
   info: {
     data: User | null;
@@ -16,9 +22,9 @@ export interface UserProfileState {
   assignedRoles: { data: UserAssignedRole[] | null; loading: boolean };
   selectedRole: { data: PractitionerRole | null; loading: boolean };
   selectedTimezone: TimeZone;
-  currentPageTitle: string;
-  extensionDrawerOpen: boolean;
   sessionListSelectedDate: ISO8601String | null;
+  extensionDrawerOpen: boolean;
+  extensionDrawerPosition: ExtensionDrawerPosition | null;
 }
 
 const initialState: UserProfileState = {
@@ -29,9 +35,9 @@ const initialState: UserProfileState = {
   assignedRoles: { data: null, loading: true },
   selectedRole: { data: null, loading: false },
   selectedTimezone: getDefaultValueForTimezone(),
-  currentPageTitle: "",
   extensionDrawerOpen: false,
   sessionListSelectedDate: null,
+  extensionDrawerPosition: ExtensionDrawerPosition.TOP_RIGHT,
 };
 
 const userProfileSlice = createSlice({
@@ -59,14 +65,14 @@ const userProfileSlice = createSlice({
     addSelectedTimezone(state, action: PayloadAction<TimeZone>) {
       state.selectedTimezone = action.payload;
     },
-    addCurrentPageTitle(state, action: PayloadAction<string>) {
-      state.currentPageTitle = action.payload;
+    setSessionListSelectedDate(state, action: PayloadAction<ISO8601String | null>) {
+      state.sessionListSelectedDate = action.payload;
     },
     toggleExtensionDrawer(state, action: PayloadAction<boolean>) {
       state.extensionDrawerOpen = action.payload;
     },
-    setSessionListSelectedDate(state, action: PayloadAction<ISO8601String | null>) {
-      state.sessionListSelectedDate = action.payload;
+    setExtensionDrawerPosition(state, action: PayloadAction<ExtensionDrawerPosition>) {
+      state.extensionDrawerPosition = action.payload;
     },
   },
 });
@@ -77,10 +83,76 @@ export const initializeUserProfile = () => {
     const selectedRole = await getSelectedPractitionerRoleFromLocal();
     const selectedTimezone = await getSelectedTimezoneFromLocal();
     const sessionListSelectedDate = moment().toISOString();
+    const extensionDrawerPosition = await getExtensionDrawerPositionFromLocal();
     dispatch(addSelectedUserRole(selectedRole));
+    dispatch(updateNoteTemplateLibraryByOrganizationId(selectedRole?.organizationId || ""));
     dispatch(addSelectedTimezone(selectedTimezone));
     dispatch(setSessionListSelectedDate(sessionListSelectedDate));
+    dispatch(setExtensionDrawerPosition(extensionDrawerPosition));
     dispatch(toggleSelectedUserRoleLoading(false));
+  };
+};
+
+export const updateNoteTemplateLibraryByOrganizationId = (organizationId: string) => {
+  return async (dispatch: any): Promise<void> => {
+    let noteTemplateLibrary = defaultNoteTemplateLibrary;
+    if (organizationId) {
+      const isSerenity = organizationId === "ca119abc-9900-46b6-92f9-62ed4d6f84e9";
+      const isSagepoint = organizationId === "dad3db72-1f0e-4de5-b82a-27bc03c586d3";
+      if (isSerenity) {
+        noteTemplateLibrary = {
+          ...noteTemplateLibrary,
+          [SessionCategory.INDIVIDUAL]: {
+            ...noteTemplateLibrary?.[SessionCategory.INDIVIDUAL],
+            [AppointmentType.INTAKE]: noteTemplateLibrary?.[SessionCategory.INDIVIDUAL]?.[
+              AppointmentType.INTAKE
+            ]
+              ?.filter(template => template.key === SessionNotesTemplates.INTAKE)
+              .map(template => ({
+                ...template,
+                isDefault: template.key === SessionNotesTemplates.INTAKE,
+              })),
+            [AppointmentType.FOLLOW_UP]: noteTemplateLibrary?.[SessionCategory.INDIVIDUAL]?.[
+              AppointmentType.FOLLOW_UP
+            ]
+              ?.filter(
+                template =>
+                  template.key === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT ||
+                  template.key === SessionNotesTemplates.DEFAULT_SOAP
+              )
+              .map(template => ({
+                ...template,
+                isDefault: template.key === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT,
+              })),
+          },
+        };
+      }
+      if (isSagepoint) {
+        noteTemplateLibrary = {
+          ...noteTemplateLibrary,
+          [SessionCategory.INDIVIDUAL]: {
+            ...noteTemplateLibrary?.[SessionCategory.INDIVIDUAL],
+            [AppointmentType.INTAKE]: noteTemplateLibrary?.[SessionCategory.INDIVIDUAL]?.[
+              AppointmentType.INTAKE
+            ]
+              ?.filter(template => template.key === SessionNotesTemplates.BPS)
+              .map(template => ({
+                ...template,
+                isDefault: template.key === SessionNotesTemplates.BPS,
+              })),
+            [AppointmentType.FOLLOW_UP]: noteTemplateLibrary?.[SessionCategory.INDIVIDUAL]?.[
+              AppointmentType.FOLLOW_UP
+            ]
+              ?.filter(template => template.key === SessionNotesTemplates.DEFAULT_SOAP)
+              .map(template => ({
+                ...template,
+                isDefault: template.key === SessionNotesTemplates.DEFAULT_SOAP,
+              })),
+          },
+        };
+      }
+    }
+    dispatch(updateNoteTemplateLibrary(noteTemplateLibrary));
   };
 };
 
@@ -92,9 +164,9 @@ export const {
   toggleUserAssignedRolesLoading,
   addUserAssignedRolesData,
   addSelectedTimezone,
-  addCurrentPageTitle,
-  toggleExtensionDrawer,
   setSessionListSelectedDate,
+  toggleExtensionDrawer,
+  setExtensionDrawerPosition,
 } = userProfileSlice.actions;
 
 export default userProfileSlice.reducer;

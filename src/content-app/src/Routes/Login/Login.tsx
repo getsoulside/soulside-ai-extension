@@ -16,8 +16,6 @@ import { Link as NavLink } from "react-router-dom";
 
 import useLogin from "./useLogin";
 
-import "./Login.scss";
-
 const Login: React.FC = (): React.ReactNode => {
   const {
     email,

@@ -25,6 +25,7 @@ import {
   SoulsideSession,
   ScheduleSessionPayload,
   SessionNotesStatus,
+  AppointmentType,
 } from "../models";
 import { BusinessFunction } from "@/domains/practitionerRole";
 import { getSessionNotesBySessionId } from "@/domains/sessionNotes";
@@ -169,7 +170,9 @@ export const loadEditSession =
 
 export const loadSessionNotesStatus =
   (session: Session): AppThunk =>
-  async dispatch => {
+  async (dispatch, getState) => {
+    const state = getState();
+    const noteTemplatesLibrary = state.sessionNotes.noteTemplatesLibrary;
     try {
       if (!session.id) {
         return Promise.reject("Session ID is required");
@@ -193,13 +196,12 @@ export const loadSessionNotesStatus =
           [SessionNotesTemplates.GROUP]: !!jsonSoapNote?.[SessionNotesTemplates.GROUP],
           [SessionNotesTemplates.GROUP_EXTENDED_NOTES]:
             !!jsonSoapNote?.[SessionNotesTemplates.GROUP_EXTENDED_NOTES],
+          [SessionNotesTemplates.BPS]: !!jsonSoapNote?.[SessionNotesTemplates.BPS],
         };
-        const notesExists =
-          session.sessionCategory === SessionCategory.GROUP
-            ? !!notesStatus?.[SessionNotesTemplates.GROUP]
-            : (session as IndividualSession).appointmentType === "INTAKE"
-            ? !!notesStatus?.[SessionNotesTemplates.INTAKE]
-            : !!notesStatus?.[SessionNotesTemplates.FOLLOW_UP_ASSESSMENT];
+        let noteTemplate = noteTemplatesLibrary?.[session.sessionCategory as SessionCategory]?.[
+          (session as IndividualSession).appointmentType as AppointmentType
+        ]?.find(i => i.isDefault);
+        const notesExists = noteTemplate?.key ? notesStatus?.[noteTemplate.key] : false;
         const sessionNotesStatus: SessionNotesStatus = {
           sessionId: session.id,
           sessionCategory: session.sessionCategory,

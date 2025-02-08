@@ -42,8 +42,20 @@ class HttpClient {
     this.httpClient.defaults.headers.Authorization = authToken ? "Bearer " + authToken : "";
   }
 
+  public async reinitialize() {
+    this.initialize();
+  }
+
   private async getAuthToken(): Promise<string> {
     const cookie = await getCookie("authtoken");
+    if (!cookie) {
+      this.httpClient.defaults.headers.Authorization = "";
+    } else if (
+      this.httpClient.defaults.headers.Authorization &&
+      this.httpClient.defaults.headers.Authorization !== `Bearer ${cookie}`
+    ) {
+      return "";
+    }
     return cookie || "";
   }
 

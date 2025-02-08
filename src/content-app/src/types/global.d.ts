@@ -15,3 +15,7 @@ type Pagination = {
   page: number;
   pageSize: number;
 };
+
+interface Window {
+  jQuery: any;
+}

@@ -1,5 +1,5 @@
 import { addLocalStorage } from "@/utils/storage";
-import { TimeZone } from "../models";
+import { ExtensionDrawerPosition, TimeZone } from "../models";
 import { PractitionerRole } from "@/domains/practitionerRole/models";
 import { BusinessFunction } from "@/domains/practitionerRole/models";
 import { getNavigateFunction } from "@/hooks/useNavigate";
@@ -8,8 +8,9 @@ import {
   addSelectedTimezone,
   addSelectedUserRole,
   toggleUserProfileLoading,
-  addCurrentPageTitle,
   setSessionListSelectedDate,
+  setExtensionDrawerPosition,
+  updateNoteTemplateLibraryByOrganizationId,
 } from "../state/userProfile.slice";
 import moment, { Moment } from "moment-timezone";
 import LOCAL_STORAGE_KEYS from "@/constants/localStorageKeys";
@@ -20,6 +21,7 @@ export const selectPractitionerRole = async (selectedRole: PractitionerRole | nu
   store.dispatch(toggleUserProfileLoading(true));
   store.dispatch({ type: "SELECT_PRACTITIONER_ROLE" });
   store.dispatch(addSelectedUserRole(selectedRole));
+  store.dispatch(updateNoteTemplateLibraryByOrganizationId(selectedRole?.organizationId || ""));
   setTimeout(() => {
     store.dispatch(toggleUserProfileLoading(false));
   }, 1000);
@@ -290,10 +292,11 @@ export const selectTimezone = async (timezone: TimeZone) => {
   await addLocalStorage(LOCAL_STORAGE_KEYS.SELECTED_TIMEZONE, timezone);
 };
 
-export const setCurrentPageTitle = (title: string) => {
-  store.dispatch(addCurrentPageTitle(title));
-};
-
 export const selectSessionListDate = (date: Moment | null) => {
   store.dispatch(setSessionListSelectedDate(date ? date.toISOString() : null));
+};
+
+export const selectExtensionDrawerPosition = async (position: ExtensionDrawerPosition) => {
+  store.dispatch(setExtensionDrawerPosition(position));
+  await addLocalStorage(LOCAL_STORAGE_KEYS.EXTENSION_DRAWER_POSITION, position);
 };

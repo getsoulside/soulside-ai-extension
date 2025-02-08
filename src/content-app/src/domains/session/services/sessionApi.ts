@@ -77,6 +77,26 @@ export const getGroupSessionsByPractitionerRoleId = async (
   return response.data;
 };
 
+export const getIndividualSessionBySessionId = async (
+  sessionId: string
+): Promise<IndividualSession> => {
+  const url = `practitioner-role/individual-session/find-by-id/${sessionId}`;
+  const response = await httpClient.get(url);
+  return response.data;
+};
+
+export const getGroupSessionBySessionId = async (sessionId: string): Promise<SoulsideSession> => {
+  const url = `practitioner-role/sessions/find-by-id/${sessionId}`;
+  const response = await httpClient.get(url);
+  return response.data;
+};
+
+export const getIntakeSessionsByPatientId = async (patientId: string): Promise<Session[]> => {
+  const url = `practitioner-role/individual-session/intake/find-all-by-patient/${patientId}`;
+  const response = await httpClient.get(url);
+  return response.data;
+};
+
 export const scheduleSession = async (
   scheduleSessionPayload: ScheduleSessionPayload
 ): Promise<Session> => {

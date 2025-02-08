@@ -14,11 +14,15 @@ module.exports = env => {
   if (nodeEnv === "development") {
     envPaths.push(`env/.env.${appEnv}.local`); // Load .env.<APP_ENV>.local;
   }
+  let entries = {
+    background: "./src/background/index.ts",
+    content: "./src/content/index.ts",
+  };
+  if (nodeEnv !== "development") {
+    entries.contentApp = "./src/content-app/build/index.bundle.js";
+  }
   return {
-    entry: {
-      background: "./src/background/index.ts",
-      content: "./src/content/index.ts",
-    },
+    entry: entries,
     output: {
       filename: "[name].bundle.js", // Outputs background.bundle.js and content.bundle.js
       path: path.resolve(__dirname, buildFolder, "scripts"),
@@ -28,8 +32,8 @@ module.exports = env => {
     devtool: nodeEnv === "development" ? "inline-source-map" : false,
     devServer: {
       static: path.resolve(__dirname, buildFolder, "scripts"),
-      hot: false, // Disable HMR for dev server
-      liveReload: false, // Disable live reload for background scripts
+      hot: true, // Disable HMR for dev server
+      liveReload: true, // Disable live reload for background scripts
       port: 9000,
       devMiddleware: {
         writeToDisk: true, // Write files to disk for Chrome to read

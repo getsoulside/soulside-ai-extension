@@ -1,21 +1,7 @@
-import { IndividualSession, SessionCategory, SoulsideSession } from "@/domains/session";
+import { SessionCategory } from "@/domains/session";
 import httpClient from "@/utils/httpClient";
 import { SoulsideMeetingSession, SoulsideMeetingSessionTranscript } from "../models";
 import { parseCsv } from "@/utils/parseCsv";
-
-export const getIndividualSessionDetails = async (
-  sessionId: string
-): Promise<IndividualSession> => {
-  const url = `practitioner-role/individual-session/find-by-id/${sessionId}`;
-  const response = await httpClient.get(url);
-  return response.data;
-};
-
-export const getGroupSessionDetails = async (sessionId: string): Promise<SoulsideSession> => {
-  const url = `practitioner-role/sessions/find-by-id/${sessionId}`;
-  const response = await httpClient.get(url);
-  return response.data;
-};
 
 export const getReconciledIndividualProviderSessions = async (
   sessionId: string

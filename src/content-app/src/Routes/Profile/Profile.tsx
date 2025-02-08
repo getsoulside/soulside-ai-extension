@@ -14,8 +14,7 @@ import {
 } from "@mui/material";
 import { LogoutRounded } from "@mui/icons-material";
 import { logout } from "@/services/auth";
-import RoleSelect from "./RoleSelect";
-import TimezoneSelect from "./TimezoneSelect";
+import RoleSelect from "./components/RoleSelect";
 
 const Profile: React.FC = (): React.ReactNode => {
   const { userProfileInfo, assignedRoles, selectedRole } = useProfile();
@@ -107,7 +106,6 @@ const Profile: React.FC = (): React.ReactNode => {
             selectedRole={selectedRole.data}
             assignedRoles={assignedRoles.data || []}
           />
-          <TimezoneSelect />
         </Stack>
         <Card sx={styles.card}>
           <Stack

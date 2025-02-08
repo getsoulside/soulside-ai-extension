@@ -8,8 +8,8 @@ import {
 } from "@/domains/session";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
-import { Box, Link, Stack, Typography, Tab, Avatar, IconButton, Tooltip } from "@mui/material";
-import { ArrowBack, OpenInNew } from "@mui/icons-material";
+import { Box, Stack, Typography, Tab, Avatar, IconButton, Tooltip } from "@mui/material";
+import { ArrowBackIos, OpenInNew } from "@mui/icons-material";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -74,7 +74,14 @@ const SessionDetails: React.FC = (): React.ReactNode => {
       ? (sessionDetails?.data as IndividualSession)?.patientId
       : (sessionDetails?.data as SoulsideSession)?.groupId
   }`;
-  const loading = sessionDetails?.loading || providerSessions?.loading || transcriptLoading;
+  const ehrSessionNotesLoading = useSelector(
+    (state: RootState) => state.sessionNotes.ehrSessionNotesLoading
+  );
+  const loading =
+    sessionDetails?.loading ||
+    providerSessions?.loading ||
+    transcriptLoading ||
+    ehrSessionNotesLoading;
   return (
     <Box
       sx={{
@@ -86,41 +93,43 @@ const SessionDetails: React.FC = (): React.ReactNode => {
       }}
     >
       <Loader loading={loading}>
-        <Link
-          component={NavLink}
-          to="/appointments"
-          sx={{
-            fontSize: "0.75rem",
-            fontWeight: "semi-bold",
-            display: "flex",
-            alignItems: "center",
-            gap: 0.5,
-          }}
-        >
-          <ArrowBack sx={{ fontSize: "0.75rem" }} />
-          Back to Appointments
-        </Link>
         <Stack
           direction={"row"}
           justifyContent={"space-between"}
           alignItems={"center"}
-          sx={{
-            mt: 2,
-          }}
         >
           <Stack
             direction={"row"}
-            gap={1}
             alignItems={"center"}
           >
-            <Avatar
-              alt={sessionCategory === SessionCategory.INDIVIDUAL ? patientName : groupName}
-              src={sessionCategory === SessionCategory.INDIVIDUAL ? patientName : groupName}
-              sx={{ width: 30, height: 30 }}
-            />
-            <Typography variant={"subtitle2"}>
-              {sessionCategory === SessionCategory.INDIVIDUAL ? patientName : groupName}
-            </Typography>
+            <Tooltip title="Back to Appointments">
+              <IconButton
+                component={NavLink}
+                to="/appointments"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ArrowBackIos sx={{ fontSize: "1rem" }} />
+              </IconButton>
+            </Tooltip>
+            <Stack
+              direction={"row"}
+              alignItems={"center"}
+              gap={1}
+              sx={{ mx: 0.5 }}
+            >
+              <Avatar
+                alt={sessionCategory === SessionCategory.INDIVIDUAL ? patientName : groupName}
+                src={sessionCategory === SessionCategory.INDIVIDUAL ? patientName : groupName}
+                sx={{ width: 30, height: 30 }}
+              />
+              <Typography variant={"subtitle2"}>
+                {sessionCategory === SessionCategory.INDIVIDUAL ? patientName : groupName}
+              </Typography>
+            </Stack>
             <Tooltip title="Open on Soulside Platform">
               <IconButton
                 component="a"
@@ -156,17 +165,20 @@ const SessionDetails: React.FC = (): React.ReactNode => {
                 <Tab
                   label="Notes"
                   value="notes"
+                  sx={{ fontSize: "0.9rem", py: 0.5 }}
                 />
                 <Tab
                   label="Transcript"
                   value="transcript"
+                  sx={{ fontSize: "0.9rem", py: 0.5 }}
                 />
               </TabList>
             </Box>
             <TabPanel
               value="notes"
               sx={{
-                p: 1,
+                p: 0,
+                pt: 1,
                 maxHeight: "100%",
                 overflow: "auto",
               }}

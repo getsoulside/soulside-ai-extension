@@ -7,6 +7,7 @@ import { useNavigateFunction } from "@/hooks/useNavigate";
 import { AppDispatch, RootState } from "@/store";
 import { initializeUserProfile, loadUserAssignedRoles, loadUserInfo } from "@/domains/userProfile";
 import { initializeSession } from "@/domains/session";
+import { openActiveSessionNotes } from "@/utils/helpers";
 
 const noSleep = new NoSleep();
 
@@ -37,6 +38,11 @@ const useAppLayout = () => {
       noSleep.disable();
     };
   }, []);
+  useEffect(() => {
+    if (userProfile.extensionDrawerOpen) {
+      openActiveSessionNotes({ silentEvent: true });
+    }
+  }, [userProfile.extensionDrawerOpen]);
   return { selectedRole, userProfileLoading, assignedRolesLoading };
 };
 
