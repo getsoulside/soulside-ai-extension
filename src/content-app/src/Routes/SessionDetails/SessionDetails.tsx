@@ -63,7 +63,9 @@ const SessionDetails: React.FC = (): React.ReactNode => {
         (sessionDetails.data as IndividualSession).patientLastName
       }`
     : "";
-  const groupName = (sessionDetails?.data as SoulsideSession)?.groupName || "";
+  const groupName = (sessionDetails?.data as SoulsideSession)?.groupName?.includes("Default Group")
+    ? (sessionDetails?.data as SoulsideSession)?.sessionName || ""
+    : (sessionDetails?.data as SoulsideSession)?.groupName || "";
   const transcriptLoading = Object.keys(transcriptData || {}).reduce((acc, providerSessionId) => {
     return acc && transcriptData[providerSessionId]?.loading;
   }, Object.keys(transcriptData || {}).length > 0);

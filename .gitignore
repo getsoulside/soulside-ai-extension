@@ -10,11 +10,16 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+build
 build.zip
 build/scripts
 build/manifest.json
 *.local
+extension-local
+extension-local-*
 extension-build
+extension-build-*
+extension-build-*.zip
 
 # Editor directories and files
 .vscode/*

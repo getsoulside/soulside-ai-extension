@@ -10,10 +10,10 @@
     "local:prod": "npm run extension:local:prod & npm run content:local:prod",
     "extension:local:prod": "npm i && NODE_ENV=development APP_ENV=prod node build-manifest.js && NODE_ENV=development APP_ENV=prod npx webpack serve --config webpack.config.js",
     "content:local:prod": "cd src/content-app/ && npm i && npm run local:prod",
-    "build:dev": "npm run content:build:dev && npm run extension:build:dev",
+    "build:dev": "npm run content:build:dev && npm run extension:build:dev && cd build/extension-build-dev && zip -r ../extension-build-dev.zip . && cd ../../",
     "extension:build:dev": "npm i && NODE_ENV=production APP_ENV=dev node build-manifest.js && NODE_ENV=production APP_ENV=dev npx webpack --config webpack.config.js",
     "content:build:dev": "cd src/content-app/ && npm i && npm run build:dev && cd ../../",
-    "build:prod": "npm run content:build:prod && npm run extension:build:prod",
+    "build:prod": "npm run content:build:prod && npm run extension:build:prod && cd build/extension-build-prod && zip -r ../extension-build-prod.zip . && cd ../../",
     "extension:build:prod": "npm i && NODE_ENV=production APP_ENV=prod node build-manifest.js && NODE_ENV=production APP_ENV=prod npx webpack --config webpack.config.js",
     "content:build:prod": "cd src/content-app/ && npm i && npm run build:prod && cd ../../"
   },

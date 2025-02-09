@@ -107,7 +107,11 @@ const useAppointments = () => {
       if (!searchTerm) return true;
       if (session.sessionCategory === SessionCategory.GROUP) {
         const groupName = (session as SoulsideSession).groupName || "";
-        return groupName.toLowerCase().includes(searchTerm.toLowerCase());
+        const sessionName = (session as SoulsideSession).sessionName || "";
+        return (
+          groupName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          sessionName.toLowerCase().includes(searchTerm.toLowerCase())
+        );
       }
       if (session.sessionCategory === SessionCategory.INDIVIDUAL) {
         const patientName = `${(session as IndividualSession).patientFirstName || ""} ${

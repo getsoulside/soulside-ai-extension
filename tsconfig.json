@@ -7,12 +7,20 @@
     "strict": true, // Enable strict type checking
     "esModuleInterop": true, // Support ES module interop
     "skipLibCheck": true, // Skip library type checking
-    "outDir": "./extension-build" // Output directory for compiled files
+    "outDir": "./build/extension-build" // Output directory for compiled files
     // "baseUrl": ".", // Base URL for module resolution
     // "paths": {
     //   "*": ["node_modules/*", "*"]
     // }
   },
   "include": ["src/**/*"], // Include all files in src folder
-  "exclude": ["node_modules", "extension-build", "src/content-app"] // Exclude node_modules and dist folder
+  "exclude": [
+    "node_modules",
+    "build/extension-build",
+    "build/extension-build-dev",
+    "build/extension-build-prod",
+    "build/extension-local-dev",
+    "build/extension-local-prod",
+    "src/content-app"
+  ] // Exclude node_modules and dist folder
 }

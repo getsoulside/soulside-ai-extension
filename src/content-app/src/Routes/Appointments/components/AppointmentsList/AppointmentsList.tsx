@@ -160,7 +160,9 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
       : "";
   const groupName =
     appointment.sessionCategory === SessionCategory.GROUP
-      ? (appointment as SoulsideSession)?.groupName || ""
+      ? (appointment as SoulsideSession)?.groupName?.includes("Default Group")
+        ? (appointment as SoulsideSession)?.sessionName || ""
+        : (appointment as SoulsideSession)?.groupName || ""
       : "";
   const ModeIcon = appointment.modeOfDelivery === ModeOfDelivery.IN_PERSON ? Room : Videocam;
   return (

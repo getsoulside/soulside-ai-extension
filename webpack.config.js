@@ -5,11 +5,13 @@ const Dotenv = require("dotenv");
 
 console.log("env", process.env.NODE_ENV);
 
-const buildFolder = "extension-build";
-
 module.exports = env => {
   const nodeEnv = process.env.NODE_ENV || "development"; // Default to 'development' if NODE_ENV is not set
   const appEnv = process.env.APP_ENV === "dev" ? "development" : "production";
+  const buildFolder =
+    nodeEnv === "development"
+      ? `build/extension-local-${process.env.APP_ENV}`
+      : `build/extension-build-${process.env.APP_ENV}`;
   const envPaths = ["env/.env", `env/.env.${appEnv}`]; // Load .env .env.<APP_ENV>;
   if (nodeEnv === "development") {
     envPaths.push(`env/.env.${appEnv}.local`); // Load .env.<APP_ENV>.local;
