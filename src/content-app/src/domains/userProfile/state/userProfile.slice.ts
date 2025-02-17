@@ -85,7 +85,12 @@ export const initializeUserProfile = () => {
     const sessionListSelectedDate = moment().toISOString();
     const extensionDrawerPosition = await getExtensionDrawerPositionFromLocal();
     dispatch(addSelectedUserRole(selectedRole));
-    dispatch(updateNoteTemplateLibraryByOrganizationId(selectedRole?.organizationId || ""));
+    dispatch(
+      updateNoteTemplateLibraryByOrganizationId(
+        selectedRole?.organizationId || "",
+        selectedRole?.organizationName || ""
+      )
+    );
     dispatch(addSelectedTimezone(selectedTimezone));
     dispatch(setSessionListSelectedDate(sessionListSelectedDate));
     dispatch(setExtensionDrawerPosition(extensionDrawerPosition));
@@ -93,14 +98,15 @@ export const initializeUserProfile = () => {
   };
 };
 
-export const updateNoteTemplateLibraryByOrganizationId = (organizationId: string) => {
+export const updateNoteTemplateLibraryByOrganizationId = (
+  organizationId: string,
+  organizationName: string
+) => {
   return async (dispatch: any): Promise<void> => {
     let noteTemplateLibrary = defaultNoteTemplateLibrary;
     if (organizationId) {
       const isSerenity = organizationId === "ca119abc-9900-46b6-92f9-62ed4d6f84e9";
-      const isSagepoint =
-        organizationId === "dad3db72-1f0e-4de5-b82a-27bc03c586d3" ||
-        organizationId === "db253578-01e0-4634-899d-1abf76efa0bb";
+      const isSagepoint = organizationName?.toLowerCase().includes("sagepoint");
       if (isSerenity) {
         noteTemplateLibrary = {
           ...noteTemplateLibrary,

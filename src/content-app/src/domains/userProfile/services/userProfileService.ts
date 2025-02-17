@@ -21,7 +21,12 @@ export const selectPractitionerRole = async (selectedRole: PractitionerRole | nu
   store.dispatch(toggleUserProfileLoading(true));
   store.dispatch({ type: "SELECT_PRACTITIONER_ROLE" });
   store.dispatch(addSelectedUserRole(selectedRole));
-  store.dispatch(updateNoteTemplateLibraryByOrganizationId(selectedRole?.organizationId || ""));
+  store.dispatch(
+    updateNoteTemplateLibraryByOrganizationId(
+      selectedRole?.organizationId || "",
+      selectedRole?.organizationName || ""
+    )
+  );
   setTimeout(() => {
     store.dispatch(toggleUserProfileLoading(false));
   }, 1000);

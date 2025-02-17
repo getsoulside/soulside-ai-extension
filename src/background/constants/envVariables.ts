@@ -7,6 +7,5 @@ export const SESSION_TRANSCRIPT_LLM_API_URL = process.env.SOULSIDE_SESSION_TRANS
 export const APP_DOMAIN = process.env.SOULSIDE_APP_DOMAIN;
 export const SOULSIDE_DOMAIN = process.env.SOULSIDE_SOULSIDE_DOMAIN;
 export const APP_ENV = process.env.SOULSIDE_APP_ENV;
-export const GROUP_ID = process.env.SOULSIDE_GROUP_ID;
 export const APP_IDENTIFIER = process.env.SOULSIDE_APP_IDENTIFIER;
 export const PLATFORM_URL = process.env.SOULSIDE_PLATFORM_URL;

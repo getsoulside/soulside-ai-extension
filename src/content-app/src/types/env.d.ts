@@ -7,7 +7,6 @@ declare const __APP_ENV__: {
   SOULSIDE_APP_DOMAIN: string;
   SOULSIDE_SOULSIDE_DOMAIN: string;
   SOULSIDE_APP_ENV: string;
-  SOULSIDE_GROUP_ID: string;
   SOULSIDE_APP_IDENTIFIER: string;
   SOULSIDE_PLATFORM_URL: string;
 };
