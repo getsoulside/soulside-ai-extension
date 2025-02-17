@@ -97,10 +97,46 @@ export class Alleva {
     }
   }
 
-  private getAngularScope(selector: string): any {
+  private async getAngularScope(selector: string): Promise<any> {
+    // For extension environment
+    if (chrome?.runtime?.id) {
+      // Request the scope after script is loaded
+      window.postMessage(
+        {
+          type: "GET_ANGULAR_SCOPE",
+          selector: selector,
+        },
+        "*"
+      );
+
+      // Wait for response with timeout
+      return new Promise((resolve, reject) => {
+        const messageHandler = (event: MessageEvent) => {
+          if (event.data.type === "ANGULAR_SCOPE" && event.data.selector === selector) {
+            window.removeEventListener("message", messageHandler);
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+            }
+            resolve(event.data.value);
+          }
+        };
+        window.addEventListener("message", messageHandler);
+
+        const timeoutId = setTimeout(() => {
+          window.removeEventListener("message", messageHandler);
+          reject(new Error("Timeout waiting for Angular scope"));
+        }, 5000); // 5 second timeout
+      });
+    }
+
+    // For browser environment: direct access
     const element = document.querySelector(selector);
     if (!element) return null;
-    return (window as any)?.angular?.element(element)?.scope();
+    if (typeof (window as any).angular === "undefined") {
+      console.warn("Angular not found");
+      return null;
+    }
+    return (window as any).angular.element(element).scope();
   }
 
   private async handleIntakeAssessment(): Promise<Session | null> {
@@ -128,30 +164,23 @@ export class Alleva {
   }
 
   private async handleFollowUpSession(): Promise<Session | null> {
-    const individualSessionScope = this.getAngularScope("[ng-if='showClientSessionScreen']");
-    const groupSessionScope = this.getAngularScope("[ng-if='showGroupSessionScreen']");
-
-    if (
-      !individualSessionScope?.showClientSessionScreen &&
-      !groupSessionScope?.showGroupSessionScreen
-    ) {
+    const individualSessionScope = await this.getAngularScope("[ng-if='showClientSessionScreen']");
+    const groupSessionScope = await this.getAngularScope("[ng-if='showGroupSessionScreen']");
+    const isGroupSession = !!groupSessionScope?.showGroupSessionScreen;
+    const appointmentScope = isGroupSession ? groupSessionScope : individualSessionScope;
+    const appointmentInfo = appointmentScope?.appointment;
+    if (!appointmentInfo) {
       console.warn("Not on notes screen");
       return null;
     }
 
-    const visitId =
-      individualSessionScope?.appointmentInfo?.AppointmentId ||
-      groupSessionScope?.appointmentInfo?.AppointmentId;
-    console.log(
-      "visitId",
-      individualSessionScope?.appointmentInfo || groupSessionScope?.appointmentInfo
-    );
+    const visitId = appointmentInfo?.AppointmentId;
     if (!visitId) {
       console.warn("Visit ID not found in appointment info");
       return null;
     }
 
-    return this.fetchSessionByVisitId(visitId, !!groupSessionScope?.showGroupSessionScreen);
+    return this.fetchSessionByVisitId(visitId, isGroupSession);
   }
 
   public async getActiveSession(): Promise<Session | null> {
@@ -182,7 +211,7 @@ export class Alleva {
       }
 
       if (currentUrl.includes("Scheduler")) {
-        const scope = this.getAngularScope("[ng-if='showClientSessionScreen']");
+        const scope = await this.getAngularScope("[ng-if='showClientSessionScreen']");
         if (scope?.showClientSessionScreen) {
           return SessionNotesTemplates.DEFAULT_SOAP;
         }
@@ -201,7 +230,7 @@ export class Alleva {
   ): Promise<boolean> {
     if (!notesData || !notesTemplate) return false;
     const currentUrl = window.location.href;
-    const isGroupSession = !!this.getAngularScope("[ng-if='showGroupSessionScreen']");
+    const isGroupSession = !!(await this.getAngularScope("[ng-if='showGroupSessionScreen']"));
     if (notesTemplate === SessionNotesTemplates.BPS) {
       if (currentUrl.includes("clientPsychIntake")) {
         return this.handleBPSAssessment(notesData);
@@ -245,10 +274,39 @@ export class Alleva {
       return false;
     }
     notesEditor.focus();
-    const existingContent = window?.tinymce?.activeEditor?.getContent?.() || "";
+    // For extension environment
+    if (chrome?.runtime?.id) {
+      window.postMessage(
+        {
+          type: "SET_TINYMCE_CONTENT",
+          content: soapNote,
+        },
+        "*"
+      );
+
+      // Wait for response with timeout
+      return new Promise((resolve, reject) => {
+        const messageHandler = (event: MessageEvent) => {
+          if (event.data.type === "TINYMCE_CONTENT_SET") {
+            window.removeEventListener("message", messageHandler);
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+            }
+            resolve(true);
+          }
+        };
+        window.addEventListener("message", messageHandler);
+
+        const timeoutId = setTimeout(() => {
+          window.removeEventListener("message", messageHandler);
+          reject(new Error("Timeout waiting for TinyMCE content set"));
+        }, 5000); // 5 second timeout
+      });
+    }
+    const existingContent = (window as any)?.tinymce?.activeEditor?.getContent?.() || "";
     const newContent = existingContent + (existingContent ? "\n\n" : "") + soapNote;
-    window?.tinymce?.activeEditor?.setContent(newContent);
-    window?.tinymce?.activeEditor?.focus();
+    (window as any).tinymce.activeEditor.setContent(newContent);
+    (window as any).tinymce.activeEditor.focus();
     return true;
   }
 
@@ -321,7 +379,7 @@ export class Alleva {
                 ) as HTMLButtonElement)
               : null;
             if (submitButton) {
-              // submitButton.click();
+              submitButton.click();
             }
           }
         }
@@ -330,11 +388,17 @@ export class Alleva {
             ? (document.querySelector(field.ehrFields?.selector) as HTMLInputElement)
             : null;
           const sectionValue = (bpsData[section.key as keyof BPSTemplate] as any)[field.key];
-          if (inputField && sectionValue) {
+          let value = sectionValue;
+          if (typeof value === "string" || typeof value === "number") {
+            value = value.toString();
+          } else if (Array.isArray(value || null)) {
+            value = field.type === "textarea" ? value.join("\n") : value.join(", ");
+          }
+          if (inputField && value) {
             inputField.value =
               (inputField.value
                 ? `${inputField.value} ${field.type === "textarea" ? "\n" : ""}`
-                : "") + sectionValue;
+                : "") + value;
             inputField.dispatchEvent(new Event("change"));
           }
         }
@@ -357,11 +421,17 @@ export class Alleva {
               const sectionValue = (bpsData[section.key as keyof BPSTemplate] as any)[field.key][
                 subField.key
               ];
-              if (inputField && sectionValue) {
+              let value = sectionValue;
+              if (typeof value === "string" || typeof value === "number") {
+                value = value.toString();
+              } else if (Array.isArray(value || null)) {
+                value = subField.type === "textarea" ? value.join("\n") : value.join(", ");
+              }
+              if (inputField && value) {
                 inputField.value =
                   (inputField.value
                     ? `${inputField.value} ${subField.type === "textarea" ? "\n" : ""}`
-                    : "") + sectionValue;
+                    : "") + value;
                 inputField.dispatchEvent(new Event("change"));
               }
             }
@@ -374,11 +444,17 @@ export class Alleva {
                   const sectionValue = (bpsData[section.key as keyof BPSTemplate] as any)[
                     field.key
                   ][subField.key][subSubField.key];
-                  if (inputField && sectionValue) {
+                  let value = sectionValue;
+                  if (typeof value === "string" || typeof value === "number") {
+                    value = value.toString();
+                  } else if (Array.isArray(value || null)) {
+                    value = subSubField.type === "textarea" ? value.join("\n") : value.join(", ");
+                  }
+                  if (inputField && value) {
                     inputField.value =
                       (inputField.value
                         ? `${inputField.value} ${subSubField.type === "textarea" ? "\n" : ""}`
-                        : "") + sectionValue;
+                        : "") + value;
                     inputField.dispatchEvent(new Event("change"));
                   }
                 }

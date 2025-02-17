@@ -22,6 +22,7 @@ module.exports = env => {
   };
   if (nodeEnv !== "development") {
     entries.contentApp = "./src/content-app/build/index.bundle.js";
+    entries.webAccessibleScript = "./src/content/webAccessibleScript.ts";
   }
   return {
     entry: entries,

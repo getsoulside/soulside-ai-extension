@@ -18,5 +18,10 @@ type Pagination = {
 
 interface Window {
   jQuery: any;
+  angular: {
+    element(element: Element): {
+      scope(): any;
+    };
+  };
   [key: string]: any;
 }

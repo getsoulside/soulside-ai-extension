@@ -8,6 +8,10 @@ const injectReactApp = () => {
     appScript.src = "http://localhost:5174/src/main.tsx"; // Adjust based on entry file
     appScript.type = "module";
     document.head.appendChild(appScript);
+  } else {
+    const script = document.createElement("script");
+    script.src = chrome.runtime.getURL("scripts/webAccessibleScript.bundle.js");
+    document.head.appendChild(script);
   }
 };
 

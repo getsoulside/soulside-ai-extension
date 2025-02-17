@@ -27,6 +27,13 @@ if (NODE_ENV === "development") {
   ) {
     manifestJson.content_scripts[0].js.push("scripts/contentApp.bundle.js");
   }
+  if (!manifestJson.web_accessible_resources) {
+    manifestJson.web_accessible_resources = [];
+  }
+  manifestJson.web_accessible_resources.push({
+    resources: ["scripts/webAccessibleScript.bundle.js"],
+    matches: manifestJson.content_scripts[0].matches,
+  });
   if (APP_ENV === "dev") {
     manifestJson.name = `Soulside AI - Dev`;
   }

@@ -64,7 +64,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
         ehrFields: {
           type: "form",
           selector: 'form[data-qa-id="diagnosis-form"]',
-          submitButtonSelector: 'button[data-qa-id="submit-button"]',
+          // submitButtonSelector: 'button[data-qa-id="submit-button"]',
         },
         label: "",
         value: [
@@ -555,7 +555,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
         ehrFields: {
           type: "form",
           selector: 'form[data-qa-id="substance-abuse-form"]',
-          submitButtonSelector: 'button[data-qa-id="create-button"]',
+          // submitButtonSelector: 'button[data-qa-id="create-button"]',
         },
         value: [
           {
