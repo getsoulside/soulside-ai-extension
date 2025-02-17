@@ -37,14 +37,28 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
   const [notesAdded, setNotesAdded] = useState<boolean>(false);
   const [notesAddedLoading, setNotesAddedLoading] = useState<boolean>(false);
   const ehrClient = useMemo(() => getEhrClient(), []);
-  const showAddNotesButton = useMemo(
-    () =>
+  const showAddNotesButton = useMemo(() => {
+    const ehrIntegrated =
       ehrClient &&
       notesTemplates
         ?.find(template => template?.key === notesTemplate)
-        ?.ehrIntegrations.includes(ehrClient.getEhrClientName()),
-    [ehrClient, notesTemplate, notesTemplates]
-  );
+        ?.ehrIntegrations.includes(ehrClient.getEhrClientName());
+    const jsonSoapNote = sessionNotes.data?.jsonSoapNote;
+    const notesStatus = {
+      [SessionNotesTemplates.INTAKE]: !!jsonSoapNote?.[SessionNotesTemplates.INTAKE]?.intakeHPINote,
+      [SessionNotesTemplates.DEFAULT_SOAP]: !!sessionNotes.data?.soapNote,
+      [SessionNotesTemplates.FOLLOW_UP_ASSESSMENT]:
+        !!jsonSoapNote?.chiefCompliantEnhanced ||
+        !!jsonSoapNote?.subjective?.chief_complaint?.result ||
+        !!jsonSoapNote?.Subjective?.chief_complaint?.result,
+      [SessionNotesTemplates.GROUP]: !!jsonSoapNote?.[SessionNotesTemplates.GROUP],
+      [SessionNotesTemplates.GROUP_EXTENDED_NOTES]:
+        !!jsonSoapNote?.[SessionNotesTemplates.GROUP_EXTENDED_NOTES],
+      [SessionNotesTemplates.BPS]: !!jsonSoapNote?.[SessionNotesTemplates.BPS],
+    };
+    const notesGenerated = notesStatus?.[notesTemplate as SessionNotesTemplates];
+    return ehrIntegrated && notesGenerated;
+  }, [ehrClient, notesTemplate, notesTemplates, sessionNotes.data]);
   useEffect(() => {
     dispatch(loadSessionNotes(sessionId));
   }, [sessionId]);

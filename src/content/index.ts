@@ -11,10 +11,6 @@ const injectReactApp = () => {
   }
 };
 
-chrome.runtime.sendMessage({ action: "getCookie", key: "authtoken" }, response => {
-  console.log("response", response);
-});
-
 // Listen for messages from the remote script
 window.addEventListener("message", async event => {
   if (event.source !== window) return; // Only accept messages from the same window

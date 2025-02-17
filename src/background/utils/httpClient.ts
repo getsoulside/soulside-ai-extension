@@ -5,7 +5,7 @@ import axios, {
   CancelTokenSource,
   InternalAxiosRequestConfig,
 } from "axios";
-import { getCookie } from "./storage";
+import { getCookie, setCookie } from "./storage";
 import { API_BASE_URL } from "../constants";
 
 interface APIOptions {
@@ -43,7 +43,7 @@ class HttpClient {
   }
 
   public async reinitialize() {
-    this.initialize();
+    await this.initialize();
   }
 
   private async getAuthToken(): Promise<string> {
@@ -96,7 +96,7 @@ class HttpClient {
     return response;
   }
 
-  private handleError(error: any): Promise<any> {
+  private async handleError(error: any): Promise<any> {
     if (axios.isCancel(error)) {
       console.log("Request canceled:", error.message);
     } else {
@@ -115,15 +115,18 @@ class HttpClient {
             !!error.response.data?.message?.includes("JWT validity") ||
             !!error.response.data?.message?.includes("JWT ")))
       ) {
-        this.loginRedirect();
+        await setCookie("authtoken", "");
+        await this.loginRedirect();
+        return Promise.reject({ error: "AUTH_TOKEN_ERROR", message: "Auth token expired" });
       }
     }
     return Promise.reject(error);
   }
 
-  private loginRedirect(): void {
+  private async loginRedirect(): Promise<void> {
     // if (!window.location.href.includes("/login") && !window.location.href.includes("/signup")) {
     this.httpClient.defaults.headers.Authorization = "";
+    await this.reinitialize();
     // logout();
     // }
   }

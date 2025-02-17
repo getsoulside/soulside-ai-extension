@@ -228,8 +228,10 @@ const BpsTemplateInput = ({
   let copyKey = `${sectionKey}${subSectionKey ? `-${subSectionKey}` : ""}${
     subSubSectionKey ? `-${subSubSectionKey}` : ""
   }-${valueItem.key}`;
-  if (value && Array.isArray(value)) {
-    value = value.join(", ");
+  if (typeof value === "string" || typeof value === "number") {
+    value = value.toString();
+  } else if (Array.isArray(value || null)) {
+    value = valueItem.type === "textarea" ? value.join("\n") : value.join(", ");
   }
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>

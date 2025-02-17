@@ -99,18 +99,20 @@ export const loadTranscript =
         transcriptData = await getProviderSessionTranscriptData(providerSession);
       }
       transcriptData =
-        transcriptData?.map(
-          (transcript: any): SoulsideMeetingSessionTranscript => ({
-            timestamp: Number(transcript[0]),
-            providerParticipantId: transcript[1],
-            providerPeerId: transcript[2],
-            participantId: transcript[3],
-            participantName: transcript[4],
-            transcriptText: transcript[5],
-            mappedParticipantId: transcript[6],
-            mappedParticipantName: transcript[7],
-          })
-        ) || [];
+        transcriptData
+          ?.filter((transcript: any) => !!transcript && !!transcript[0])
+          ?.map(
+            (transcript: any): SoulsideMeetingSessionTranscript => ({
+              timestamp: Number(transcript[0]),
+              providerParticipantId: transcript[1],
+              providerPeerId: transcript[2],
+              participantId: transcript[3],
+              participantName: transcript[4],
+              transcriptText: transcript[5],
+              mappedParticipantId: transcript[6],
+              mappedParticipantName: transcript[7],
+            })
+          ) || [];
       dispatch(
         addTranscriptData({
           sessionId,

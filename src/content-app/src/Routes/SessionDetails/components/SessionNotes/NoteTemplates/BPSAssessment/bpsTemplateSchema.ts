@@ -17,6 +17,7 @@ export interface BaseField {
 export interface InputField extends BaseField {
   type: "input" | "textarea";
   kind: "text";
+  autoComplete?: boolean;
 }
 
 // Interface for checkbox fields
@@ -72,6 +73,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
             type: "input",
             kind: "text",
             label: "ICD-10/DSM-5 Code",
+            autoComplete: true,
             ehrFields: {
               type: "input",
               selector: 'input[data-qa-id="icd-dsm-code-input"]',
@@ -561,6 +563,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
             type: "input",
             kind: "text",
             label: "Substance Used",
+            autoComplete: true,
             ehrFields: {
               type: "input",
               selector: 'input[data-qa-id="substance-used-input"]',
@@ -749,7 +752,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
     ehrFields: {
       sectionEditable: true,
       editBtnSelector: '.physcintake-top .editbtn a[ng-show="divViewNutritionalSelfAssessment"]',
-      editActiveAttribute: "divViewNutritionalSelfAssessment",
+      editActiveAttribute: "divEditNutritionalSelfAssessment",
     },
     value: [
       {
@@ -791,13 +794,13 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
     ],
   },
   {
-    key: "snagSnap",
+    key: "SNAGSNAP",
     type: "section",
     label: "SNAP/SNAP",
     ehrFields: {
       sectionEditable: true,
       editBtnSelector: '.physcintake-top .editbtn a[ng-show="divViewSNAP"]',
-      editActiveAttribute: "divViewSNAP",
+      editActiveAttribute: "divEditSNAP",
     },
     value: [
       {

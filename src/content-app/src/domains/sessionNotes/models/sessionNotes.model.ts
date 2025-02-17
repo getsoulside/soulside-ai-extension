@@ -136,6 +136,12 @@ export const defaultNoteTemplateLibrary: NoteTemplatesLibrary = {
         isDefault: false,
         ehrIntegrations: [EhrClient.ALLEVA],
       },
+      {
+        key: SessionNotesTemplates.DEFAULT_SOAP,
+        name: SessionNotesTemplateNames[SessionNotesTemplates.DEFAULT_SOAP],
+        isDefault: false,
+        ehrIntegrations: [EhrClient.ALLEVA],
+      },
     ],
     [AppointmentType.FOLLOW_UP]: [
       {

@@ -98,7 +98,9 @@ export const updateNoteTemplateLibraryByOrganizationId = (organizationId: string
     let noteTemplateLibrary = defaultNoteTemplateLibrary;
     if (organizationId) {
       const isSerenity = organizationId === "ca119abc-9900-46b6-92f9-62ed4d6f84e9";
-      const isSagepoint = organizationId === "dad3db72-1f0e-4de5-b82a-27bc03c586d3";
+      const isSagepoint =
+        organizationId === "dad3db72-1f0e-4de5-b82a-27bc03c586d3" ||
+        organizationId === "db253578-01e0-4634-899d-1abf76efa0bb";
       if (isSerenity) {
         noteTemplateLibrary = {
           ...noteTemplateLibrary,
@@ -135,7 +137,11 @@ export const updateNoteTemplateLibraryByOrganizationId = (organizationId: string
             [AppointmentType.INTAKE]: noteTemplateLibrary?.[SessionCategory.INDIVIDUAL]?.[
               AppointmentType.INTAKE
             ]
-              ?.filter(template => template.key === SessionNotesTemplates.BPS)
+              ?.filter(
+                template =>
+                  template.key === SessionNotesTemplates.BPS ||
+                  template.key === SessionNotesTemplates.DEFAULT_SOAP
+              )
               .map(template => ({
                 ...template,
                 isDefault: template.key === SessionNotesTemplates.BPS,

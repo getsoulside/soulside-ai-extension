@@ -18,4 +18,5 @@ type Pagination = {
 
 interface Window {
   jQuery: any;
+  [key: string]: any;
 }

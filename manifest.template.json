@@ -9,6 +9,7 @@
     "https://*.advancedmd.com/*",
     "https://*.allevasoft.com/*",
     "https://*.allevasoft.io/*",
+    "https://*.alleva.io/*",
     "https://www.soulside.ai/*"
   ],
   "action": {
@@ -24,6 +25,7 @@
         "https://*.advancedmd.com/*",
         "https://*.allevasoft.com/*",
         "https://*.allevasoft.io/*",
+        "https://*.alleva.io/*",
         "https://www.soulside.ai/*"
       ],
       "js": ["scripts/content.bundle.js"],

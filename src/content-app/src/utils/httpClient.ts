@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { API_BASE_URL } from "@/constants";
-// import { logout } from "@/services/auth";
+import { logout } from "@/services/auth";
 
 class HttpClient {
   private isRawApiCall: boolean;
@@ -32,6 +32,9 @@ class HttpClient {
           if (data.success) {
             resolve(data.value);
           } else {
+            if (data?.value?.error === "AUTH_TOKEN_ERROR") {
+              logout();
+            }
             reject(data.value);
           }
         }

@@ -183,6 +183,13 @@ const SessionDetails: React.FC = (): React.ReactNode => {
                 pt: 1,
                 maxHeight: "100%",
                 overflow: "auto",
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                "&[hidden]": {
+                  flex: "unset",
+                  p: 0,
+                },
               }}
             >
               <SessionNotes session={sessionDetails?.data} />
@@ -193,6 +200,13 @@ const SessionDetails: React.FC = (): React.ReactNode => {
                 p: 1,
                 maxHeight: "100%",
                 overflow: "auto",
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                "&[hidden]": {
+                  flex: "unset",
+                  p: 0,
+                },
               }}
             >
               <SessionTranscript

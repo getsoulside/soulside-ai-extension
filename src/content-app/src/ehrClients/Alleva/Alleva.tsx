@@ -9,6 +9,33 @@ import bpsAssessmentSchema from "@/Routes/SessionDetails/components/SessionNotes
 import { store } from "@/store";
 import httpClient from "@/utils/httpClient";
 import { EhrClient } from "../ehrClients.types";
+
+// function findMatchingListFirstItem(searchValue: string): string | null {
+//   // Get all ul elements with ui-menu class
+//   const menuLists = document.querySelectorAll("ul.ui-menu.ui-autocomplete");
+
+//   // Convert to array and find the first list that matches
+//   const matchingList = Array.from(menuLists).find(ul => {
+//     // Get the first li > div text content
+//     const firstItem = ul.querySelector("li.ui-menu-item:first-child .ui-menu-item-wrapper");
+//     if (!firstItem) return false;
+
+//     const firstItemText = firstItem.textContent;
+//     // Compare with search value (case insensitive)
+//     return firstItemText?.toLowerCase().includes(searchValue.toLowerCase());
+//   });
+
+//   // If matching list found, return its first item text
+//   if (matchingList) {
+//     const firstItem = matchingList.querySelector(
+//       "li.ui-menu-item:first-child .ui-menu-item-wrapper"
+//     );
+//     return firstItem?.textContent || null;
+//   }
+
+//   // Return null if no match found
+//   return null;
+// }
 export class Alleva {
   private static instance: Alleva | null = null;
 
@@ -40,32 +67,28 @@ export class Alleva {
 
   private async findPatientByClientId(clientId: string): Promise<Patient | null> {
     try {
-      console.log("clientId", clientId);
-      const patient: Patient = {
-        id: "0fe1528f-573a-4659-abb1-92d8215aba3e",
-        active: true,
-        organizationId: "ca119abc-9900-46b6-92f9-62ed4d6f84e9",
-        organizationName: "Serenity Health LLC",
-        patientUserId: null,
-        firstName: "DEBORAH",
-        lastName: "KEATON",
-        email: "dkeaton_hs@yahoo.com",
-        phoneNumber: " ",
-        createdAt: "2025-01-31T00:01:06.679507-08:00",
-      };
-      return Promise.resolve(patient);
+      const organizationId = this.getOrganizationId();
+      if (!organizationId) return null;
+      const url = `practitioner-role/session-member-notes/organization/${organizationId}/alleva-ehr/${clientId}/find-patient`;
+      const response = await httpClient.get(url);
+      return response?.data || null;
     } catch (error) {
       console.error("Error fetching patients by client ID:", error);
       return null;
     }
   }
 
-  private async fetchSessionByVisitId(visitId: string): Promise<Session | null> {
+  private async fetchSessionByVisitId(
+    visitId: string,
+    isGroupSession: boolean
+  ): Promise<Session | null> {
     const organizationId = this.getOrganizationId();
     if (!organizationId) return null;
 
     try {
-      const url = `practitioner-role/session-member-notes/organization/${organizationId}/advancedmd-visit/${visitId}/find-individual-session`;
+      const url = !isGroupSession
+        ? `practitioner-role/session-member-notes/organization/${organizationId}/alleva-ehr/${visitId}/find-individual-session`
+        : `practitioner-role/session-member-notes/organization/${organizationId}/alleva-ehr/${visitId}/find-group-session`;
       const response = await httpClient.get(url);
       return response?.data || null;
     } catch (error) {
@@ -81,7 +104,7 @@ export class Alleva {
   }
 
   private async handleIntakeAssessment(): Promise<Session | null> {
-    const clientIdElement = document.querySelector("#ClientId") as HTMLInputElement;
+    const clientIdElement = document.querySelector("#hdnLeadIdSalesIntake") as HTMLInputElement;
     if (!clientIdElement?.value) {
       console.warn("Client ID element not found");
       return null;
@@ -105,21 +128,30 @@ export class Alleva {
   }
 
   private async handleFollowUpSession(): Promise<Session | null> {
-    const scope = this.getAngularScope("[ng-if='showClientSessionScreen']");
+    const individualSessionScope = this.getAngularScope("[ng-if='showClientSessionScreen']");
+    const groupSessionScope = this.getAngularScope("[ng-if='showGroupSessionScreen']");
 
-    if (!scope?.showClientSessionScreen) {
-      console.warn("Not in client session screen");
+    if (
+      !individualSessionScope?.showClientSessionScreen &&
+      !groupSessionScope?.showGroupSessionScreen
+    ) {
+      console.warn("Not on notes screen");
       return null;
     }
 
-    // const visitId = scope?.appointmentInfo?.AppointmentId;
-    const visitId = "19642133";
+    const visitId =
+      individualSessionScope?.appointmentInfo?.AppointmentId ||
+      groupSessionScope?.appointmentInfo?.AppointmentId;
+    console.log(
+      "visitId",
+      individualSessionScope?.appointmentInfo || groupSessionScope?.appointmentInfo
+    );
     if (!visitId) {
       console.warn("Visit ID not found in appointment info");
       return null;
     }
 
-    return this.fetchSessionByVisitId(visitId);
+    return this.fetchSessionByVisitId(visitId, !!groupSessionScope?.showGroupSessionScreen);
   }
 
   public async getActiveSession(): Promise<Session | null> {
@@ -168,10 +200,56 @@ export class Alleva {
     notesTemplate: SessionNotesTemplates
   ): Promise<boolean> {
     if (!notesData || !notesTemplate) return false;
+    const currentUrl = window.location.href;
+    const isGroupSession = !!this.getAngularScope("[ng-if='showGroupSessionScreen']");
     if (notesTemplate === SessionNotesTemplates.BPS) {
-      return this.handleBPSAssessment(notesData);
+      if (currentUrl.includes("clientPsychIntake")) {
+        return this.handleBPSAssessment(notesData);
+      } else {
+        return Promise.reject({ message: "Not on BPS assessment screen" });
+      }
+    }
+    if (notesTemplate === SessionNotesTemplates.DEFAULT_SOAP) {
+      if (currentUrl.includes("Scheduler")) {
+        return this.handleDefaultSoap(notesData, isGroupSession);
+      } else {
+        return Promise.reject({ message: "Not on appointment notes screen" });
+      }
     }
     return false;
+  }
+
+  private async handleDefaultSoap(
+    notesData: SessionNotes,
+    isGroupSession: boolean
+  ): Promise<boolean> {
+    if (isGroupSession) {
+      return this.handleGroupDefaultSoap(notesData);
+    } else {
+      return this.handleIndividualDefaultSoap(notesData);
+    }
+  }
+
+  private async handleGroupDefaultSoap(notesData: SessionNotes): Promise<boolean> {
+    console.log("handleGroupDefaultSoap", notesData);
+    return false;
+  }
+
+  private async handleIndividualDefaultSoap(notesData: SessionNotes): Promise<boolean> {
+    const soapNote = notesData?.soapNote || "";
+    const notesEditor = document.querySelector(
+      "div[data-qa-id='individual-note-form-group'] .tox-editor-container"
+    ) as HTMLTextAreaElement;
+    if (!notesEditor) {
+      console.warn("Notes editor not found");
+      return false;
+    }
+    notesEditor.focus();
+    const existingContent = window?.tinymce?.activeEditor?.getContent?.() || "";
+    const newContent = existingContent + (existingContent ? "\n\n" : "") + soapNote;
+    window?.tinymce?.activeEditor?.setContent(newContent);
+    window?.tinymce?.activeEditor?.focus();
+    return true;
   }
 
   private async handleBPSAssessment(notesData: SessionNotes): Promise<boolean> {
@@ -179,34 +257,35 @@ export class Alleva {
     if (!bpsData) return false;
     bpsAssessmentSchema.forEach(async section => {
       if (section.ehrFields?.sectionEditable) {
-        console.log("section", section);
         const editBtn: HTMLButtonElement | null = section.ehrFields?.editBtnSelector
           ? (document.querySelector(section.ehrFields?.editBtnSelector) as HTMLButtonElement)
           : null;
-        console.log("editBtn", editBtn);
-        let isEditActive = !!this.getAngularScope(section.ehrFields?.editBtnSelector || "")?.[
-          section.ehrFields?.editActiveAttribute || ""
-        ];
-        // console.log("isEditActive", isEditActive);
+        let isEditActive = !document
+          .querySelector(
+            `.physcintake-top div[ng-show="${section.ehrFields?.editActiveAttribute}"]`
+          )
+          ?.classList.contains("ng-hide");
         if (!isEditActive) {
           editBtn?.click();
-          isEditActive = !!this.getAngularScope(section.ehrFields?.editBtnSelector || "")?.[
-            section.ehrFields?.editActiveAttribute || ""
-          ];
+          isEditActive = !document
+            .querySelector(
+              `.physcintake-top div[ng-show="${section.ehrFields?.editActiveAttribute}"]`
+            )
+            ?.classList.contains("ng-hide");
           const checkEditActive = async () => {
-            isEditActive = !!this.getAngularScope(section.ehrFields?.editBtnSelector || "")?.[
-              section.ehrFields?.editActiveAttribute || ""
-            ];
+            isEditActive = !document
+              .querySelector(
+                `.physcintake-top div[ng-show="${section.ehrFields?.editActiveAttribute}"]`
+              )
+              ?.classList.contains("ng-hide");
             if (!isEditActive) {
               editBtn?.click();
-              await new Promise(resolve => setTimeout(resolve, 5000));
+              await new Promise(resolve => setTimeout(resolve, 2000));
               await checkEditActive();
             }
           };
           await checkEditActive();
         }
-        console.log("isEditActive", isEditActive);
-        console.log("section", section);
       }
       section.value.forEach(field => {
         if (field.type === "listOfValues") {
@@ -225,6 +304,12 @@ export class Alleva {
                   : null;
                 if (inputField && value[valueItem.key]) {
                   inputField.value = value[valueItem.key];
+                  // if (valueItem.autoComplete) {
+                  //   const firstItem = findMatchingListFirstItem(value[valueItem.key]);
+                  //   if (firstItem) {
+                  //     inputField.value = firstItem;
+                  //   }
+                  // }
                   inputField.dispatchEvent(new Event("change"));
                 }
               });
@@ -246,7 +331,10 @@ export class Alleva {
             : null;
           const sectionValue = (bpsData[section.key as keyof BPSTemplate] as any)[field.key];
           if (inputField && sectionValue) {
-            inputField.value = sectionValue;
+            inputField.value =
+              (inputField.value
+                ? `${inputField.value} ${field.type === "textarea" ? "\n" : ""}`
+                : "") + sectionValue;
             inputField.dispatchEvent(new Event("change"));
           }
         }
@@ -270,7 +358,10 @@ export class Alleva {
                 subField.key
               ];
               if (inputField && sectionValue) {
-                inputField.value = sectionValue;
+                inputField.value =
+                  (inputField.value
+                    ? `${inputField.value} ${subField.type === "textarea" ? "\n" : ""}`
+                    : "") + sectionValue;
                 inputField.dispatchEvent(new Event("change"));
               }
             }
@@ -284,7 +375,10 @@ export class Alleva {
                     field.key
                   ][subField.key][subSubField.key];
                   if (inputField && sectionValue) {
-                    inputField.value = sectionValue;
+                    inputField.value =
+                      (inputField.value
+                        ? `${inputField.value} ${subSubField.type === "textarea" ? "\n" : ""}`
+                        : "") + sectionValue;
                     inputField.dispatchEvent(new Event("change"));
                   }
                 }
@@ -300,5 +394,3 @@ export class Alleva {
 }
 
 export default Alleva;
-
-// bpsAssessmentTextarea.dispatchEvent(new Event("change"));
