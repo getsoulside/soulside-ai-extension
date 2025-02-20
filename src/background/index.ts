@@ -1,6 +1,6 @@
 import { changeStorageValue, getCookie, getStorageValue, setCookie } from "./utils/storage";
 import httpClient, { rawHttpClient } from "./utils/httpClient";
-import parseCsv from "./utils/parseCsv";
+import parseCsv, { unParseCsv } from "./utils/parseCsv";
 
 interface Message {
   action: string;
@@ -10,6 +10,7 @@ interface Message {
   apiOptions: any;
   isRawApiCall: boolean;
   pdfUrl: string;
+  csvData: any;
 }
 
 chrome.runtime.onMessage.addListener(
@@ -58,6 +59,16 @@ chrome.runtime.onMessage.addListener(
     }
     if (message.action === "parseCsv") {
       parseCsv(message.pdfUrl)
+        .then(response => {
+          sendResponse({ success: true, value: response });
+        })
+        .catch(error => {
+          sendResponse({ success: false, value: error });
+        });
+      return true;
+    }
+    if (message.action === "unParseCsv") {
+      unParseCsv(message.csvData)
         .then(response => {
           sendResponse({ success: true, value: response });
         })

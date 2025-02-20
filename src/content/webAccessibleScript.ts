@@ -70,10 +70,11 @@ window.addEventListener("message", function (event) {
   if (event.data.type === "SET_TINYMCE_CONTENT") {
     console.log("SET_TINYMCE_CONTENT", event.data);
     const content = event.data.content;
-    const existingContent = (window as any)?.tinymce?.activeEditor?.getContent?.() || "";
+    const editorId = event.data.editorId;
+    const tinymceEditor = (window as any).tinymce.get(editorId);
+    const existingContent = tinymceEditor?.getContent?.() || "";
     const newContent = existingContent + (existingContent ? "\n\n" : "") + content;
-    (window as any).tinymce.activeEditor.setContent(newContent);
-    (window as any).tinymce.activeEditor.focus();
+    tinymceEditor?.setContent(newContent);
     window.postMessage(
       {
         type: "TINYMCE_CONTENT_SET",

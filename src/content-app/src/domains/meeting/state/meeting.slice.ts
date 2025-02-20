@@ -1,6 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Session } from "@/domains/session/models";
-import { SoulsideMeetingSession, SoulsideMeetingSessionTranscript } from "../models";
+import {
+  SoulsideMeetingSession,
+  SoulsideMeetingSessionTranscript,
+  SoulsideMeetingSessionSpeakerAudio,
+} from "../models";
 
 interface ProviderSessionTranscript {
   data: SoulsideMeetingSessionTranscript[];
@@ -13,6 +17,18 @@ export type ProviderSessionTranscripts = Record<
 >;
 
 type SessionTranscript = Record<NonNullable<Session["id"]>, ProviderSessionTranscripts>;
+
+type ProviderSessionSpeakerAudio = {
+  data: SoulsideMeetingSessionSpeakerAudio[];
+  loading: boolean;
+};
+
+type ProviderSessionSpeakerAudios = Record<
+  NonNullable<SoulsideMeetingSession["id"]>,
+  ProviderSessionSpeakerAudio
+>;
+
+type SessionSpeakerAudios = Record<NonNullable<Session["id"]>, ProviderSessionSpeakerAudios>;
 
 type ProviderSession = Record<
   NonNullable<Session["id"]>,
@@ -34,12 +50,14 @@ interface MeetingState {
   sessionDetails: SessionDetails;
   providerSessions: ProviderSession;
   transcript: SessionTranscript;
+  speakerAudios: SessionSpeakerAudios;
 }
 
 const initialState: MeetingState = {
   sessionDetails: {},
   providerSessions: {},
   transcript: {},
+  speakerAudios: {},
 };
 
 const meetingSlice = createSlice({
@@ -142,6 +160,50 @@ const meetingSlice = createSlice({
       }
       state.transcript[sessionId][providerSessionId].data = transcriptData;
     },
+    toggleSpeakerAudiosLoading(
+      state,
+      action: PayloadAction<{ sessionId: string; providerSessionId: string; loading: boolean }>
+    ) {
+      const { sessionId, providerSessionId, loading } = action.payload;
+      if (!state.speakerAudios[sessionId]) {
+        state.speakerAudios[sessionId] = {
+          [providerSessionId]: {
+            data: [],
+            loading: false,
+          },
+        };
+      } else if (!state.speakerAudios[sessionId][providerSessionId]) {
+        state.speakerAudios[sessionId][providerSessionId] = {
+          data: [],
+          loading: false,
+        };
+      }
+      state.speakerAudios[sessionId][providerSessionId].loading = loading;
+    },
+    addSpeakerAudiosData(
+      state,
+      action: PayloadAction<{
+        sessionId: string;
+        providerSessionId: string;
+        speakerAudios: SoulsideMeetingSessionSpeakerAudio[];
+      }>
+    ) {
+      const { sessionId, providerSessionId, speakerAudios } = action.payload;
+      if (!state.speakerAudios[sessionId]) {
+        state.speakerAudios[sessionId] = {
+          [providerSessionId]: {
+            data: [],
+            loading: false,
+          },
+        };
+      } else if (!state.speakerAudios[sessionId][providerSessionId]) {
+        state.speakerAudios[sessionId][providerSessionId] = {
+          data: [],
+          loading: false,
+        };
+      }
+      state.speakerAudios[sessionId][providerSessionId].data = speakerAudios;
+    },
   },
 });
 
@@ -152,6 +214,8 @@ export const {
   addProviderSessionsData,
   toggleTranscriptLoading,
   addTranscriptData,
+  toggleSpeakerAudiosLoading,
+  addSpeakerAudiosData,
 } = meetingSlice.actions;
 
 export default meetingSlice.reducer;

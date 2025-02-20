@@ -18,11 +18,15 @@ import { ContentCopy } from "@mui/icons-material";
 
 export interface FollowUpAssessmentProps {
   notesData: SessionNotes | null;
+  sessionId?: UUIDString;
 }
 
-const FollowUpAssessment: React.FC<FollowUpAssessmentProps> = ({ notesData }): React.ReactNode => {
+const FollowUpAssessment: React.FC<FollowUpAssessmentProps> = ({
+  notesData,
+  sessionId,
+}): React.ReactNode => {
   const [textCopiedSection, setTextCopiedSection] = useState("");
-  const { followUpNotesData, sortSections } = useFollowUpAssessment({ notesData });
+  const { followUpNotesData, sortSections } = useFollowUpAssessment({ notesData, sessionId });
   useEffect(() => {
     setTextCopiedSection("");
   }, []);

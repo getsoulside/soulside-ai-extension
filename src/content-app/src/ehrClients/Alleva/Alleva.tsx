@@ -3,12 +3,16 @@ import { getIntakeSessionsByPatientId } from "@/domains/session";
 import { Session } from "@/domains/session/models";
 import { SessionNotes } from "@/domains/sessionNotes";
 import BPSTemplate from "@/domains/sessionNotes/models/sessionNotes.bps.types";
-import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNotes.types";
+import {
+  GroupNotes,
+  SessionNotesTemplates,
+} from "@/domains/sessionNotes/models/sessionNotes.types";
 import BPSTemplateData from "@/Routes/SessionDetails/components/SessionNotes/NoteTemplates/BPSAssessment/bpsTemplateData";
 import bpsAssessmentSchema from "@/Routes/SessionDetails/components/SessionNotes/NoteTemplates/BPSAssessment/bpsTemplateSchema";
 import { store } from "@/store";
 import httpClient from "@/utils/httpClient";
 import { EhrClient } from "../ehrClients.types";
+import { SoulsideMeetingSessionTranscript } from "@/domains/meeting";
 
 // function findMatchingListFirstItem(searchValue: string): string | null {
 //   // Get all ul elements with ui-menu class
@@ -166,7 +170,7 @@ export class Alleva {
   private async handleFollowUpSession(): Promise<Session | null> {
     const individualSessionScope = await this.getAngularScope("[ng-if='showClientSessionScreen']");
     const groupSessionScope = await this.getAngularScope("[ng-if='showGroupSessionScreen']");
-    const isGroupSession = !!groupSessionScope?.showGroupSessionScreen;
+    const isGroupSession = !!groupSessionScope;
     const appointmentScope = isGroupSession ? groupSessionScope : individualSessionScope;
     const appointmentInfo = appointmentScope?.appointment;
     if (!appointmentInfo) {
@@ -226,7 +230,8 @@ export class Alleva {
 
   public async addNotes(
     notesData: SessionNotes | null,
-    notesTemplate: SessionNotesTemplates
+    notesTemplate: SessionNotesTemplates,
+    providerSessionUniqueSpeakers?: Record<string, SoulsideMeetingSessionTranscript>
   ): Promise<boolean> {
     if (!notesData || !notesTemplate) return false;
     const currentUrl = window.location.href;
@@ -240,7 +245,14 @@ export class Alleva {
     }
     if (notesTemplate === SessionNotesTemplates.DEFAULT_SOAP) {
       if (currentUrl.includes("Scheduler")) {
-        return this.handleDefaultSoap(notesData, isGroupSession);
+        return this.handleDefaultSoap(notesData, isGroupSession, providerSessionUniqueSpeakers);
+      } else {
+        return Promise.reject({ message: "Not on appointment notes screen" });
+      }
+    }
+    if (notesTemplate === SessionNotesTemplates.GROUP) {
+      if (currentUrl.includes("Scheduler")) {
+        return this.handleGroupDefaultSoap(notesData, providerSessionUniqueSpeakers);
       } else {
         return Promise.reject({ message: "Not on appointment notes screen" });
       }
@@ -250,36 +262,109 @@ export class Alleva {
 
   private async handleDefaultSoap(
     notesData: SessionNotes,
-    isGroupSession: boolean
+    isGroupSession: boolean,
+    providerSessionUniqueSpeakers?: Record<string, SoulsideMeetingSessionTranscript>
   ): Promise<boolean> {
     if (isGroupSession) {
-      return this.handleGroupDefaultSoap(notesData);
+      return this.handleGroupDefaultSoap(notesData, providerSessionUniqueSpeakers);
     } else {
       return this.handleIndividualDefaultSoap(notesData);
     }
   }
 
-  private async handleGroupDefaultSoap(notesData: SessionNotes): Promise<boolean> {
-    console.log("handleGroupDefaultSoap", notesData);
-    return false;
+  private async handleGroupDefaultSoap(
+    notesData: SessionNotes,
+    providerSessionUniqueSpeakers?: Record<string, SoulsideMeetingSessionTranscript>
+  ): Promise<boolean> {
+    const groupNotes = notesData?.jsonSoapNote?.[SessionNotesTemplates.GROUP] || null;
+    const groupNotesScope = await this.getAngularScope("div[data-qa-id='clientNotes-container']");
+    const getPatientName = (patientId: string) => {
+      return providerSessionUniqueSpeakers?.[patientId]?.participantName || patientId;
+    };
+    const soulsideNotesData: GroupNotes = {};
+    Object.keys(groupNotes || {}).forEach((notePatientName: string) => {
+      const patientName = getPatientName(notePatientName);
+      soulsideNotesData[patientName] = groupNotes?.[notePatientName] || "";
+    });
+    const groupPatientsData =
+      groupNotesScope?.allClientSessions?.map((patient: any) => {
+        const allevaClientLeadId = patient?.Client?.leadId || "";
+        const allevaClientName = patient?.Client?.ClientFullName || "";
+        const soulsideNotes = soulsideNotesData[allevaClientName] || "";
+        return {
+          allevaClientLeadId,
+          allevaClientName,
+          soulsideNotes,
+        };
+      }) || [];
+    for (const patient of groupPatientsData) {
+      const allevaClientLeadId = patient?.allevaClientLeadId || "";
+      const soulsideNotes = patient?.soulsideNotes || "";
+      const notesEditor = document.querySelector(
+        `textarea[data-qa-id='txt-clientNotes-${allevaClientLeadId}-notes']`
+      ) as HTMLTextAreaElement;
+      if (!notesEditor) {
+        console.warn("Notes editor not found");
+        return false;
+      }
+      const editorId = notesEditor.id;
+      // For extension environment
+      if (chrome?.runtime?.id) {
+        window.postMessage(
+          {
+            type: "SET_TINYMCE_CONTENT",
+            content: soulsideNotes,
+            editorId,
+          },
+          "*"
+        );
+
+        // Wait for response with timeout
+        await new Promise((resolve, reject) => {
+          const messageHandler = (event: MessageEvent) => {
+            if (event.data.type === "TINYMCE_CONTENT_SET") {
+              window.removeEventListener("message", messageHandler);
+              if (timeoutId) {
+                clearTimeout(timeoutId);
+              }
+              resolve(true);
+            }
+          };
+          window.addEventListener("message", messageHandler);
+
+          const timeoutId = setTimeout(() => {
+            window.removeEventListener("message", messageHandler);
+            reject(new Error("Timeout waiting for TinyMCE content set"));
+          }, 5000); // 5 second timeout
+        });
+        continue;
+      } else {
+        const tinymceEditor = (window as any).tinymce.get(editorId);
+        const existingContent = tinymceEditor?.getContent?.() || "";
+        const newContent = existingContent + (existingContent ? "\n\n" : "") + soulsideNotes;
+        tinymceEditor?.setContent(newContent);
+      }
+    }
+    return true;
   }
 
   private async handleIndividualDefaultSoap(notesData: SessionNotes): Promise<boolean> {
     const soapNote = notesData?.soapNote || "";
     const notesEditor = document.querySelector(
-      "div[data-qa-id='individual-note-form-group'] .tox-editor-container"
+      "div[data-qa-id='individual-note-form-group'] textarea[data-qa-id='individual-note-textarea']"
     ) as HTMLTextAreaElement;
     if (!notesEditor) {
       console.warn("Notes editor not found");
       return false;
     }
-    notesEditor.focus();
+    const editorId = notesEditor.id;
     // For extension environment
     if (chrome?.runtime?.id) {
       window.postMessage(
         {
           type: "SET_TINYMCE_CONTENT",
           content: soapNote,
+          editorId,
         },
         "*"
       );
@@ -303,10 +388,10 @@ export class Alleva {
         }, 5000); // 5 second timeout
       });
     }
-    const existingContent = (window as any)?.tinymce?.activeEditor?.getContent?.() || "";
+    const tinymceEditor = (window as any).tinymce.get(editorId);
+    const existingContent = tinymceEditor?.getContent?.() || "";
     const newContent = existingContent + (existingContent ? "\n\n" : "") + soapNote;
-    (window as any).tinymce.activeEditor.setContent(newContent);
-    (window as any).tinymce.activeEditor.focus();
+    tinymceEditor?.setContent(newContent);
     return true;
   }
 

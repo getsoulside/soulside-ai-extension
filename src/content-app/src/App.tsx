@@ -109,7 +109,7 @@ const SoulsideExtensionDrawer = () => {
                 <Navigate
                   to={"/appointments"}
                   // to={"/settings"}
-                  // to="/session-details/INDIVIDUAL/VIRTUAL/1742cffe-eb90-4f2b-8dfe-5894deba85a4"
+                  // to="/session-details/GROUP/IN_PERSON/6614dcdf-92ed-4de3-b78b-6838781ded1e"
                   replace
                 />
               ),

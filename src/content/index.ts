@@ -92,6 +92,21 @@ window.addEventListener("message", async event => {
     });
   }
 
+  if (event.data.type === "SOULSIDE_UNPARSE_CSV") {
+    const { csvData, requestId } = event.data;
+    chrome.runtime.sendMessage({ action: "unParseCsv", csvData }, response => {
+      window.postMessage(
+        {
+          type: "SOULSIDE_UNPARSE_CSV_RESULT",
+          requestId,
+          value: response.value,
+          success: response.success,
+        },
+        "*"
+      );
+    });
+  }
+
   if (event.data.type === "SOULSIDE_LOGGED_IN") {
     chrome.runtime.sendMessage({ action: "loggedIn" });
   }

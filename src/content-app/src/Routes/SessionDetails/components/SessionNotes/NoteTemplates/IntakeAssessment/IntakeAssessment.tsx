@@ -23,15 +23,16 @@ import {
 } from "@mui/material";
 import { ContentCopy } from "@mui/icons-material";
 import { copyToClipboard } from "@/utils/helpers";
-
+import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNotes.types";
 export interface IntakeAssessmentProps {
   notesData: SessionNotes | null;
+  sessionId: UUIDString;
 }
 
 const IntakeAssessment = ({ notesData }: IntakeAssessmentProps) => {
   const [activeTab, setActiveTab] = useState(intakeAssessmentTabs[0].name);
   const [textCopiedSection, setTextCopiedSection] = useState("");
-  const intakeData = notesData?.jsonSoapNote?.["intake-assessment"] || null;
+  const intakeData = notesData?.jsonSoapNote?.[SessionNotesTemplates.INTAKE] || null;
   let copyTimer: any = null;
   const copyText = (key: string, text: string) => {
     copyToClipboard(text);

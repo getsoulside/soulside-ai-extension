@@ -59,7 +59,9 @@ export const openActiveSessionNotes = async ({
     try {
       const activeSession = await ehrClientInstance.getActiveSession();
       if (activeSession) {
-        navigate(`/session-details/INDIVIDUAL/${activeSession.modeOfDelivery}/${activeSession.id}`);
+        navigate(
+          `/session-details/${activeSession.sessionCategory}/${activeSession.modeOfDelivery}/${activeSession.id}`
+        );
       } else {
         if (!silentEvent) {
           toast.error("No active session found");

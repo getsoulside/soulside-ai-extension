@@ -28,16 +28,17 @@ import {
 } from "@mui/material";
 import { ContentCopy } from "@mui/icons-material";
 import { copyToClipboard } from "@/utils/helpers";
-import BPSTemplateData from "./bpsTemplateData";
+import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNotes.types";
 
 interface BPSAssessmentProps {
   notesData: SessionNotes | null;
+  sessionId: UUIDString;
 }
 
 const BPSAssessment = ({ notesData }: BPSAssessmentProps) => {
   const [activeTab, setActiveTab] = useState(bpsAssessmentSchema[0].key);
   const [textCopiedSection, setTextCopiedSection] = useState("");
-  const bpsData = notesData?.jsonSoapNote?.["bps-assessment"] || BPSTemplateData;
+  const bpsData = notesData?.jsonSoapNote?.[SessionNotesTemplates.BPS];
   let copyTimer: any = null;
   const copyText = (key: string, text: string) => {
     copyToClipboard(text);

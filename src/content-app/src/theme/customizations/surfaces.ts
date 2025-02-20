@@ -120,9 +120,7 @@ export const surfacesCustomizations: Components<Theme> = {
   MuiDialogActions: {
     styleOverrides: {
       root: ({ theme }) => ({
-        paddingBottom: theme.spacing(3),
-        paddingLeft: theme.spacing(3),
-        paddingRight: theme.spacing(3),
+        padding: theme.spacing(2),
       }),
     },
   },

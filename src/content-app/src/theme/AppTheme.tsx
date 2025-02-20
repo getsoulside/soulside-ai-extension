@@ -83,6 +83,12 @@ export default function AppTheme(props: AppThemeProps) {
               props.shadowRoot?.getElementById("soulside-extension-app") as Element | null,
           },
         },
+        MuiDialog: {
+          defaultProps: {
+            container: () =>
+              props.shadowRoot?.getElementById("soulside-extension-app") as Element | null,
+          },
+        },
       },
     });
   }, []);

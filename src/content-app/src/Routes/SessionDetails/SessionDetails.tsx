@@ -9,7 +9,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
 import { Box, Stack, Typography, Tab, Avatar, IconButton, Tooltip } from "@mui/material";
-import { ArrowBackIos, OpenInNew } from "@mui/icons-material";
+import { ArrowBackIos, OpenInNew, SyncRounded } from "@mui/icons-material";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
@@ -34,10 +34,13 @@ const SessionDetails: React.FC = (): React.ReactNode => {
   );
   const transcriptData = useSelector((state: RootState) => state.meeting.transcript[sessionId]);
   useEffect(() => {
+    loadData();
+  }, [sessionId]);
+  const loadData = () => {
     dispatch(loadSessionDetails(sessionId, sessionCategory as SessionCategory));
     dispatch(loadProviderSessions(sessionId, sessionCategory as SessionCategory));
     dispatch(loadSessionNotes(sessionId));
-  }, [sessionId]);
+  };
   useEffect(() => {
     if (providerSessions?.data.length > 0) {
       providerSessions?.data.forEach(providerSession => {
@@ -158,64 +161,94 @@ const SessionDetails: React.FC = (): React.ReactNode => {
             overflow: "auto",
           }}
         >
-          <TabContext value={activeTab}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-              <TabList
-                onChange={handleTabChange}
-                aria-label="lab API tabs example"
+          {providerSessions?.data.length > 0 ? (
+            <TabContext value={activeTab}>
+              <Box
+                sx={{
+                  borderBottom: 1,
+                  borderColor: "divider",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
               >
-                <Tab
-                  label="Notes"
-                  value="notes"
-                  sx={{ fontSize: "0.9rem", py: 0.5 }}
+                <TabList
+                  onChange={handleTabChange}
+                  aria-label="lab API tabs example"
+                >
+                  <Tab
+                    label="Notes"
+                    value="notes"
+                    sx={{ fontSize: "0.9rem", py: 0.5 }}
+                  />
+                  <Tab
+                    label="Transcript"
+                    value="transcript"
+                    sx={{ fontSize: "0.9rem", py: 0.5 }}
+                  />
+                </TabList>
+                <Tooltip title="Refresh">
+                  <IconButton onClick={loadData}>
+                    <SyncRounded sx={{ fontSize: "1.3rem", color: "primary.main" }} />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              <TabPanel
+                value="notes"
+                sx={{
+                  p: 0,
+                  pt: 1,
+                  maxHeight: "100%",
+                  overflow: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  flex: 1,
+                  "&[hidden]": {
+                    flex: "unset",
+                    p: 0,
+                  },
+                }}
+              >
+                <SessionNotes session={sessionDetails?.data} />
+              </TabPanel>
+              <TabPanel
+                value="transcript"
+                sx={{
+                  p: 1,
+                  maxHeight: "100%",
+                  overflow: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  flex: 1,
+                  "&[hidden]": {
+                    flex: "unset",
+                    p: 0,
+                  },
+                }}
+              >
+                <SessionTranscript
+                  session={sessionDetails?.data}
+                  transcriptData={transcriptData}
+                  providerSessionsData={providerSessions?.data}
                 />
-                <Tab
-                  label="Transcript"
-                  value="transcript"
-                  sx={{ fontSize: "0.9rem", py: 0.5 }}
-                />
-              </TabList>
+              </TabPanel>
+            </TabContext>
+          ) : (
+            <Box
+              sx={{
+                flex: 1,
+                overflow: "auto",
+                display: "flex",
+                flexDirection: "column",
+                gap: 1,
+                maxHeight: "100%",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography variant={"subtitle2"}>Session not started yet</Typography>
             </Box>
-            <TabPanel
-              value="notes"
-              sx={{
-                p: 0,
-                pt: 1,
-                maxHeight: "100%",
-                overflow: "auto",
-                display: "flex",
-                flexDirection: "column",
-                flex: 1,
-                "&[hidden]": {
-                  flex: "unset",
-                  p: 0,
-                },
-              }}
-            >
-              <SessionNotes session={sessionDetails?.data} />
-            </TabPanel>
-            <TabPanel
-              value="transcript"
-              sx={{
-                p: 1,
-                maxHeight: "100%",
-                overflow: "auto",
-                display: "flex",
-                flexDirection: "column",
-                flex: 1,
-                "&[hidden]": {
-                  flex: "unset",
-                  p: 0,
-                },
-              }}
-            >
-              <SessionTranscript
-                session={sessionDetails?.data}
-                transcriptData={transcriptData}
-                providerSessionsData={providerSessions?.data}
-              />
-            </TabPanel>
-          </TabContext>
+          )}
         </Box>
       </Loader>
     </Box>

@@ -197,14 +197,17 @@ export const loadSessionNotesStatus =
             !!jsonSoapNote?.[SessionNotesTemplates.GROUP_EXTENDED_NOTES],
           [SessionNotesTemplates.BPS]: !!jsonSoapNote?.[SessionNotesTemplates.BPS],
         };
-        let noteTemplate = noteTemplatesLibrary?.[session.sessionCategory as SessionCategory]?.[
-          (session as IndividualSession).appointmentType as AppointmentType
-        ]?.find(i => i.isDefault);
+        const appointmentType =
+          (session as IndividualSession).appointmentType || AppointmentType.FOLLOW_UP;
+        const sessionCategory = session.sessionCategory as SessionCategory;
+        let noteTemplate = noteTemplatesLibrary?.[sessionCategory]?.[appointmentType]?.find(
+          i => i.isDefault
+        );
         const notesExists = noteTemplate?.key ? notesStatus?.[noteTemplate.key] : false;
         const sessionNotesStatus: SessionNotesStatus = {
           sessionId: session.id,
-          sessionCategory: session.sessionCategory,
-          appointmentType: (session as IndividualSession).appointmentType,
+          sessionCategory,
+          appointmentType,
           notesStatus,
           notesExists,
         };

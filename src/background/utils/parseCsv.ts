@@ -18,4 +18,9 @@ const parseCsv = async (pdfUrl: string) => {
   });
 };
 
+export const unParseCsv = async (csvData: any) => {
+  let csv = Papa.unparse(csvData);
+  return Promise.resolve(csv);
+};
+
 export default parseCsv;

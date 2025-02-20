@@ -6,7 +6,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import { getCookie, setCookie } from "./storage";
-import { API_BASE_URL } from "../constants";
+import { API_BASE_URL, IN_SESSION_SOCKET_URL } from "../constants";
 
 interface APIOptions {
   url: string;
@@ -143,6 +143,24 @@ class HttpClient {
 
   public async post<T>(options: APIOptions): Promise<AxiosResponse<T>> {
     const { url, data, config } = options;
+    if (config?.headers?.["Content-Type"] === "multipart/form-data") {
+      const authToken = await this.getAuthToken();
+      const response = await rawHttpClient.post({
+        url: `${IN_SESSION_SOCKET_URL}/proxy-api`,
+        data: {
+          url: `${API_BASE_URL}/${url}`,
+          method: "POST",
+          apiOptions: {
+            data,
+            headers: {
+              ...(config?.headers || {}),
+              Authorization: `Bearer ${authToken}`,
+            },
+          },
+        },
+      });
+      return response as AxiosResponse<T>;
+    }
     const response = await this.httpClient.post<T>(url, data, config);
     return response;
   }

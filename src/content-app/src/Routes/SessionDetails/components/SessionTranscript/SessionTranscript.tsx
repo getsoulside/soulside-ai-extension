@@ -6,7 +6,10 @@ import {
 } from "@/domains/meeting";
 import { IndividualSession, Session, SessionCategory } from "@/domains/session";
 import { getFormattedDateTime } from "@/utils/date";
-import { Box, Divider, Stack, Typography } from "@mui/material";
+import { EditRounded } from "@mui/icons-material";
+import { Box, Divider, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import SpeakerMapping from "../SpeakerMapping/SpeakerMapping";
+import { useState } from "react";
 
 interface SessionTranscriptProps {
   session: Session | null;
@@ -25,24 +28,7 @@ const SessionTranscript = ({
   const patientName = `${(session as IndividualSession)?.patientFirstName || ""}${
     (session as IndividualSession)?.patientLastName ? " " : ""
   }${(session as IndividualSession)?.patientLastName || ""}`;
-  if (!providerSessionsData || providerSessionsData.length === 0) {
-    return (
-      <Box
-        sx={{
-          flex: 1,
-          overflow: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-          maxHeight: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Typography variant={"subtitle2"}>No transcript available</Typography>
-      </Box>
-    );
-  }
+  const [speakerMappingOpen, setSpeakerMappingOpen] = useState(false);
   return (
     <Box
       sx={{
@@ -56,7 +42,7 @@ const SessionTranscript = ({
     >
       {providerSessionsData?.map(providerSession => {
         if (!providerSession) return null;
-        const providerSessionId = providerSession.id || "";
+        const providerSessionId = providerSession.providerSessionId || "";
         const providerSessionStartTime = getFormattedDateTime(
           providerSession.startedAt,
           "MMM DD, YYYY | h:mm a"
@@ -107,15 +93,26 @@ const SessionTranscript = ({
                           gap: 1,
                         }}
                       >
-                        <Typography
-                          variant={"subtitle2"}
-                          sx={{
-                            fontWeight: "bold",
-                            color: "primary.main",
-                          }}
+                        <Stack
+                          direction="row"
+                          spacing={0.5}
+                          alignItems="center"
                         >
-                          {participantName}
-                        </Typography>
+                          <Typography
+                            variant={"subtitle2"}
+                            sx={{
+                              fontWeight: "bold",
+                              color: "primary.main",
+                            }}
+                          >
+                            {participantName}
+                          </Typography>
+                          <Tooltip title="Change Speaker Mapping">
+                            <IconButton onClick={() => setSpeakerMappingOpen(true)}>
+                              <EditRounded sx={{ fontSize: "1rem", opacity: 0.7 }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
                         <Typography
                           variant={"subtitle2"}
                           sx={{
@@ -145,6 +142,11 @@ const SessionTranscript = ({
                 </Box>
               )}
             </Loader>
+            <SpeakerMapping
+              open={speakerMappingOpen}
+              onClose={() => setSpeakerMappingOpen(false)}
+              sessionId={session?.id || ""}
+            />
           </Box>
         );
       })}

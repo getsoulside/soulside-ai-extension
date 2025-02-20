@@ -43,13 +43,20 @@ export interface SoulsideMeetingSession {
   sessionCategory: SessionCategory | null;
 }
 
-export interface SoulsideMeetingSessionTranscript {
+interface SoulsideMeetingSessionParticipant {
   participantId: string;
   participantName: string;
   providerParticipantId: string;
   providerPeerId: string;
+}
+
+export interface SoulsideMeetingSessionTranscript extends SoulsideMeetingSessionParticipant {
   timestamp: number;
   transcriptText: string;
-  mappedParticipantId: string | null;
-  mappedParticipantName: string | null;
+}
+
+export interface SoulsideMeetingSessionSpeakerAudio extends SoulsideMeetingSessionParticipant {
+  speakerId: string | null;
+  audioFileUrl: string | null;
+  audioDuration?: number | null;
 }

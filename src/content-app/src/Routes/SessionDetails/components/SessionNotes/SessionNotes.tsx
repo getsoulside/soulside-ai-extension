@@ -6,13 +6,17 @@ import { SessionNotes as SessionNotesType } from "@/domains/sessionNotes";
 import { AppDispatch, RootState } from "@/store";
 import { Box, Divider, MenuItem, Paper, Select, Stack, Typography } from "@mui/material";
 import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNotes.types";
-import { SoapNotes } from "./NoteTemplates";
-import FollowUpAssessment from "./NoteTemplates/FollowUpAssessment/FollowUpAssessment";
-import IntakeAssessment from "./NoteTemplates/IntakeAssessment/IntakeAssessment";
-import BPSAssessment from "./NoteTemplates/BPSAssessment/BPSAssessment";
+import {
+  SoapNotes,
+  FollowUpAssessment,
+  IntakeAssessment,
+  BPSAssessment,
+  GroupNotes,
+} from "./NoteTemplates";
 import { getEhrClient } from "@/utils/helpers";
 import { toast } from "react-toastify";
 import LoadingButton from "@mui/lab/LoadingButton";
+import { SoulsideMeetingSessionTranscript } from "@/domains/meeting";
 interface SessionNotesProps {
   session: Session | null;
 }
@@ -21,7 +25,8 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
   const dispatch: AppDispatch = useDispatch();
   const sessionId = session?.id;
   const sessionCategory = session?.sessionCategory;
-  const appointmentType = (session as IndividualSession)?.appointmentType;
+  const appointmentType =
+    (session as IndividualSession)?.appointmentType || AppointmentType.FOLLOW_UP;
   if (!sessionId) return <></>;
   const sessionNotes = useSelector((state: RootState) => state.sessionNotes.notes[sessionId]);
   const noteTemplatesLibrary = useSelector(
@@ -62,6 +67,24 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
   useEffect(() => {
     dispatch(loadSessionNotes(sessionId));
   }, [sessionId]);
+  const firstProviderSessionData = useSelector(
+    (state: RootState) => state.meeting.providerSessions[sessionId]?.data?.[0]
+  );
+  const providerSessionId = firstProviderSessionData?.providerSessionId || "";
+  const providerSessionTranscriptData = useSelector(
+    (state: RootState) => state.meeting.transcript[sessionId]?.[providerSessionId]?.data
+  );
+  const providerSessionUniqueSpeakers = useMemo(() => {
+    if (!providerSessionTranscriptData || !Array.isArray(providerSessionTranscriptData)) {
+      return {};
+    }
+    return providerSessionTranscriptData.reduce<Record<string, SoulsideMeetingSessionTranscript>>(
+      (acc, transcript) => {
+        return { ...acc, [transcript.providerParticipantId]: transcript };
+      },
+      {}
+    );
+  }, [providerSessionTranscriptData]);
   const addNotes = async (
     notesData: SessionNotesType | null,
     notesTemplate: SessionNotesTemplates
@@ -70,7 +93,11 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
     const ehrClientInstance = ehrClient.getInstance();
     setNotesAddedLoading(true);
     try {
-      const notesAdded = await ehrClientInstance?.addNotes(notesData, notesTemplate);
+      const notesAdded = await ehrClientInstance?.addNotes(
+        notesData,
+        notesTemplate,
+        providerSessionUniqueSpeakers
+      );
       if (notesAdded) {
         toast.success("Notes added to EHR");
         setNotesAdded(true);
@@ -129,16 +156,34 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
         }}
       >
         {notesTemplate === SessionNotesTemplates.DEFAULT_SOAP && (
-          <SoapNotes notesData={sessionNotes.data} />
+          <SoapNotes
+            notesData={sessionNotes.data}
+            sessionId={sessionId}
+          />
         )}
         {notesTemplate === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT && (
-          <FollowUpAssessment notesData={sessionNotes.data} />
+          <FollowUpAssessment
+            notesData={sessionNotes.data}
+            sessionId={sessionId}
+          />
         )}
         {notesTemplate === SessionNotesTemplates.INTAKE && (
-          <IntakeAssessment notesData={sessionNotes.data} />
+          <IntakeAssessment
+            notesData={sessionNotes.data}
+            sessionId={sessionId}
+          />
         )}
         {notesTemplate === SessionNotesTemplates.BPS && (
-          <BPSAssessment notesData={sessionNotes.data} />
+          <BPSAssessment
+            notesData={sessionNotes.data}
+            sessionId={sessionId}
+          />
+        )}
+        {notesTemplate === SessionNotesTemplates.GROUP && (
+          <GroupNotes
+            notesData={sessionNotes.data}
+            sessionId={sessionId}
+          />
         )}
       </Box>
 

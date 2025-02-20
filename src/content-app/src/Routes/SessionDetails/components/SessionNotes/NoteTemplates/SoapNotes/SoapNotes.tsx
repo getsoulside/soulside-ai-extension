@@ -7,6 +7,7 @@ import { useState } from "react";
 
 interface SoapNotesProps {
   notesData: SessionNotes | null;
+  sessionId: UUIDString;
 }
 
 const SoapNotes: React.FC<SoapNotesProps> = ({ notesData }): React.ReactNode => {

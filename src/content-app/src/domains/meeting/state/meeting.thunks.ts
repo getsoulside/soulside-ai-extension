@@ -2,9 +2,11 @@ import { AppThunk } from "@/store";
 import {
   addProviderSessionsData,
   addSessionDetailsData,
+  addSpeakerAudiosData,
   addTranscriptData,
   toggleProviderSessionsLoading,
   toggleSessionDetailsLoading,
+  toggleSpeakerAudiosLoading,
   toggleTranscriptLoading,
 } from "./meeting.slice";
 import { checkTodaySession, SessionCategory } from "@/domains/session";
@@ -12,8 +14,14 @@ import {
   getReconciledIndividualProviderSessions,
   getReconciledGroupProviderSessions,
   getProviderSessionTranscriptData,
+  getProviderSessionSpeakerAudioUrl,
+  updateProviderSessionTranscript,
 } from "../services";
-import { SoulsideMeetingSession, SoulsideMeetingSessionTranscript } from "../models";
+import {
+  SoulsideMeetingSession,
+  SoulsideMeetingSessionSpeakerAudio,
+  SoulsideMeetingSessionTranscript,
+} from "../models";
 import {
   getIndividualSessionBySessionId,
   getGroupSessionBySessionId,
@@ -65,18 +73,18 @@ export const loadTranscript =
       sessionCategory === SessionCategory.INDIVIDUAL
         ? providerSession.individualSessionId
         : providerSession.sessionId;
-    if (!sessionId || !providerSession.id || !sessionCategory) {
+    if (!sessionId || !providerSession.providerSessionId || !sessionCategory) {
       return;
     }
     dispatch(
       toggleTranscriptLoading({
         sessionId,
-        providerSessionId: providerSession.id,
+        providerSessionId: providerSession.providerSessionId,
         loading: true,
       })
     );
     try {
-      let transcriptData;
+      let transcriptData: SoulsideMeetingSessionTranscript[] = [];
       const isTodaySession = checkTodaySession(providerSession);
 
       if (isTodaySession) {
@@ -96,28 +104,66 @@ export const loadTranscript =
           }
         }
       } else {
-        transcriptData = await getProviderSessionTranscriptData(providerSession);
+        try {
+          transcriptData = await getProviderSessionTranscriptData(providerSession);
+        } catch (error) {
+          console.error(error);
+        }
       }
-      transcriptData =
-        transcriptData
-          ?.filter((transcript: any) => !!transcript && !!transcript[0])
-          ?.map(
-            (transcript: any): SoulsideMeetingSessionTranscript => ({
-              timestamp: Number(transcript[0]),
-              providerParticipantId: transcript[1],
-              providerPeerId: transcript[2],
-              participantId: transcript[3],
-              participantName: transcript[4],
-              transcriptText: transcript[5],
-              mappedParticipantId: transcript[6],
-              mappedParticipantName: transcript[7],
-            })
-          ) || [];
       dispatch(
         addTranscriptData({
           sessionId,
-          providerSessionId: providerSession.id,
+          providerSessionId: providerSession.providerSessionId,
           transcriptData: transcriptData || [],
+        })
+      );
+      dispatch(
+        loadProviderSessionSpeakerAudios(
+          sessionId,
+          providerSession.providerSessionId,
+          transcriptData || []
+        )
+      );
+    } catch (error) {
+      console.error(error);
+    }
+    dispatch(
+      toggleTranscriptLoading({
+        sessionId,
+        providerSessionId: providerSession.providerSessionId,
+        loading: false,
+      })
+    );
+  };
+
+export const saveProviderSessionTranscript =
+  (
+    providerSession: SoulsideMeetingSession,
+    providerSessionTranscriptData: SoulsideMeetingSessionTranscript[]
+  ): AppThunk =>
+  async dispatch => {
+    const sessionCategory = providerSession.sessionCategory;
+    const sessionId =
+      sessionCategory === SessionCategory.INDIVIDUAL
+        ? providerSession.individualSessionId
+        : providerSession.sessionId;
+    if (!sessionId || !providerSession.providerSessionId || !sessionCategory) {
+      return;
+    }
+    dispatch(
+      toggleTranscriptLoading({
+        sessionId,
+        providerSessionId: providerSession.providerSessionId,
+        loading: true,
+      })
+    );
+    try {
+      await updateProviderSessionTranscript(providerSession, providerSessionTranscriptData);
+      dispatch(
+        addTranscriptData({
+          sessionId,
+          providerSessionId: providerSession.providerSessionId,
+          transcriptData: providerSessionTranscriptData || [],
         })
       );
     } catch (error) {
@@ -126,8 +172,51 @@ export const loadTranscript =
     dispatch(
       toggleTranscriptLoading({
         sessionId,
-        providerSessionId: providerSession.id,
+        providerSessionId: providerSession.providerSessionId,
         loading: false,
       })
     );
+  };
+
+export const loadProviderSessionSpeakerAudios =
+  (
+    sessionId: UUIDString,
+    providerSessionId: UUIDString,
+    transcriptData: SoulsideMeetingSessionTranscript[]
+  ): AppThunk =>
+  async dispatch => {
+    dispatch(toggleSpeakerAudiosLoading({ sessionId, providerSessionId, loading: true }));
+    const uniqueSpeakers: { [key: string]: SoulsideMeetingSessionTranscript } =
+      transcriptData.reduce(
+        (acc, transcript) => ({
+          ...acc,
+          [transcript.providerParticipantId]: {
+            providerParticipantId: transcript.providerParticipantId,
+            providerPeerId: transcript.providerPeerId,
+            participantId: transcript.participantId,
+            participantName: transcript.participantName,
+          },
+        }),
+        {}
+      );
+    const speakerIds = Object.keys(uniqueSpeakers);
+    const speakerAudios: SoulsideMeetingSessionSpeakerAudio[] = [];
+    for (let i = 0; i < speakerIds.length; i++) {
+      const speakerId = speakerIds[i];
+      try {
+        const speakerAudioUrl = await getProviderSessionSpeakerAudioUrl(
+          providerSessionId,
+          speakerId.replace("Speaker ", "")
+        );
+        speakerAudios.push({
+          ...uniqueSpeakers[speakerId],
+          speakerId,
+          audioFileUrl: speakerAudioUrl,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    dispatch(addSpeakerAudiosData({ sessionId, providerSessionId, speakerAudios }));
+    dispatch(toggleSpeakerAudiosLoading({ sessionId, providerSessionId, loading: false }));
   };
