@@ -19,10 +19,11 @@ module.exports = env => {
   let entries = {
     background: "./src/background/index.ts",
     content: "./src/content/index.ts",
+    webAccessibleScript: "./src/content/webAccessibleScript.ts",
+    trackingScript: "./src/content/logrocket.js",
   };
   if (nodeEnv !== "development") {
     entries.contentApp = "./src/content-app/build/index.bundle.js";
-    entries.webAccessibleScript = "./src/content/webAccessibleScript.ts";
   }
   return {
     entry: entries,

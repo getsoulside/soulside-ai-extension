@@ -147,8 +147,8 @@ const OrgRoleLayout: React.FC = (): React.ReactNode => {
                           <PersonOutlineOutlined sx={{ fontSize: "1.1rem" }} />
                         </ListItemAvatar>
                         <ListItemText
-                          primary={role.businessFunction}
-                          secondary={role.behaviorHealthRole}
+                          primary={role.behaviorHealthRole}
+                          secondary={role.businessFunction}
                         />
                       </MenuItem>
                     );

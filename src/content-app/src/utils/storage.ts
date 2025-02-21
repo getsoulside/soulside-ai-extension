@@ -12,57 +12,69 @@ interface StorageMessageEventData {
 
 export async function getCookie(name: string): Promise<string | null> {
   return new Promise(resolve => {
-    const requestId = Date.now() + Math.random(); // Generate a unique requestId
+    if (chrome?.runtime?.id) {
+      chrome.runtime.sendMessage({ action: "getCookie", key: name }, response => {
+        resolve(response.value || null);
+      });
+    } else {
+      const requestId = Date.now() + Math.random(); // Generate a unique requestId
 
-    // Create a message listener
-    function handleMessage(event: MessageEvent): void {
-      const data: StorageMessageEventData = event.data;
-      // Ensure the message contains the requestId
-      if (data.type === "GET_SOULSIDE_COOKIE_RESULT" && data.requestId === requestId) {
-        window.removeEventListener("message", handleMessage); // Clean up the listener
-        resolve(data.value || null); // Resolve with the cookie value
+      // Create a message listener
+      function handleMessage(event: MessageEvent): void {
+        const data: StorageMessageEventData = event.data;
+        // Ensure the message contains the requestId
+        if (data.type === "GET_SOULSIDE_COOKIE_RESULT" && data.requestId === requestId) {
+          window.removeEventListener("message", handleMessage); // Clean up the listener
+          resolve(data.value || null); // Resolve with the cookie value
+        }
       }
+
+      // Listen for the response
+      window.addEventListener("message", handleMessage);
+
+      // Post the request to the window
+      window.postMessage({ type: "GET_SOULSIDE_COOKIE", key: name, requestId }, "*");
+
+      // Optional: Add a timeout to reject the promise if no response is received
+      setTimeout(() => {
+        window.removeEventListener("message", handleMessage);
+        resolve(null); // Resolve with null if the request times out
+      }, 5000); // Adjust timeout duration as needed
     }
-
-    // Listen for the response
-    window.addEventListener("message", handleMessage);
-
-    // Post the request to the window
-    window.postMessage({ type: "GET_SOULSIDE_COOKIE", key: name, requestId }, "*");
-
-    // Optional: Add a timeout to reject the promise if no response is received
-    setTimeout(() => {
-      window.removeEventListener("message", handleMessage);
-      resolve(null); // Resolve with null if the request times out
-    }, 5000); // Adjust timeout duration as needed
   });
 }
 
 export async function saveCookie(name: string, value: string): Promise<void> {
   return new Promise(resolve => {
-    const requestId = Date.now() + Math.random(); // Generate a unique requestId
+    if (chrome?.runtime?.id) {
+      chrome.runtime.sendMessage({ action: "setCookie", key: name, value }, () => {
+        resolve();
+      });
+    } else {
+      const requestId = Date.now() + Math.random(); // Generate a unique requestId
 
-    // Create a message listener
-    function handleMessage(event: MessageEvent): void {
-      const data: StorageMessageEventData = event.data;
-      // Ensure the message contains the requestId
-      if (data.type === "SET_SOULSIDE_COOKIE_RESULT" && data.requestId === requestId) {
-        window.removeEventListener("message", handleMessage); // Clean up the listener
-        resolve(); // Resolve with the cookie value
+      // Create a message listener
+      function handleMessage(event: MessageEvent): void {
+        const data: StorageMessageEventData = event.data;
+        // Ensure the message contains the requestId
+        if (data.type === "SET_SOULSIDE_COOKIE_RESULT" && data.requestId === requestId) {
+          window.removeEventListener("message", handleMessage); // Clean up the listener
+          resolve(); // Resolve with the cookie value
+        }
       }
+
+      // Listen for the response
+      window.addEventListener("message", handleMessage);
+
+      // Post the request to the window
+      window.postMessage({ type: "SET_SOULSIDE_COOKIE", key: name, value, requestId }, "*");
+
+      // Optional: Add a timeout to reject the promise if no response is received
+      setTimeout(() => {
+        window.removeEventListener("message", handleMessage);
+        resolve(); // Resolve with null if the request times out
+      }, 5000); // Adjust timeout duration as needed
     }
-
-    // Listen for the response
-    window.addEventListener("message", handleMessage);
-
-    // Post the request to the window
-    window.postMessage({ type: "SET_SOULSIDE_COOKIE", key: name, value, requestId }, "*");
-
-    // Optional: Add a timeout to reject the promise if no response is received
-    setTimeout(() => {
-      window.removeEventListener("message", handleMessage);
-      resolve(); // Resolve with null if the request times out
-    }, 5000); // Adjust timeout duration as needed
   });
 }
 
@@ -72,57 +84,69 @@ export async function deleteCookie(name: string): Promise<void> {
 
 export async function getLocalStorage(key: string): Promise<any | null> {
   return new Promise(resolve => {
-    const requestId = Date.now() + Math.random(); // Generate a unique requestId
+    if (chrome?.runtime?.id) {
+      chrome.runtime.sendMessage({ action: "getStorage", key }, response => {
+        resolve(response.value || null);
+      });
+    } else {
+      const requestId = Date.now() + Math.random(); // Generate a unique requestId
 
-    // Create a message listener
-    function handleMessage(event: MessageEvent): void {
-      const data: StorageMessageEventData = event.data;
-      // Ensure the message contains the requestId
-      if (data.type === "GET_SOULSIDE_STORAGE_RESULT" && data.requestId === requestId) {
-        window.removeEventListener("message", handleMessage); // Clean up the listener
-        resolve(data.value || null); // Resolve with the cookie value
+      // Create a message listener
+      function handleMessage(event: MessageEvent): void {
+        const data: StorageMessageEventData = event.data;
+        // Ensure the message contains the requestId
+        if (data.type === "GET_SOULSIDE_STORAGE_RESULT" && data.requestId === requestId) {
+          window.removeEventListener("message", handleMessage); // Clean up the listener
+          resolve(data.value || null); // Resolve with the cookie value
+        }
       }
+
+      // Listen for the response
+      window.addEventListener("message", handleMessage);
+
+      // Post the request to the window
+      window.postMessage({ type: "GET_SOULSIDE_STORAGE", key, requestId }, "*");
+
+      // Optional: Add a timeout to reject the promise if no response is received
+      setTimeout(() => {
+        window.removeEventListener("message", handleMessage);
+        resolve(null); // Resolve with null if the request times out
+      }, 5000); // Adjust timeout duration as needed
     }
-
-    // Listen for the response
-    window.addEventListener("message", handleMessage);
-
-    // Post the request to the window
-    window.postMessage({ type: "GET_SOULSIDE_STORAGE", key, requestId }, "*");
-
-    // Optional: Add a timeout to reject the promise if no response is received
-    setTimeout(() => {
-      window.removeEventListener("message", handleMessage);
-      resolve(null); // Resolve with null if the request times out
-    }, 5000); // Adjust timeout duration as needed
   });
 }
 
 export async function addLocalStorage(key: string, value: any | null): Promise<any | null> {
   return new Promise(resolve => {
-    const requestId = Date.now() + Math.random(); // Generate a unique requestId
+    if (chrome?.runtime?.id) {
+      chrome.runtime.sendMessage({ action: "setStorage", key, value }, response => {
+        resolve(response.value || null);
+      });
+    } else {
+      const requestId = Date.now() + Math.random(); // Generate a unique requestId
 
-    // Create a message listener
-    function handleMessage(event: MessageEvent): void {
-      const data: StorageMessageEventData = event.data;
-      // Ensure the message contains the requestId
-      if (data.type === "SET_SOULSIDE_STORAGE_RESULT" && data.requestId === requestId) {
-        window.removeEventListener("message", handleMessage); // Clean up the listener
-        resolve(data.value || null); // Resolve with the cookie value
+      // Create a message listener
+      function handleMessage(event: MessageEvent): void {
+        const data: StorageMessageEventData = event.data;
+        // Ensure the message contains the requestId
+        if (data.type === "SET_SOULSIDE_STORAGE_RESULT" && data.requestId === requestId) {
+          window.removeEventListener("message", handleMessage); // Clean up the listener
+          resolve(data.value || null); // Resolve with the cookie value
+        }
       }
+
+      // Listen for the response
+      window.addEventListener("message", handleMessage);
+
+      // Post the request to the window
+      window.postMessage({ type: "SET_SOULSIDE_STORAGE", key, value, requestId }, "*");
+
+      // Optional: Add a timeout to reject the promise if no response is received
+      setTimeout(() => {
+        window.removeEventListener("message", handleMessage);
+        resolve(null); // Resolve with null if the request times out
+      }, 5000); // Adjust timeout duration as needed
     }
-
-    // Listen for the response
-    window.addEventListener("message", handleMessage);
-
-    // Post the request to the window
-    window.postMessage({ type: "SET_SOULSIDE_STORAGE", key, value, requestId }, "*");
-
-    // Optional: Add a timeout to reject the promise if no response is received
-    setTimeout(() => {
-      window.removeEventListener("message", handleMessage);
-      resolve(null); // Resolve with null if the request times out
-    }, 5000); // Adjust timeout duration as needed
   });
 }
 

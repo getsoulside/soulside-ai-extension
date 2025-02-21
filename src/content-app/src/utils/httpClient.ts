@@ -13,53 +13,69 @@ class HttpClient {
     apiOptions: any
   ): Promise<any> {
     return new Promise((resolve, reject) => {
-      const requestId = Date.now() + Math.random(); // Generate a unique requestId
-
-      // Create a message listener
-      interface MessageEventData {
-        type: string;
-        requestId: number;
-        value?: any;
-        success: boolean;
-      }
-
-      function handleMessage(event: MessageEvent): void {
-        const data: MessageEventData = event.data;
-
-        // Ensure the message contains the requestId
-        if (data.type === "MAKE_SOULSIDE_API_CALL_RESULT" && data.requestId === requestId) {
-          window.removeEventListener("message", handleMessage); // Clean up the listener
-          if (data.success) {
-            resolve(data.value);
-          } else {
-            if (data?.value?.error === "AUTH_TOKEN_ERROR") {
-              logout();
+      if (chrome?.runtime?.id) {
+        chrome.runtime.sendMessage(
+          { action: "makeApiCall", apiMethod, apiOptions, isRawApiCall: this.isRawApiCall },
+          response => {
+            if (response.success) {
+              resolve(response.value);
+            } else {
+              if (response.value?.error === "AUTH_TOKEN_ERROR") {
+                logout();
+              }
+              reject(response.value);
             }
-            reject(data.value);
+          }
+        );
+      } else {
+        const requestId = Date.now() + Math.random(); // Generate a unique requestId
+
+        // Create a message listener
+        interface MessageEventData {
+          type: string;
+          requestId: number;
+          value?: any;
+          success: boolean;
+        }
+
+        function handleMessage(event: MessageEvent): void {
+          const data: MessageEventData = event.data;
+
+          // Ensure the message contains the requestId
+          if (data.type === "MAKE_SOULSIDE_API_CALL_RESULT" && data.requestId === requestId) {
+            window.removeEventListener("message", handleMessage); // Clean up the listener
+            if (data.success) {
+              resolve(data.value);
+            } else {
+              if (data?.value?.error === "AUTH_TOKEN_ERROR") {
+                logout();
+              }
+              reject(data.value);
+            }
           }
         }
+
+        // Listen for the response
+        window.addEventListener("message", handleMessage);
+
+        // Post the request to the window
+        window.postMessage(
+          {
+            type: "MAKE_SOULSIDE_API_CALL",
+            requestId,
+            apiMethod,
+            apiOptions,
+            isRawApiCall: this.isRawApiCall,
+          },
+          "*"
+        );
+
+        // Optional: Add a timeout to reject the promise if no response is received
+        setTimeout(() => {
+          window.removeEventListener("message", handleMessage);
+          reject("Request timed out");
+        }, 5 * 60 * 1000);
       }
-
-      // Listen for the response
-      window.addEventListener("message", handleMessage);
-
-      // Post the request to the window
-      window.postMessage(
-        {
-          type: "MAKE_SOULSIDE_API_CALL",
-          requestId,
-          apiMethod,
-          apiOptions,
-          isRawApiCall: this.isRawApiCall,
-        },
-        "*"
-      );
-
-      // Optional: Add a timeout to reject the promise if no response is received
-      setTimeout(() => {
-        window.removeEventListener("message", handleMessage);
-        reject("Request timed out");
-      }, 5 * 60 * 1000);
     });
   }
 

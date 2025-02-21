@@ -1,5 +1,11 @@
 import React from "react";
-import { ArrowBackIosRounded, ArrowForwardIos, Room, Videocam } from "@mui/icons-material";
+import {
+  ArrowBackIosRounded,
+  ArrowForwardIos,
+  OpenInNew,
+  Room,
+  Videocam,
+} from "@mui/icons-material";
 import {
   Session,
   SessionCategory,
@@ -24,6 +30,7 @@ import { Link as NavLink } from "react-router-dom";
 import { getFormattedDateTime } from "@/utils/date";
 import useAppointmentsList from "./useAppointmentsList";
 import Loader from "@/components/Loader";
+import { PLATFORM_URL } from "@/constants/envVariables";
 
 export interface AppointmentsListProps {
   data: Session[];
@@ -165,6 +172,15 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
         : (appointment as SoulsideSession)?.groupName || ""
       : "";
   const ModeIcon = appointment.modeOfDelivery === ModeOfDelivery.IN_PERSON ? Room : Videocam;
+  const soulsidePlatformSessionDetailsUrl = `${PLATFORM_URL}/session-details/${
+    appointment.sessionCategory === SessionCategory.INDIVIDUAL ? "individual" : "group"
+  }/${appointment.modeOfDelivery === ModeOfDelivery.IN_PERSON ? "in-person" : "virtual"}/${
+    appointment.id
+  }/${
+    appointment.sessionCategory === SessionCategory.INDIVIDUAL
+      ? (appointment as IndividualSession)?.patientId
+      : (appointment as SoulsideSession)?.groupId
+  }`;
   return (
     <ListItem sx={{ padding: 0 }}>
       <Paper
@@ -179,9 +195,24 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
         }}
       >
         <Stack gap={1}>
-          <Typography variant="body2">
-            {appointment.sessionCategory === SessionCategory.INDIVIDUAL ? patientName : groupName}
-          </Typography>
+          <Stack
+            direction={"row"}
+            gap={0.5}
+          >
+            <Typography variant="body2">
+              {appointment.sessionCategory === SessionCategory.INDIVIDUAL ? patientName : groupName}
+            </Typography>
+            <Tooltip title="Open on Soulside Platform">
+              <IconButton
+                component="a"
+                href={soulsidePlatformSessionDetailsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <OpenInNew sx={{ fontSize: "0.8rem", color: "primary.main" }} />
+              </IconButton>
+            </Tooltip>
+          </Stack>
           <Stack
             flexDirection={"row"}
             gap={1}

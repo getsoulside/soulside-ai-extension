@@ -27,7 +27,11 @@ export async function login(email: string, password: string): Promise<void> {
     if (response?.data?.jwt) {
       await saveCookie("authtoken", response.data.jwt);
       saveCookie("soulside-email", email);
-      window.postMessage({ type: "SOULSIDE_LOGGED_OUT" }, "*");
+      if (chrome?.runtime?.id) {
+        chrome.runtime.sendMessage({ action: "loggedIn" });
+      } else {
+        window.postMessage({ type: "SOULSIDE_LOGGED_IN" }, "*");
+      }
       navigate("/", { replace: true });
       return response.data.jwt;
     } else {
@@ -45,7 +49,11 @@ export function logout(): void {
   deleteCookie("soulside-email");
   selectPractitionerRole(null);
   store.dispatch({ type: "LOGOUT" });
-  window.postMessage({ type: "SOULSIDE_LOGGED_OUT" }, "*");
+  if (chrome?.runtime?.id) {
+    chrome.runtime.sendMessage({ action: "loggedOut" });
+  } else {
+    window.postMessage({ type: "SOULSIDE_LOGGED_OUT" }, "*");
+  }
   if (navigate) {
     navigate("/login");
   }

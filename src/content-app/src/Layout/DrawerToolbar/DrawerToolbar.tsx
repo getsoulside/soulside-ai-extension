@@ -4,9 +4,7 @@ import { getEhrClient, openActiveSessionNotes } from "@/utils/helpers";
 import {
   CalendarMonthRounded,
   CloseRounded,
-  // GroupsRounded,
   HomeRounded,
-  // PeopleRounded,
   PersonRounded,
   SettingsRounded,
   SummarizeRounded,
@@ -55,18 +53,6 @@ const DrawerToolbar = () => {
               onClick={() => openActiveSessionNotes()}
             />
           )}
-          {/* <NavLink to={"/"}>
-            <DrawerToolbarOption
-              title="Patients"
-              Icon={PeopleRounded}
-            />
-          </NavLink>
-          <NavLink to={"/"}>
-            <DrawerToolbarOption
-              title="Groups"
-              Icon={GroupsRounded}
-            />
-          </NavLink> */}
         </Stack>
       ) : (
         <Stack

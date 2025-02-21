@@ -15,25 +15,8 @@ const template = fs.readFileSync(path.resolve(__dirname, "manifest.template.json
 const manifestJson = JSON.parse(template);
 
 if (NODE_ENV === "development") {
-  if (manifestJson?.host_permissions) {
-    manifestJson.host_permissions.push("http://localhost:5173/*");
-    manifestJson.host_permissions.push("http://localhost:5174/*");
-  }
   manifestJson.name = `Soulside AI - Local (${APP_ENV.toUpperCase()})`;
 } else {
-  if (
-    manifestJson?.content_scripts?.[0]?.js &&
-    !manifestJson.content_scripts[0].js.includes("scripts/contentApp.bundle.js")
-  ) {
-    manifestJson.content_scripts[0].js.push("scripts/contentApp.bundle.js");
-  }
-  if (!manifestJson.web_accessible_resources) {
-    manifestJson.web_accessible_resources = [];
-  }
-  manifestJson.web_accessible_resources.push({
-    resources: ["scripts/webAccessibleScript.bundle.js"],
-    matches: manifestJson.content_scripts[0].matches,
-  });
   if (APP_ENV === "dev") {
     manifestJson.name = `Soulside AI - Dev`;
   }

@@ -102,45 +102,32 @@ export class Alleva {
   }
 
   private async getAngularScope(selector: string): Promise<any> {
-    // For extension environment
-    if (chrome?.runtime?.id) {
-      // Request the scope after script is loaded
-      window.postMessage(
-        {
-          type: "GET_ANGULAR_SCOPE",
-          selector: selector,
-        },
-        "*"
-      );
+    window.postMessage(
+      {
+        type: "GET_ANGULAR_SCOPE",
+        selector: selector,
+      },
+      "*"
+    );
 
-      // Wait for response with timeout
-      return new Promise((resolve, reject) => {
-        const messageHandler = (event: MessageEvent) => {
-          if (event.data.type === "ANGULAR_SCOPE" && event.data.selector === selector) {
-            window.removeEventListener("message", messageHandler);
-            if (timeoutId) {
-              clearTimeout(timeoutId);
-            }
-            resolve(event.data.value);
-          }
-        };
-        window.addEventListener("message", messageHandler);
-
-        const timeoutId = setTimeout(() => {
+    // Wait for response with timeout
+    return new Promise((resolve, reject) => {
+      const messageHandler = (event: MessageEvent) => {
+        if (event.data.type === "ANGULAR_SCOPE" && event.data.selector === selector) {
           window.removeEventListener("message", messageHandler);
-          reject(new Error("Timeout waiting for Angular scope"));
-        }, 5000); // 5 second timeout
-      });
-    }
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+          resolve(event.data.value);
+        }
+      };
+      window.addEventListener("message", messageHandler);
 
-    // For browser environment: direct access
-    const element = document.querySelector(selector);
-    if (!element) return null;
-    if (typeof (window as any).angular === "undefined") {
-      console.warn("Angular not found");
-      return null;
-    }
-    return (window as any).angular.element(element).scope();
+      const timeoutId = setTimeout(() => {
+        window.removeEventListener("message", messageHandler);
+        reject(new Error("Timeout waiting for Angular scope"));
+      }, 5000); // 5 second timeout
+    });
   }
 
   private async handleIntakeAssessment(): Promise<Session | null> {
@@ -299,7 +286,9 @@ export class Alleva {
       }) || [];
     for (const patient of groupPatientsData) {
       const allevaClientLeadId = patient?.allevaClientLeadId || "";
-      const soulsideNotes = patient?.soulsideNotes || "";
+      let soulsideNotes = patient?.soulsideNotes || "";
+      soulsideNotes = soulsideNotes.replace(/\n/g, "<br>");
+      soulsideNotes = soulsideNotes.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
       const notesEditor = document.querySelector(
         `textarea[data-qa-id='txt-clientNotes-${allevaClientLeadId}-notes']`
       ) as HTMLTextAreaElement;
@@ -308,69 +297,17 @@ export class Alleva {
         return false;
       }
       const editorId = notesEditor.id;
-      // For extension environment
-      if (chrome?.runtime?.id) {
-        window.postMessage(
-          {
-            type: "SET_TINYMCE_CONTENT",
-            content: soulsideNotes,
-            editorId,
-          },
-          "*"
-        );
-
-        // Wait for response with timeout
-        await new Promise((resolve, reject) => {
-          const messageHandler = (event: MessageEvent) => {
-            if (event.data.type === "TINYMCE_CONTENT_SET") {
-              window.removeEventListener("message", messageHandler);
-              if (timeoutId) {
-                clearTimeout(timeoutId);
-              }
-              resolve(true);
-            }
-          };
-          window.addEventListener("message", messageHandler);
-
-          const timeoutId = setTimeout(() => {
-            window.removeEventListener("message", messageHandler);
-            reject(new Error("Timeout waiting for TinyMCE content set"));
-          }, 5000); // 5 second timeout
-        });
-        continue;
-      } else {
-        const tinymceEditor = (window as any).tinymce.get(editorId);
-        const existingContent = tinymceEditor?.getContent?.() || "";
-        const newContent = existingContent + (existingContent ? "\n\n" : "") + soulsideNotes;
-        tinymceEditor?.setContent(newContent);
-      }
-    }
-    return true;
-  }
-
-  private async handleIndividualDefaultSoap(notesData: SessionNotes): Promise<boolean> {
-    const soapNote = notesData?.soapNote || "";
-    const notesEditor = document.querySelector(
-      "div[data-qa-id='individual-note-form-group'] textarea[data-qa-id='individual-note-textarea']"
-    ) as HTMLTextAreaElement;
-    if (!notesEditor) {
-      console.warn("Notes editor not found");
-      return false;
-    }
-    const editorId = notesEditor.id;
-    // For extension environment
-    if (chrome?.runtime?.id) {
       window.postMessage(
         {
           type: "SET_TINYMCE_CONTENT",
-          content: soapNote,
+          content: soulsideNotes,
           editorId,
         },
         "*"
       );
 
       // Wait for response with timeout
-      return new Promise((resolve, reject) => {
+      await new Promise((resolve, reject) => {
         const messageHandler = (event: MessageEvent) => {
           if (event.data.type === "TINYMCE_CONTENT_SET") {
             window.removeEventListener("message", messageHandler);
@@ -387,12 +324,48 @@ export class Alleva {
           reject(new Error("Timeout waiting for TinyMCE content set"));
         }, 5000); // 5 second timeout
       });
+      continue;
     }
-    const tinymceEditor = (window as any).tinymce.get(editorId);
-    const existingContent = tinymceEditor?.getContent?.() || "";
-    const newContent = existingContent + (existingContent ? "\n\n" : "") + soapNote;
-    tinymceEditor?.setContent(newContent);
     return true;
+  }
+
+  private async handleIndividualDefaultSoap(notesData: SessionNotes): Promise<boolean> {
+    const soapNote = notesData?.soapNote || "";
+    const notesEditor = document.querySelector(
+      "div[data-qa-id='individual-note-form-group'] textarea[data-qa-id='individual-note-textarea']"
+    ) as HTMLTextAreaElement;
+    if (!notesEditor) {
+      console.warn("Notes editor not found");
+      return false;
+    }
+    const editorId = notesEditor.id;
+    window.postMessage(
+      {
+        type: "SET_TINYMCE_CONTENT",
+        content: soapNote,
+        editorId,
+      },
+      "*"
+    );
+
+    // Wait for response with timeout
+    return new Promise((resolve, reject) => {
+      const messageHandler = (event: MessageEvent) => {
+        if (event.data.type === "TINYMCE_CONTENT_SET") {
+          window.removeEventListener("message", messageHandler);
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+          resolve(true);
+        }
+      };
+      window.addEventListener("message", messageHandler);
+
+      const timeoutId = setTimeout(() => {
+        window.removeEventListener("message", messageHandler);
+        reject(new Error("Timeout waiting for TinyMCE content set"));
+      }, 5000); // 5 second timeout
+    });
   }
 
   private async handleBPSAssessment(notesData: SessionNotes): Promise<boolean> {

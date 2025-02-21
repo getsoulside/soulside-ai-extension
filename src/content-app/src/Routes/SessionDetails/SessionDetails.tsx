@@ -8,7 +8,7 @@ import {
 } from "@/domains/session";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
-import { Box, Stack, Typography, Tab, Avatar, IconButton, Tooltip } from "@mui/material";
+import { Box, Stack, Typography, Tab, Avatar, IconButton, Tooltip, Button } from "@mui/material";
 import { ArrowBackIos, OpenInNew, SyncRounded } from "@mui/icons-material";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
@@ -72,7 +72,14 @@ const SessionDetails: React.FC = (): React.ReactNode => {
   const transcriptLoading = Object.keys(transcriptData || {}).reduce((acc, providerSessionId) => {
     return acc && transcriptData[providerSessionId]?.loading;
   }, Object.keys(transcriptData || {}).length > 0);
-  const soulsidePlatformUrl = `${PLATFORM_URL}/session-details/${
+  const soulsidePlatformSessionDetailsUrl = `${PLATFORM_URL}/session-details/${
+    sessionCategory === SessionCategory.INDIVIDUAL ? "individual" : "group"
+  }/${modeOfDelivery === ModeOfDelivery.IN_PERSON ? "in-person" : "virtual"}/${sessionId}/${
+    sessionCategory === SessionCategory.INDIVIDUAL
+      ? (sessionDetails?.data as IndividualSession)?.patientId
+      : (sessionDetails?.data as SoulsideSession)?.groupId
+  }`;
+  const soulsidePlatformStartSessionUrl = `${PLATFORM_URL}/session/${
     sessionCategory === SessionCategory.INDIVIDUAL ? "individual" : "group"
   }/${modeOfDelivery === ModeOfDelivery.IN_PERSON ? "in-person" : "virtual"}/${sessionId}/${
     sessionCategory === SessionCategory.INDIVIDUAL
@@ -138,7 +145,7 @@ const SessionDetails: React.FC = (): React.ReactNode => {
             <Tooltip title="Open on Soulside Platform">
               <IconButton
                 component="a"
-                href={soulsidePlatformUrl}
+                href={soulsidePlatformSessionDetailsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -240,13 +247,24 @@ const SessionDetails: React.FC = (): React.ReactNode => {
                 overflow: "auto",
                 display: "flex",
                 flexDirection: "column",
-                gap: 1,
+                gap: 2,
                 maxHeight: "100%",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
               <Typography variant={"subtitle2"}>Session not started yet</Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                component={"a"}
+                href={soulsidePlatformStartSessionUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Start Session on Soulside Platform
+              </Button>
             </Box>
           )}
         </Box>

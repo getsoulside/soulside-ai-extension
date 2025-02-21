@@ -82,4 +82,8 @@ window.addEventListener("message", function (event) {
       "*"
     );
   }
+  if (event.data.type === "LOG_ROCKET_INIT") {
+    console.log("LOG_ROCKET_INIT", event.data);
+    (window as any)?.LogRocket?.init("kgns4k/facilitator-dashboard-prod");
+  }
 });
