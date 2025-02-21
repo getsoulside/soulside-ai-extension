@@ -4,26 +4,43 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_ENV=development APP_ENV=dev node build-manifest.js && NODE_ENV=development APP_ENV=dev npx webpack serve --config webpack.config.js",
-    "dev:prod": "NODE_ENV=development APP_ENV=prod node build-manifest.js && NODE_ENV=development APP_ENV=prod npx webpack serve --config webpack.config.js",
-    "build:dev": "NODE_ENV=production APP_ENV=dev node build-manifest.js && NODE_ENV=production APP_ENV=dev npx webpack --config webpack.config.js",
-    "build:prod": "NODE_ENV=production APP_ENV=prod node build-manifest.js && NODE_ENV=production APP_ENV=prod npx webpack --config webpack.config.js"
+    "local:dev": "npm run extension:local:dev & npm run content:local:dev",
+    "extension:local:dev": "npm i && NODE_ENV=development APP_ENV=dev node build-manifest.js && NODE_ENV=development APP_ENV=dev npx webpack serve --config webpack.config.js",
+    "content:local:dev": "cd src/content-app/ && npm i && npm run local:dev",
+    "local:prod": "npm run extension:local:prod & npm run content:local:prod",
+    "extension:local:prod": "npm i && NODE_ENV=development APP_ENV=prod node build-manifest.js && NODE_ENV=development APP_ENV=prod npx webpack serve --config webpack.config.js",
+    "content:local:prod": "cd src/content-app/ && npm i && npm run local:prod",
+    "build:dev": "npm run content:build:dev && npm run extension:build:dev && cd build/extension-build-dev && zip -r ../extension-build-dev.zip . && cd ../../",
+    "extension:build:dev": "npm i && NODE_ENV=production APP_ENV=dev node build-manifest.js && NODE_ENV=production APP_ENV=dev npx webpack --config webpack.config.js",
+    "content:build:dev": "cd src/content-app/ && npm i && npm run build:dev && cd ../../",
+    "build:prod": "npm run content:build:prod && npm run extension:build:prod && cd build/extension-build-prod && zip -r ../extension-build-prod.zip . && cd ../../",
+    "extension:build:prod": "npm i && NODE_ENV=production APP_ENV=prod node build-manifest.js && NODE_ENV=production APP_ENV=prod npx webpack --config webpack.config.js",
+    "content:build:prod": "cd src/content-app/ && npm i && npm run build:prod && cd ../../"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
+    "@babel/preset-typescript": "^7.26.0",
+    "@types/chrome": "^0.0.293",
+    "@types/papaparse": "^5.3.15",
     "babel-loader": "^9.2.1",
+    "copy-webpack-plugin": "^12.0.2",
     "crypto-browserify": "^3.12.1",
+    "dotenv": "^16.4.7",
+    "dotenv-webpack": "^8.1.0",
     "ignore-loader": "^0.1.2",
     "path-browserify": "^1.0.1",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.7.2",
     "webpack": "^5.96.1",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.1.0"
   },
   "dependencies": {
     "@sentry/browser": "^8.41.0",
-    "axios": "^1.7.7"
+    "axios": "^1.7.7",
+    "papaparse": "^5.5.1"
   }
 }

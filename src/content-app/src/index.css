@@ -1,0 +1,10 @@
+#soulside-extension-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999999;
+  pointer-events: none;
+}
+
+html {
+  font-size: 16px;
+}
