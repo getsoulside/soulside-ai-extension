@@ -29,7 +29,7 @@ export interface SessionNotes {
 }
 
 export interface JSONSoapNote {
-  [SessionNotesTemplates.DEFAULT_SOAP]?: DefaultSoapNotes | null;
+  [SessionNotesTemplates.SOAP_PSYCHIATRY]?: DefaultSoapNotes | null;
   [SessionNotesTemplates.FOLLOW_UP_ASSESSMENT]?: FollowUpAssessmentNotes | null;
   [SessionNotesTemplates.INTAKE]?: IntakeAssessmentNotes | null;
   [SessionNotesTemplates.BPS]?: BPSTemplate | null;
@@ -69,8 +69,8 @@ export interface BehaviouralHealthPredictions {
 
 // export const NoteTemplatesLibrary: NoteTemplatesItem[] = [
 //   {
-//     key: SessionNotesTemplates.DEFAULT_SOAP,
-//     name: SessionNotesTemplateNames[SessionNotesTemplates.DEFAULT_SOAP],
+//     key: SessionNotesTemplates.SOAP_PSYCHIATRY,
+//     name: SessionNotesTemplateNames[SessionNotesTemplates.SOAP_PSYCHIATRY],
 //     sessionCategories: [SessionCategory.INDIVIDUAL],
 //     appointmentTypes: [AppointmentType.INTAKE, AppointmentType.FOLLOW_UP],
 //     ehrIntegrations: [EhrClient.ALLEVA],
@@ -138,16 +138,16 @@ export const defaultNoteTemplateLibrary: NoteTemplatesLibrary = {
         ehrIntegrations: [EhrClient.ALLEVA],
       },
       {
-        key: SessionNotesTemplates.DEFAULT_SOAP,
-        name: SessionNotesTemplateNames[SessionNotesTemplates.DEFAULT_SOAP],
+        key: SessionNotesTemplates.SOAP_PSYCHIATRY,
+        name: SessionNotesTemplateNames[SessionNotesTemplates.SOAP_PSYCHIATRY],
         isDefault: false,
         ehrIntegrations: [EhrClient.ALLEVA],
       },
     ],
     [AppointmentType.FOLLOW_UP]: [
       {
-        key: SessionNotesTemplates.DEFAULT_SOAP,
-        name: SessionNotesTemplateNames[SessionNotesTemplates.DEFAULT_SOAP],
+        key: SessionNotesTemplates.SOAP_PSYCHIATRY,
+        name: SessionNotesTemplateNames[SessionNotesTemplates.SOAP_PSYCHIATRY],
         isDefault: false,
         ehrIntegrations: [EhrClient.ALLEVA],
       },

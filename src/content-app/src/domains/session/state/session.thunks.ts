@@ -184,7 +184,8 @@ export const loadSessionNotesStatus =
         const notesStatus = {
           [SessionNotesTemplates.INTAKE]:
             !!jsonSoapNote?.[SessionNotesTemplates.INTAKE]?.intakeHPINote,
-          [SessionNotesTemplates.DEFAULT_SOAP]: !!sessionNotes?.soapNote,
+          [SessionNotesTemplates.SOAP_PSYCHIATRY]:
+            !!jsonSoapNote?.[SessionNotesTemplates.SOAP_PSYCHIATRY],
           [SessionNotesTemplates.FOLLOW_UP_ASSESSMENT]:
             !!jsonSoapNote?.chiefCompliantEnhanced ||
             !!jsonSoapNote?.subjective?.chief_complaint?.result ||

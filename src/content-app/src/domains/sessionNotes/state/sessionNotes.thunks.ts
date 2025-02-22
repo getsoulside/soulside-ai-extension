@@ -40,12 +40,7 @@ export const loadGenerateSessionNotes =
       } catch (error) {
         console.error(error);
       }
-      if (noteTemplate === SessionNotesTemplates.DEFAULT_SOAP) {
-        sessionNotes = {
-          ...sessionNotes,
-          soapNote: generatedNotes,
-        };
-      } else if (noteTemplate === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT) {
+      if (noteTemplate === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT) {
         const followUpAssessmentNotes: FollowUpAssessmentNotes = {};
 
         if (generatedNotes?.Subjective || generatedNotes?.subjective) {
@@ -100,12 +95,7 @@ export const loadSaveSessionNotes =
     dispatch(toggleSessionNotesLoading({ sessionId, loading: true }));
     try {
       let sessionNotes: Partial<SessionNotes> | null = await getSessionNotesBySessionId(sessionId);
-      if (noteTemplate === SessionNotesTemplates.DEFAULT_SOAP) {
-        sessionNotes = {
-          ...(sessionNotes || {}),
-          soapNote: notes.soapNote,
-        };
-      } else if (noteTemplate === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT) {
+      if (noteTemplate === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT) {
         const jsonSoapNote = sessionNotes?.jsonSoapNote || {};
         if (notes.jsonSoapNote?.subjective) {
           jsonSoapNote.subjective = notes.jsonSoapNote.subjective;

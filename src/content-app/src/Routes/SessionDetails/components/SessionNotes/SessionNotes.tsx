@@ -57,7 +57,8 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
     const jsonSoapNote = sessionNotesData?.jsonSoapNote;
     const notesStatus = {
       [SessionNotesTemplates.INTAKE]: !!jsonSoapNote?.[SessionNotesTemplates.INTAKE]?.intakeHPINote,
-      [SessionNotesTemplates.DEFAULT_SOAP]: !!sessionNotesData?.soapNote,
+      [SessionNotesTemplates.SOAP_PSYCHIATRY]:
+        !!jsonSoapNote?.[SessionNotesTemplates.SOAP_PSYCHIATRY],
       [SessionNotesTemplates.FOLLOW_UP_ASSESSMENT]:
         !!jsonSoapNote?.chiefCompliantEnhanced ||
         !!jsonSoapNote?.subjective?.chief_complaint?.result ||
@@ -205,7 +206,7 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
               maxHeight: "100%",
             }}
           >
-            {selectedNoteTemplate === SessionNotesTemplates.DEFAULT_SOAP && (
+            {selectedNoteTemplate === SessionNotesTemplates.SOAP_PSYCHIATRY && (
               <SoapNotes
                 notesData={sessionNotesData}
                 sessionId={sessionId}

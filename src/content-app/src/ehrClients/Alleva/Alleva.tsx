@@ -204,7 +204,7 @@ export class Alleva {
       if (currentUrl.includes("Scheduler")) {
         const scope = await this.getAngularScope("[ng-if='showClientSessionScreen']");
         if (scope?.showClientSessionScreen) {
-          return SessionNotesTemplates.DEFAULT_SOAP;
+          return SessionNotesTemplates.SOAP_PSYCHIATRY;
         }
       }
 
@@ -230,7 +230,7 @@ export class Alleva {
         return Promise.reject({ message: "Not on BPS assessment screen" });
       }
     }
-    if (notesTemplate === SessionNotesTemplates.DEFAULT_SOAP) {
+    if (notesTemplate === SessionNotesTemplates.SOAP_PSYCHIATRY) {
       if (currentUrl.includes("Scheduler")) {
         return this.handleDefaultSoap(notesData, isGroupSession, providerSessionUniqueSpeakers);
       } else {
@@ -330,7 +330,7 @@ export class Alleva {
   }
 
   private async handleIndividualDefaultSoap(notesData: SessionNotes): Promise<boolean> {
-    const soapNote = notesData?.soapNote || "";
+    const soapNote = notesData?.jsonSoapNote?.[SessionNotesTemplates.SOAP_PSYCHIATRY] || "";
     const notesEditor = document.querySelector(
       "div[data-qa-id='individual-note-form-group'] textarea[data-qa-id='individual-note-textarea']"
     ) as HTMLTextAreaElement;
