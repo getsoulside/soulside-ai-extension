@@ -44,6 +44,7 @@ export interface JSONSoapNote {
   Assessment?: Record<string, FollowUpAssessmentNotesValue> | null;
   plan?: Record<string, FollowUpAssessmentNotesValue> | null;
   Plan?: Record<string, FollowUpAssessmentNotesValue> | null;
+  [key: string]: any;
 }
 
 export interface BehaviouralHealthPredictions {

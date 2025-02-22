@@ -8,11 +8,8 @@ import {
 } from "@/domains/session";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
-import { Box, Stack, Typography, Tab, Avatar, IconButton, Tooltip, Button } from "@mui/material";
+import { Box, Stack, Typography, Avatar, IconButton, Tooltip, Button } from "@mui/material";
 import { ArrowBackIos, OpenInNew, SyncRounded } from "@mui/icons-material";
-import TabContext from "@mui/lab/TabContext";
-import TabList from "@mui/lab/TabList";
-import TabPanel from "@mui/lab/TabPanel";
 import { Link as NavLink } from "react-router-dom";
 import Loader from "@/components/Loader";
 import { getFormattedDateTime } from "@/utils/date";
@@ -21,6 +18,7 @@ import { loadSessionNotes } from "@/domains/sessionNotes";
 import SessionNotes from "./components/SessionNotes";
 import SessionTranscript from "./components/SessionTranscript";
 import { PLATFORM_URL } from "@/constants/envVariables";
+import Tabs from "@/components/Tabs/Tabs";
 
 const SessionDetails: React.FC = (): React.ReactNode => {
   const dispatch: AppDispatch = useDispatch();
@@ -94,6 +92,31 @@ const SessionDetails: React.FC = (): React.ReactNode => {
     providerSessions?.loading ||
     transcriptLoading ||
     ehrSessionNotesLoading;
+  const tabs = [
+    {
+      label: "Notes",
+      key: "notes",
+      content: <SessionNotes session={sessionDetails?.data} />,
+    },
+    {
+      label: "Transcript",
+      key: "transcript",
+      content: (
+        <SessionTranscript
+          session={sessionDetails?.data}
+          transcriptData={transcriptData}
+          providerSessionsData={providerSessions?.data}
+        />
+      ),
+    },
+  ];
+  const refreshNotesButton = (
+    <Tooltip title="Refresh">
+      <IconButton onClick={loadData}>
+        <SyncRounded sx={{ fontSize: "1.3rem", color: "primary.main" }} />
+      </IconButton>
+    </Tooltip>
+  );
   return (
     <Box
       sx={{
@@ -169,77 +192,12 @@ const SessionDetails: React.FC = (): React.ReactNode => {
           }}
         >
           {providerSessions?.data.length > 0 ? (
-            <TabContext value={activeTab}>
-              <Box
-                sx={{
-                  borderBottom: 1,
-                  borderColor: "divider",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <TabList
-                  onChange={handleTabChange}
-                  aria-label="lab API tabs example"
-                >
-                  <Tab
-                    label="Notes"
-                    value="notes"
-                    sx={{ fontSize: "0.9rem", py: 0.5 }}
-                  />
-                  <Tab
-                    label="Transcript"
-                    value="transcript"
-                    sx={{ fontSize: "0.9rem", py: 0.5 }}
-                  />
-                </TabList>
-                <Tooltip title="Refresh">
-                  <IconButton onClick={loadData}>
-                    <SyncRounded sx={{ fontSize: "1.3rem", color: "primary.main" }} />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-              <TabPanel
-                value="notes"
-                sx={{
-                  p: 0,
-                  pt: 1,
-                  maxHeight: "100%",
-                  overflow: "auto",
-                  display: "flex",
-                  flexDirection: "column",
-                  flex: 1,
-                  "&[hidden]": {
-                    flex: "unset",
-                    p: 0,
-                  },
-                }}
-              >
-                <SessionNotes session={sessionDetails?.data} />
-              </TabPanel>
-              <TabPanel
-                value="transcript"
-                sx={{
-                  p: 1,
-                  maxHeight: "100%",
-                  overflow: "auto",
-                  display: "flex",
-                  flexDirection: "column",
-                  flex: 1,
-                  "&[hidden]": {
-                    flex: "unset",
-                    p: 0,
-                  },
-                }}
-              >
-                <SessionTranscript
-                  session={sessionDetails?.data}
-                  transcriptData={transcriptData}
-                  providerSessionsData={providerSessions?.data}
-                />
-              </TabPanel>
-            </TabContext>
+            <Tabs
+              tabs={tabs}
+              activeTab={activeTab}
+              onChange={setActiveTab}
+              rightAction={refreshNotesButton}
+            />
           ) : (
             <Box
               sx={{

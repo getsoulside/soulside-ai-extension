@@ -143,12 +143,12 @@ class HttpClient {
 
   public async post<T>(options: APIOptions): Promise<AxiosResponse<T>> {
     const { url, data, config } = options;
-    if (config?.headers?.["Content-Type"] === "multipart/form-data") {
+    if (config?.headers?.proxy) {
       const authToken = await this.getAuthToken();
       const response = await rawHttpClient.post({
         url: `${IN_SESSION_SOCKET_URL}/proxy-api`,
         data: {
-          url: `${API_BASE_URL}/${url}`,
+          url,
           method: "POST",
           apiOptions: {
             data,

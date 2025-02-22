@@ -4,7 +4,10 @@ import { NoteTemplatesLibrary, SessionNotes } from "../models";
 import { defaultNoteTemplateLibrary } from "../models/sessionNotes.model";
 
 interface SessionNotesState {
-  notes: Record<NonNullable<Session["id"]>, { data: SessionNotes | null; loading: boolean }>;
+  notes: Record<
+    NonNullable<Session["id"]>,
+    { data: SessionNotes | null; loading: boolean; generateNotesLoading: boolean }
+  >;
   noteTemplatesLibrary: NoteTemplatesLibrary;
   ehrSessionNotesLoading: boolean;
 }
@@ -28,19 +31,38 @@ const sessionNotesSlice = createSlice({
         state.notes[sessionId] = {
           data: null,
           loading: false,
+          generateNotesLoading: false,
         };
       }
       state.notes[sessionId].loading = loading;
     },
-    addSessionNotes(state, action: PayloadAction<{ sessionId: string; notes: SessionNotes }>) {
+    addSessionNotes(
+      state,
+      action: PayloadAction<{ sessionId: string; notes: SessionNotes | null }>
+    ) {
       const { sessionId, notes } = action.payload;
       if (!state.notes[sessionId]) {
         state.notes[sessionId] = {
           data: null,
           loading: false,
+          generateNotesLoading: false,
         };
       }
       state.notes[sessionId].data = notes;
+    },
+    toggleGenerateSessionNotesLoading(
+      state,
+      action: PayloadAction<{ sessionId: string; loading: boolean }>
+    ) {
+      const { sessionId, loading } = action.payload;
+      if (!state.notes[sessionId]) {
+        state.notes[sessionId] = {
+          data: null,
+          loading: false,
+          generateNotesLoading: false,
+        };
+      }
+      state.notes[sessionId].generateNotesLoading = loading;
     },
     updateNoteTemplateLibrary(state, action: PayloadAction<NoteTemplatesLibrary>) {
       state.noteTemplatesLibrary = action.payload;
@@ -56,6 +78,7 @@ export const {
   addSessionNotes,
   updateNoteTemplateLibrary,
   toggleEhrSessionNotesLoadingAction,
+  toggleGenerateSessionNotesLoading,
 } = sessionNotesSlice.actions;
 
 export default sessionNotesSlice.reducer;

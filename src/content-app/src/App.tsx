@@ -109,7 +109,11 @@ const SoulsideExtensionDrawer = () => {
                 <Navigate
                   to={"/appointments"}
                   // to={"/settings"}
-                  // to="/session-details/GROUP/IN_PERSON/6614dcdf-92ed-4de3-b78b-6838781ded1e"
+                  // to="/session-details/GROUP/IN_PERSON/6614dcdf-92ed-4de3-b78b-6838781ded1e" // dev group
+                  // to="/session-details/INDIVIDUAL/IN_PERSON/7fa27692-2f41-4797-ad79-34137805c969" // dev soap note
+                  // to="/session-details/INDIVIDUAL/IN_PERSON/83397f6d-4ef9-4de9-b74b-c24972d28f3b" // prod intake
+                  // to="/session-details/INDIVIDUAL/IN_PERSON/dd43d451-d102-43fb-a070-8a0c5765d196" // dev bps
+                  // to="/session-details/INDIVIDUAL/IN_PERSON/1b4801f5-ebad-4e4a-add5-31bdff487a75" // prod follow up assessment
                   replace
                 />
               ),

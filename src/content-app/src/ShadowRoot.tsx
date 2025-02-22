@@ -7,6 +7,7 @@ import { ToastContainer, Bounce } from "react-toastify";
 import AppTheme from "./theme";
 import { store } from "./store";
 import ReactToastifyStyles from "./theme/ReactToastifyStyles";
+import ReactQuillStyles from "./theme/ReactQuillStyles";
 interface ShadowRootHostProps {
   children: React.ReactNode;
 }
@@ -36,6 +37,10 @@ const ShadowRootHost: React.FC<ShadowRootHostProps> = ({ children }) => {
     const styleEl = document.createElement("style");
     styleEl.innerHTML = ReactToastifyStyles;
     shadowRoot.appendChild(styleEl);
+
+    const quillStyleEl = document.createElement("style");
+    quillStyleEl.innerHTML = ReactQuillStyles;
+    shadowRoot.appendChild(quillStyleEl);
 
     // Create or reuse container
     let container = shadowRoot.getElementById("soulside-shadow-root-container") as HTMLDivElement;

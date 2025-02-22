@@ -27,9 +27,10 @@ import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNote
 export interface IntakeAssessmentProps {
   notesData: SessionNotes | null;
   sessionId: UUIDString;
+  onNotesChange?: (sessionNotes: SessionNotes) => void;
 }
 
-const IntakeAssessment = ({ notesData }: IntakeAssessmentProps) => {
+const IntakeAssessment = ({ notesData, onNotesChange }: IntakeAssessmentProps) => {
   const [activeTab, setActiveTab] = useState(intakeAssessmentTabs[0].name);
   const [textCopiedSection, setTextCopiedSection] = useState("");
   const intakeData = notesData?.jsonSoapNote?.[SessionNotesTemplates.INTAKE] || null;
@@ -44,24 +45,21 @@ const IntakeAssessment = ({ notesData }: IntakeAssessmentProps) => {
       setTextCopiedSection("");
     }, 3000);
   };
-  if (!intakeData || !intakeData.intakeHPINote) {
-    return (
-      <Box
-        sx={{
-          flex: 1,
-          overflow: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          mt: 5,
-        }}
-      >
-        <Typography variant={"subtitle2"}>Notes not generated yet</Typography>
-      </Box>
-    );
-  }
+  const onChangeHPINote = (value: string) => {
+    const data = {
+      ...(notesData || {}),
+      jsonSoapNote: {
+        ...(notesData?.jsonSoapNote || {}),
+        [SessionNotesTemplates.INTAKE]: {
+          ...(notesData?.jsonSoapNote?.[SessionNotesTemplates.INTAKE] || {}),
+          intakeHPINote: value,
+        },
+      },
+    };
+    if (onNotesChange) {
+      onNotesChange(data as SessionNotes);
+    }
+  };
   return (
     <Box
       sx={{
@@ -141,9 +139,14 @@ const IntakeAssessment = ({ notesData }: IntakeAssessmentProps) => {
                 >
                   <TextareaAutosize
                     value={intakeData?.[content.key as keyof typeof intakeData] as string | ""}
-                    readOnly={true}
+                    readOnly={!onNotesChange || content.key !== "intakeHPINote"}
                     minRows={3}
                     maxRows={15}
+                    onChange={
+                      content.key === "intakeHPINote"
+                        ? e => onChangeHPINote(e.target.value)
+                        : undefined
+                    }
                   />
                 </FormControl>
               )}
