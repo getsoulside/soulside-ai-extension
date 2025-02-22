@@ -2,15 +2,16 @@ import RichTextEditor from "@/components/RichTextEditor";
 import { SessionNotes } from "@/domains/sessionNotes";
 import { copyToClipboard } from "@/utils/helpers";
 import { ContentCopy } from "@mui/icons-material";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Box, Button, Stack } from "@mui/material";
 import { useState } from "react";
 
 interface SoapNotesProps {
   notesData: SessionNotes | null;
   sessionId: UUIDString;
+  onNotesChange?: (sessionNotes: SessionNotes) => void;
 }
 
-const SoapNotes: React.FC<SoapNotesProps> = ({ notesData }): React.ReactNode => {
+const SoapNotes: React.FC<SoapNotesProps> = ({ notesData, onNotesChange }): React.ReactNode => {
   const [textCopied, setTextCopied] = useState(false);
   const copyData = () => {
     let text = notesData?.soapNote ?? "";
@@ -20,24 +21,15 @@ const SoapNotes: React.FC<SoapNotesProps> = ({ notesData }): React.ReactNode => 
       setTextCopied(false);
     }, 3000);
   };
-  if (!notesData?.soapNote) {
-    return (
-      <Box
-        sx={{
-          flex: 1,
-          overflow: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          mt: 5,
-        }}
-      >
-        <Typography variant={"subtitle2"}>Notes not generated yet</Typography>
-      </Box>
-    );
-  }
+  const onChange = (value: string) => {
+    const data = {
+      ...(notesData || {}),
+      soapNote: value,
+    };
+    if (onNotesChange) {
+      onNotesChange(data as SessionNotes);
+    }
+  };
   return (
     <Box
       sx={{
@@ -66,7 +58,8 @@ const SoapNotes: React.FC<SoapNotesProps> = ({ notesData }): React.ReactNode => 
       </Stack>
       <RichTextEditor
         value={notesData?.soapNote ?? ""}
-        readOnly
+        onChange={onChange}
+        readOnly={!onNotesChange}
       />
     </Box>
   );

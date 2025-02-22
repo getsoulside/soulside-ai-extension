@@ -179,15 +179,12 @@ export const loadSessionNotesStatus =
       }
       dispatch(toggleSessionNotesStatusData({ sessionId: session.id, show: true }));
       try {
-        let sessionNotes = await getSessionNotesBySessionId(session.id);
-        sessionNotes = sessionNotes?.sort((a, b) => {
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        });
-        const jsonSoapNote = sessionNotes?.[0]?.jsonSoapNote;
+        const sessionNotes = await getSessionNotesBySessionId(session.id);
+        const jsonSoapNote = sessionNotes?.jsonSoapNote;
         const notesStatus = {
           [SessionNotesTemplates.INTAKE]:
             !!jsonSoapNote?.[SessionNotesTemplates.INTAKE]?.intakeHPINote,
-          [SessionNotesTemplates.DEFAULT_SOAP]: !!sessionNotes?.[0]?.soapNote,
+          [SessionNotesTemplates.DEFAULT_SOAP]: !!sessionNotes?.soapNote,
           [SessionNotesTemplates.FOLLOW_UP_ASSESSMENT]:
             !!jsonSoapNote?.chiefCompliantEnhanced ||
             !!jsonSoapNote?.subjective?.chief_complaint?.result ||

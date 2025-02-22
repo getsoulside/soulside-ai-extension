@@ -4,9 +4,12 @@ import {
   Checkbox,
   FormControl,
   FormControlLabel,
+  IconButton,
   Radio,
   RadioGroup,
+  Stack,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { TextareaAutosize } from "@mui/base";
@@ -14,16 +17,25 @@ import useFollowUpAssessment from "./useFollowUpAssessment";
 import React, { useEffect, useState } from "react";
 import { convertToTitleCase, copyToClipboard } from "@/utils/helpers";
 import { SessionNotes } from "@/domains/sessionNotes";
-import { ContentCopy } from "@mui/icons-material";
+import { ContentCopy, DeleteRounded, Link } from "@mui/icons-material";
 
 export interface FollowUpAssessmentProps {
   notesData: SessionNotes | null;
   sessionId?: UUIDString;
+  onNotesChange?: (sessionNotes: SessionNotes) => void;
 }
+
+const listOfValuesNewItemMapping = {
+  current_medications: "Medication",
+  "Current Diagnosis": "Diagnosis",
+  "Suggested ICD & CPT codes": "Code",
+  follow_up_plans: "Plan",
+};
 
 const FollowUpAssessment: React.FC<FollowUpAssessmentProps> = ({
   notesData,
   sessionId,
+  onNotesChange,
 }): React.ReactNode => {
   const [textCopiedSection, setTextCopiedSection] = useState("");
   const { followUpNotesData, sortSections } = useFollowUpAssessment({ notesData, sessionId });
@@ -41,32 +53,136 @@ const FollowUpAssessment: React.FC<FollowUpAssessmentProps> = ({
       setTextCopiedSection("");
     }, 3000);
   };
-  const jsonSoapNote = notesData?.jsonSoapNote;
-  if (
-    !(
-      jsonSoapNote &&
-      (jsonSoapNote.subjective || jsonSoapNote.Subjective) &&
-      (jsonSoapNote.objective || jsonSoapNote.Objective) &&
-      (jsonSoapNote.assessment || jsonSoapNote.Assessment)
-    )
-  ) {
-    return (
-      <Box
-        sx={{
-          flex: 1,
-          overflow: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          mt: 5,
-        }}
-      >
-        <Typography variant={"subtitle2"}>Notes not generated yet</Typography>
-      </Box>
-    );
-  }
+  const changeResultValue = (section: string, subSection: string, value: string) => {
+    const data = {
+      ...(notesData || {}),
+      jsonSoapNote: {
+        ...(notesData?.jsonSoapNote || {}),
+        [section]: {
+          ...(notesData?.jsonSoapNote?.[section] || {}),
+          [subSection]: {
+            ...(notesData?.jsonSoapNote?.[section]?.[subSection] || {}),
+            result: value,
+          },
+        },
+      },
+    };
+    if (onNotesChange) {
+      onNotesChange(data as SessionNotes);
+    }
+  };
+  const changeEnhancedChiefComplaintValue = (value: string) => {
+    const data = {
+      ...(notesData || {}),
+      jsonSoapNote: {
+        ...(notesData?.jsonSoapNote || {}),
+        chiefCompliantEnhanced: value,
+      },
+    };
+    if (onNotesChange) {
+      onNotesChange(data as SessionNotes);
+    }
+  };
+  const changeMultiSelectResultValue = (
+    section: string,
+    subSection: string,
+    value: string,
+    add: boolean
+  ) => {
+    const data = {
+      ...(notesData || {}),
+      jsonSoapNote: {
+        ...(notesData?.jsonSoapNote || {}),
+        [section]: {
+          ...(notesData?.jsonSoapNote?.[section] || {}),
+          [subSection]: {
+            ...(notesData?.jsonSoapNote?.[section]?.[subSection] || {}),
+            result: add
+              ? [...(notesData?.jsonSoapNote?.[section]?.[subSection]?.result || []), value]
+              : (notesData?.jsonSoapNote?.[section]?.[subSection]?.result || []).filter(
+                  (i: string) => i !== value
+                ),
+          },
+        },
+      },
+    };
+    if (onNotesChange) {
+      onNotesChange(data as SessionNotes);
+    }
+  };
+  const addNewListItem = (section: string, subSection: string) => {
+    const data = {
+      ...(notesData || {}),
+      jsonSoapNote: {
+        ...(notesData?.jsonSoapNote || {}),
+        [section]: {
+          ...(notesData?.jsonSoapNote?.[section] || {}),
+          [subSection]: {
+            ...(notesData?.jsonSoapNote?.[section]?.[subSection] || {}),
+            result: [...(notesData?.jsonSoapNote?.[section]?.[subSection]?.result || []), ""],
+          },
+        },
+      },
+    };
+    if (onNotesChange) {
+      onNotesChange(data as SessionNotes);
+    }
+  };
+  const deleteListItem = (section: string, subSection: string, index: number) => {
+    const data = {
+      ...(notesData || {}),
+      jsonSoapNote: {
+        ...(notesData?.jsonSoapNote || {}),
+        [section]: {
+          ...(notesData?.jsonSoapNote?.[section] || {}),
+          [subSection]: {
+            ...(notesData?.jsonSoapNote?.[section]?.[subSection] || {}),
+            result: (notesData?.jsonSoapNote?.[section]?.[subSection]?.result || [])
+              .slice(0, index)
+              .concat(
+                (notesData?.jsonSoapNote?.[section]?.[subSection]?.result || []).slice(
+                  index + 1,
+                  (notesData?.jsonSoapNote?.[section]?.[subSection]?.result || []).length
+                )
+              ),
+          },
+        },
+      },
+    };
+    if (onNotesChange) {
+      onNotesChange(data as SessionNotes);
+    }
+  };
+  const changeListItemValue = (
+    section: string,
+    subSection: string,
+    index: number,
+    value: string
+  ) => {
+    const data = {
+      ...(notesData || {}),
+      jsonSoapNote: {
+        ...(notesData?.jsonSoapNote || {}),
+        [section]: {
+          ...(notesData?.jsonSoapNote?.[section] || {}),
+          [subSection]: {
+            ...(notesData?.jsonSoapNote?.[section]?.[subSection] || {}),
+            result: (notesData?.jsonSoapNote?.[section]?.[subSection]?.result || []).map(
+              (i: string, listIndex: number) => {
+                if (listIndex === index) {
+                  return value;
+                }
+                return i;
+              }
+            ),
+          },
+        },
+      },
+    };
+    if (onNotesChange) {
+      onNotesChange(data as SessionNotes);
+    }
+  };
   return (
     <Box
       sx={{
@@ -114,8 +230,8 @@ const FollowUpAssessment: React.FC<FollowUpAssessmentProps> = ({
                 .map((subSection: string, index: number) => {
                   const chiefComplaintValue =
                     subSection === "chief_complaint"
-                      ? notesData?.jsonSoapNote?.chiefCompliantEnhanced
-                        ? notesData.jsonSoapNote.chiefCompliantEnhanced
+                      ? (notesData?.jsonSoapNote || {}).hasOwnProperty("chiefCompliantEnhanced")
+                        ? (notesData?.jsonSoapNote || {}).chiefCompliantEnhanced
                         : section.data[subSection].result
                       : "";
                   return (
@@ -179,7 +295,19 @@ const FollowUpAssessment: React.FC<FollowUpAssessmentProps> = ({
                                   ? chiefComplaintValue
                                   : section.data[subSection].result
                               }
-                              readOnly={true}
+                              readOnly={!onNotesChange}
+                              onChange={e =>
+                                subSection === "chief_complaint" &&
+                                (notesData?.jsonSoapNote || {}).hasOwnProperty(
+                                  "chiefCompliantEnhanced"
+                                )
+                                  ? changeEnhancedChiefComplaintValue(e.target.value)
+                                  : changeResultValue(
+                                      section.label.toLowerCase(),
+                                      subSection,
+                                      e.target.value
+                                    )
+                              }
                               minRows={3}
                               maxRows={10}
                             />
@@ -215,8 +343,15 @@ const FollowUpAssessment: React.FC<FollowUpAssessmentProps> = ({
                                     value={value}
                                     control={
                                       <Radio
-                                        readOnly
+                                        readOnly={!onNotesChange}
                                         sx={{ p: 0 }}
+                                        onChange={() =>
+                                          changeResultValue(
+                                            section.label.toLowerCase(),
+                                            subSection,
+                                            value
+                                          )
+                                        }
                                       />
                                     }
                                     sx={{
@@ -242,8 +377,16 @@ const FollowUpAssessment: React.FC<FollowUpAssessmentProps> = ({
                                     value={value}
                                     control={
                                       <Checkbox
-                                        readOnly
+                                        readOnly={!onNotesChange}
                                         sx={{ p: 0, m: 0, opacity: 0.9 }}
+                                        onChange={() =>
+                                          changeMultiSelectResultValue(
+                                            section.label.toLowerCase(),
+                                            subSection,
+                                            value,
+                                            !section.data[subSection].result?.includes(value)
+                                          )
+                                        }
                                       />
                                     }
                                     label={value}
@@ -286,7 +429,45 @@ const FollowUpAssessment: React.FC<FollowUpAssessmentProps> = ({
                                             gap: "5px",
                                           }}
                                         >
-                                          <Typography variant="body1">{value}</Typography>
+                                          {subSection === "current_medications" ? (
+                                            <Stack
+                                              justifyContent={"space-between"}
+                                              alignContent={"center"}
+                                              direction={"row"}
+                                              sx={{ width: "100%" }}
+                                            >
+                                              <TextField
+                                                value={value}
+                                                sx={{ fontSize: "0.875rem", flex: 1 }}
+                                                disabled={!onNotesChange}
+                                                onChange={e =>
+                                                  changeListItemValue(
+                                                    section.label.toLowerCase(),
+                                                    subSection,
+                                                    index,
+                                                    e.target.value
+                                                  )
+                                                }
+                                              />
+                                              {onNotesChange && (
+                                                <Tooltip title="Delete">
+                                                  <IconButton
+                                                    onClick={() =>
+                                                      deleteListItem(
+                                                        section.label.toLowerCase(),
+                                                        subSection,
+                                                        index
+                                                      )
+                                                    }
+                                                  >
+                                                    <DeleteRounded />
+                                                  </IconButton>
+                                                </Tooltip>
+                                              )}
+                                            </Stack>
+                                          ) : (
+                                            <Typography variant="body1">{value}</Typography>
+                                          )}
                                         </Box>
                                       );
                                     }
@@ -299,6 +480,18 @@ const FollowUpAssessment: React.FC<FollowUpAssessmentProps> = ({
                                   {section.data[subSection].explanation || "Not Identified"}
                                 </Typography>
                               </Box>
+                            )}
+                            {subSection === "current_medications" && (
+                              <Typography
+                                variant="subtitle2"
+                                sx={{ textDecoration: "underline", cursor: "pointer" }}
+                                color="primary"
+                                onClick={() =>
+                                  addNewListItem(section.label.toLowerCase(), subSection)
+                                }
+                              >
+                                + Add {listOfValuesNewItemMapping[subSection] || ""}
+                              </Typography>
                             )}
                           </>
                         )}

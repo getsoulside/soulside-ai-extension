@@ -40,10 +40,10 @@ const useFollowUpAssessment = ({ notesData }: FollowUpAssessmentProps): any => {
 
   const jsonSoapNotes = notesData?.jsonSoapNote;
 
-  const subjectiveData = jsonSoapNotes?.subjective || jsonSoapNotes?.Subjective || null;
-  const objectiveData = jsonSoapNotes?.objective || jsonSoapNotes?.Objective || null;
-  const assessmentData = jsonSoapNotes?.assessment || jsonSoapNotes?.Assessment || null;
-  const planData = jsonSoapNotes?.plan || jsonSoapNotes?.Plan || null;
+  const subjectiveData = jsonSoapNotes?.subjective || null;
+  const objectiveData = jsonSoapNotes?.objective || null;
+  const assessmentData = jsonSoapNotes?.assessment || null;
+  const planData = jsonSoapNotes?.plan || null;
   const followUpNotesData = [
     {
       label: "Subjective",

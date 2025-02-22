@@ -33,9 +33,18 @@ import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNote
 interface BPSAssessmentProps {
   notesData: SessionNotes | null;
   sessionId: UUIDString;
+  onNotesChange?: (sessionNotes: SessionNotes) => void;
 }
 
-const BPSAssessment = ({ notesData }: BPSAssessmentProps) => {
+type InputChange = (
+  value: string | boolean,
+  valueKey: string,
+  sectionKey: string,
+  subSectionKey?: string,
+  subSubSectionKey?: string
+) => void;
+
+const BPSAssessment = ({ notesData, onNotesChange }: BPSAssessmentProps) => {
   const [activeTab, setActiveTab] = useState(bpsAssessmentSchema[0].key);
   const [textCopiedSection, setTextCopiedSection] = useState("");
   const bpsData = notesData?.jsonSoapNote?.[SessionNotesTemplates.BPS];
@@ -50,24 +59,50 @@ const BPSAssessment = ({ notesData }: BPSAssessmentProps) => {
       setTextCopiedSection("");
     }, 3000);
   };
-  if (!bpsData) {
-    return (
-      <Box
-        sx={{
-          flex: 1,
-          overflow: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          mt: 5,
-        }}
-      >
-        <Typography variant={"subtitle2"}>Notes not generated yet</Typography>
-      </Box>
-    );
-  }
+  const handleInputChange: InputChange = (
+    value,
+    valueKey,
+    sectionKey,
+    subSectionKey,
+    subSubSectionKey
+  ): void => {
+    const bpsData: any = notesData?.jsonSoapNote?.[SessionNotesTemplates.BPS];
+    const data = {
+      ...(notesData || {}),
+      jsonSoapNote: {
+        ...(notesData?.jsonSoapNote || {}),
+        [SessionNotesTemplates.BPS]: {
+          ...(notesData?.jsonSoapNote?.[SessionNotesTemplates.BPS] || {}),
+          [sectionKey]: subSectionKey
+            ? subSubSectionKey
+              ? {
+                  ...(bpsData?.[sectionKey] || {}),
+                  [subSectionKey]: {
+                    ...(bpsData?.[sectionKey][subSectionKey] || {}),
+                    [subSubSectionKey]: {
+                      ...(bpsData?.[sectionKey][subSectionKey][subSubSectionKey] || {}),
+                      [valueKey]: value,
+                    },
+                  },
+                }
+              : {
+                  ...(bpsData?.[sectionKey] || {}),
+                  [subSectionKey]: {
+                    ...(bpsData?.[sectionKey][subSectionKey] || {}),
+                    [valueKey]: value,
+                  },
+                }
+            : {
+                ...(bpsData?.[sectionKey] || {}),
+                [valueKey]: value,
+              },
+        },
+      },
+    };
+    if (onNotesChange) {
+      onNotesChange(data as SessionNotes);
+    }
+  };
   return (
     <Box
       sx={{
@@ -150,6 +185,8 @@ const BPSAssessment = ({ notesData }: BPSAssessmentProps) => {
                               subSubSectionKey={valueItem.key}
                               copyText={copyText}
                               textCopiedSection={textCopiedSection}
+                              readOnly={!onNotesChange}
+                              handleInputChange={handleInputChange}
                             />
                           ))}
                         </React.Fragment>
@@ -164,6 +201,8 @@ const BPSAssessment = ({ notesData }: BPSAssessmentProps) => {
                         subSectionKey={subSection.key}
                         copyText={copyText}
                         textCopiedSection={textCopiedSection}
+                        readOnly={!onNotesChange}
+                        handleInputChange={handleInputChange}
                       />
                     );
                   })}
@@ -176,6 +215,8 @@ const BPSAssessment = ({ notesData }: BPSAssessmentProps) => {
                   sectionKey={activeTab}
                   copyText={copyText}
                   textCopiedSection={textCopiedSection}
+                  readOnly={!onNotesChange}
+                  handleInputChange={handleInputChange}
                 />
               )}
               {subSection.type === "listOfValues" && (
@@ -190,6 +231,8 @@ const BPSAssessment = ({ notesData }: BPSAssessmentProps) => {
                   valueItem={subSection as CheckboxField}
                   data={bpsData}
                   sectionKey={activeTab}
+                  readOnly={!onNotesChange}
+                  handleInputChange={handleInputChange}
                 />
               )}
             </Box>
@@ -209,6 +252,8 @@ const BpsTemplateInput = ({
   subSubSectionKey,
   copyText,
   textCopiedSection,
+  readOnly,
+  handleInputChange,
 }: {
   valueItem: InputField;
   data: any;
@@ -217,6 +262,8 @@ const BpsTemplateInput = ({
   subSubSectionKey?: string;
   copyText: (key: string, text: string) => void;
   textCopiedSection: string;
+  readOnly: boolean;
+  handleInputChange: InputChange;
 }) => {
   if (valueItem.type !== "input" && valueItem.type !== "textarea") {
     return null;
@@ -265,7 +312,16 @@ const BpsTemplateInput = ({
           sx={{
             fontSize: "0.875rem",
           }}
-          disabled
+          disabled={!!readOnly}
+          onChange={e =>
+            handleInputChange(
+              e.target.value,
+              valueItem.key,
+              sectionKey,
+              subSectionKey,
+              subSubSectionKey
+            )
+          }
         />
       )}
       {valueItem.type === "textarea" && (
@@ -275,9 +331,18 @@ const BpsTemplateInput = ({
         >
           <TextareaAutosize
             value={value}
-            readOnly={true}
+            readOnly={!!readOnly}
             minRows={1}
             maxRows={10}
+            onChange={e =>
+              handleInputChange(
+                e.target.value,
+                valueItem.key,
+                sectionKey,
+                subSectionKey,
+                subSubSectionKey
+              )
+            }
           />
         </FormControl>
       )}
@@ -355,10 +420,14 @@ const BpsTemplateCheckbox = ({
   valueItem,
   data,
   sectionKey,
+  readOnly,
+  handleInputChange,
 }: {
   valueItem: CheckboxField;
   data: any;
   sectionKey: string;
+  readOnly: boolean;
+  handleInputChange: InputChange;
 }) => {
   return (
     <RadioGroup sx={{ flexDirection: "row", gap: 2, mt: 0 }}>
@@ -366,8 +435,11 @@ const BpsTemplateCheckbox = ({
         value={valueItem.label}
         control={
           <Checkbox
-            readOnly
+            readOnly={!!readOnly}
             sx={{ p: 0, m: 0, opacity: 0.9 }}
+            onChange={() =>
+              handleInputChange(!data?.[sectionKey]?.[valueItem.key], valueItem.key, sectionKey)
+            }
           />
         }
         label={valueItem.label}

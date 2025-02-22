@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppointmentType, IndividualSession, Session, SessionCategory } from "@/domains/session";
-import { loadSessionNotes } from "@/domains/sessionNotes";
-import { SessionNotes as SessionNotesType } from "@/domains/sessionNotes";
 import { AppDispatch, RootState } from "@/store";
-import { Box, Divider, MenuItem, Paper, Select, Stack, Typography } from "@mui/material";
+import { Box, Button, Divider, MenuItem, Paper, Select, Stack, Typography } from "@mui/material";
 import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNotes.types";
 import {
   SoapNotes,
@@ -17,6 +15,10 @@ import { getEhrClient } from "@/utils/helpers";
 import { toast } from "react-toastify";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { SoulsideMeetingSessionTranscript } from "@/domains/meeting";
+import GenerateNotes from "./components/GenerateNotes";
+import Loader from "@/components/Loader";
+import { loadSaveSessionNotes } from "@/domains/sessionNotes/state/sessionNotes.thunks";
+import { SessionNotes as SessionNotesType } from "@/domains/sessionNotes/models";
 interface SessionNotesProps {
   session: Session | null;
 }
@@ -29,6 +31,16 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
     (session as IndividualSession)?.appointmentType || AppointmentType.FOLLOW_UP;
   if (!sessionId) return <></>;
   const sessionNotes = useSelector((state: RootState) => state.sessionNotes.notes[sessionId]);
+  const [sessionNotesData, setSessionNotesData] = useState<SessionNotesType | null>(
+    sessionNotes?.data || null
+  );
+  useEffect(() => {
+    if (sessionNotes?.data) {
+      setSessionNotesData(sessionNotes.data);
+    }
+  }, [sessionNotes?.data]);
+  const sessionNotesLoading = sessionNotes?.loading;
+  const sessionNotesGenerateNotesLoading = sessionNotes?.generateNotesLoading;
   const noteTemplatesLibrary = useSelector(
     (state: RootState) => state.sessionNotes.noteTemplatesLibrary
   );
@@ -36,37 +48,38 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
     noteTemplatesLibrary?.[sessionCategory as SessionCategory]?.[
       appointmentType as AppointmentType
     ];
-  const [notesTemplate, setNotesTemplate] = useState<string>(
-    notesTemplates?.find(template => template?.isDefault)?.key || notesTemplates?.[0]?.key || ""
+  const [selectedNoteTemplate, setSelectedNoteTemplate] = useState<SessionNotesTemplates | null>(
+    notesTemplates?.find(template => template?.isDefault)?.key || notesTemplates?.[0]?.key || null
   );
   const [notesAdded, setNotesAdded] = useState<boolean>(false);
   const [notesAddedLoading, setNotesAddedLoading] = useState<boolean>(false);
+  const notesGenerated = useMemo(() => {
+    const jsonSoapNote = sessionNotesData?.jsonSoapNote;
+    const notesStatus = {
+      [SessionNotesTemplates.INTAKE]: !!jsonSoapNote?.[SessionNotesTemplates.INTAKE]?.intakeHPINote,
+      [SessionNotesTemplates.DEFAULT_SOAP]: !!sessionNotesData?.soapNote,
+      [SessionNotesTemplates.FOLLOW_UP_ASSESSMENT]:
+        !!jsonSoapNote?.chiefCompliantEnhanced ||
+        !!jsonSoapNote?.subjective?.chief_complaint?.result ||
+        !!jsonSoapNote?.Subjective?.chief_complaint?.result,
+      [SessionNotesTemplates.GROUP]:
+        !!jsonSoapNote?.[SessionNotesTemplates.GROUP] &&
+        Object.keys(jsonSoapNote?.[SessionNotesTemplates.GROUP] || {}).length > 0,
+      [SessionNotesTemplates.GROUP_EXTENDED_NOTES]:
+        !!jsonSoapNote?.[SessionNotesTemplates.GROUP_EXTENDED_NOTES],
+      [SessionNotesTemplates.BPS]: !!jsonSoapNote?.[SessionNotesTemplates.BPS],
+    };
+    return notesStatus?.[selectedNoteTemplate as SessionNotesTemplates];
+  }, [sessionNotesData, selectedNoteTemplate]);
   const ehrClient = useMemo(() => getEhrClient(), []);
   const showAddNotesButton = useMemo(() => {
     const ehrIntegrated =
       ehrClient &&
       notesTemplates
-        ?.find(template => template?.key === notesTemplate)
+        ?.find(template => template?.key === selectedNoteTemplate)
         ?.ehrIntegrations.includes(ehrClient.getEhrClientName());
-    const jsonSoapNote = sessionNotes.data?.jsonSoapNote;
-    const notesStatus = {
-      [SessionNotesTemplates.INTAKE]: !!jsonSoapNote?.[SessionNotesTemplates.INTAKE]?.intakeHPINote,
-      [SessionNotesTemplates.DEFAULT_SOAP]: !!sessionNotes.data?.soapNote,
-      [SessionNotesTemplates.FOLLOW_UP_ASSESSMENT]:
-        !!jsonSoapNote?.chiefCompliantEnhanced ||
-        !!jsonSoapNote?.subjective?.chief_complaint?.result ||
-        !!jsonSoapNote?.Subjective?.chief_complaint?.result,
-      [SessionNotesTemplates.GROUP]: !!jsonSoapNote?.[SessionNotesTemplates.GROUP],
-      [SessionNotesTemplates.GROUP_EXTENDED_NOTES]:
-        !!jsonSoapNote?.[SessionNotesTemplates.GROUP_EXTENDED_NOTES],
-      [SessionNotesTemplates.BPS]: !!jsonSoapNote?.[SessionNotesTemplates.BPS],
-    };
-    const notesGenerated = notesStatus?.[notesTemplate as SessionNotesTemplates];
     return ehrIntegrated && notesGenerated;
-  }, [ehrClient, notesTemplate, notesTemplates, sessionNotes.data]);
-  useEffect(() => {
-    dispatch(loadSessionNotes(sessionId));
-  }, [sessionId]);
+  }, [ehrClient, selectedNoteTemplate, notesTemplates, notesGenerated]);
   const firstProviderSessionData = useSelector(
     (state: RootState) => state.meeting.providerSessions[sessionId]?.data?.[0]
   );
@@ -85,17 +98,15 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
       {}
     );
   }, [providerSessionTranscriptData]);
-  const addNotes = async (
-    notesData: SessionNotesType | null,
-    notesTemplate: SessionNotesTemplates
-  ) => {
-    if (!ehrClient) return;
+  const addNotes = async () => {
+    if (!ehrClient || !selectedNoteTemplate) return;
+    const notesData = sessionNotesData;
     const ehrClientInstance = ehrClient.getInstance();
     setNotesAddedLoading(true);
     try {
       const notesAdded = await ehrClientInstance?.addNotes(
         notesData,
-        notesTemplate,
+        selectedNoteTemplate,
         providerSessionUniqueSpeakers
       );
       if (notesAdded) {
@@ -110,6 +121,13 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
     }
     setNotesAddedLoading(false);
   };
+  const saveNotes = () => {
+    if (!selectedNoteTemplate || !sessionNotesData) return;
+    dispatch(loadSaveSessionNotes(sessionId, selectedNoteTemplate, sessionNotesData));
+  };
+  const onChangeSessionNotes = (sessionNotes: SessionNotesType) => {
+    setSessionNotesData(sessionNotes);
+  };
   return (
     <Box
       sx={{
@@ -121,109 +139,171 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
         maxHeight: "100%",
       }}
     >
-      <Stack
-        direction="row"
-        spacing={1}
-        alignItems="center"
+      <Loader
+        loading={sessionNotesLoading || sessionNotesGenerateNotesLoading}
+        loadingText={sessionNotesGenerateNotesLoading ? "Generating notes..." : undefined}
       >
-        <Typography variant="body1">Note Template:</Typography>
-        <Select
-          value={notesTemplate}
-          onChange={e => setNotesTemplate(e.target.value)}
-          sx={{
-            flex: 1,
-          }}
+        <Stack
+          direction="column"
+          spacing={1}
         >
-          {notesTemplates?.map(template => (
-            <MenuItem
-              key={template.key}
-              value={template.key}
-            >
-              {template.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </Stack>
-      <Divider />
-      <Box
-        sx={{
-          flex: 1,
-          overflow: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-          maxHeight: "100%",
-        }}
-      >
-        {notesTemplate === SessionNotesTemplates.DEFAULT_SOAP && (
-          <SoapNotes
-            notesData={sessionNotes.data}
-            sessionId={sessionId}
-          />
-        )}
-        {notesTemplate === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT && (
-          <FollowUpAssessment
-            notesData={sessionNotes.data}
-            sessionId={sessionId}
-          />
-        )}
-        {notesTemplate === SessionNotesTemplates.INTAKE && (
-          <IntakeAssessment
-            notesData={sessionNotes.data}
-            sessionId={sessionId}
-          />
-        )}
-        {notesTemplate === SessionNotesTemplates.BPS && (
-          <BPSAssessment
-            notesData={sessionNotes.data}
-            sessionId={sessionId}
-          />
-        )}
-        {notesTemplate === SessionNotesTemplates.GROUP && (
-          <GroupNotes
-            notesData={sessionNotes.data}
-            sessionId={sessionId}
-          />
-        )}
-      </Box>
-
-      {showAddNotesButton && (
-        <Paper
-          sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1, alignItems: "center" }}
-          elevation={2}
-        >
-          <LoadingButton
-            fullWidth
-            type="submit"
-            color="primary"
-            onClick={() => addNotes(sessionNotes.data, notesTemplate as SessionNotesTemplates)}
-            loading={notesAddedLoading}
-            loadingPosition="end"
-            endIcon={<i className="fas fa-sign-in-alt" />}
-            variant="contained"
+          <Stack
+            direction={"row"}
+            alignItems={"center"}
+            gap={1}
           >
-            {notesAddedLoading ? "Adding Notes..." : notesAdded ? "Add Again" : "Add Notes to EHR"}
-          </LoadingButton>
-          {notesAdded && (
-            <Typography
-              variant="body2"
-              color="success"
-              align="center"
+            <Typography variant="body1">Note Template:</Typography>
+            <Select
+              value={selectedNoteTemplate}
+              onChange={e => setSelectedNoteTemplate(e.target.value as SessionNotesTemplates)}
+              sx={{
+                flex: 1,
+              }}
             >
-              Notes added to EHR
-            </Typography>
-          )}
-          {!notesAdded && (
-            <Typography
-              variant="body2"
-              color="info"
-              align="center"
+              {notesTemplates?.map(template => (
+                <MenuItem
+                  key={template.key}
+                  value={template.key}
+                >
+                  {template.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </Stack>
+          {notesGenerated && (
+            <Stack
+              direction={"row"}
+              alignItems={"center"}
+              justifyContent={"flex-end"}
+              gap={1}
             >
-              *This might override your existing notes in EHR.
-            </Typography>
+              <GenerateNotes
+                noteTemplate={selectedNoteTemplate}
+                session={session}
+                regenerate={true}
+              />
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={saveNotes}
+                size="small"
+              >
+                Save Notes
+              </Button>
+            </Stack>
           )}
-        </Paper>
-      )}
+        </Stack>
+        <Divider />
+        {notesGenerated ? (
+          <Box
+            sx={{
+              flex: 1,
+              overflow: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+              maxHeight: "100%",
+            }}
+          >
+            {selectedNoteTemplate === SessionNotesTemplates.DEFAULT_SOAP && (
+              <SoapNotes
+                notesData={sessionNotesData}
+                sessionId={sessionId}
+                onNotesChange={onChangeSessionNotes}
+              />
+            )}
+            {selectedNoteTemplate === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT && (
+              <FollowUpAssessment
+                notesData={sessionNotesData}
+                sessionId={sessionId}
+                onNotesChange={onChangeSessionNotes}
+              />
+            )}
+            {selectedNoteTemplate === SessionNotesTemplates.INTAKE && (
+              <IntakeAssessment
+                notesData={sessionNotesData}
+                sessionId={sessionId}
+                onNotesChange={onChangeSessionNotes}
+              />
+            )}
+            {selectedNoteTemplate === SessionNotesTemplates.BPS && (
+              <BPSAssessment
+                notesData={sessionNotesData}
+                sessionId={sessionId}
+                onNotesChange={onChangeSessionNotes}
+              />
+            )}
+            {selectedNoteTemplate === SessionNotesTemplates.GROUP && (
+              <GroupNotes
+                notesData={sessionNotesData}
+                sessionId={sessionId}
+                onNotesChange={onChangeSessionNotes}
+              />
+            )}
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              flex: 1,
+              overflow: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              alignItems: "center",
+              justifyContent: "center",
+              mt: 5,
+            }}
+          >
+            <Typography variant={"subtitle2"}>Notes not generated yet</Typography>
+            <GenerateNotes
+              noteTemplate={selectedNoteTemplate}
+              session={session}
+            />
+          </Box>
+        )}
+
+        {showAddNotesButton && (
+          <Paper
+            sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1, alignItems: "center" }}
+            elevation={2}
+          >
+            <LoadingButton
+              fullWidth
+              type="submit"
+              color="primary"
+              onClick={addNotes}
+              loading={notesAddedLoading}
+              loadingPosition="end"
+              endIcon={<i className="fas fa-sign-in-alt" />}
+              variant="contained"
+            >
+              {notesAddedLoading
+                ? "Adding Notes..."
+                : notesAdded
+                ? "Add Again"
+                : "Add Notes to EHR"}
+            </LoadingButton>
+            {notesAdded && (
+              <Typography
+                variant="body2"
+                color="success"
+                align="center"
+              >
+                Notes added to EHR
+              </Typography>
+            )}
+            {!notesAdded && (
+              <Typography
+                variant="body2"
+                color="info"
+                align="center"
+              >
+                *This might override your existing notes in EHR.
+              </Typography>
+            )}
+          </Paper>
+        )}
+      </Loader>
     </Box>
   );
 };

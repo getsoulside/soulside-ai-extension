@@ -2,6 +2,7 @@ import { SessionCategory } from "@/domains/session";
 import httpClient from "@/utils/httpClient";
 import { SoulsideMeetingSession, SoulsideMeetingSessionTranscript } from "../models";
 import { parseCsv, unParseCsv } from "@/utils/parseCsv";
+import { API_BASE_URL } from "@/constants";
 
 export const getReconciledIndividualProviderSessions = async (
   sessionId: string
@@ -76,12 +77,13 @@ export const updateProviderSessionTranscript = async (
   ]);
 
   const csv = await unParseCsv(csvTranscriptData);
-  await httpClient.post(url, csv, {
+  await httpClient.post(`${API_BASE_URL}/${url}`, csv, {
     headers: {
       "Content-Type": "multipart/form-data",
       blobType: "text/csv;charset=utf-8;",
       blobName: "session-transcripts-from-audio",
       fileKey: "file",
+      proxy: true,
     },
   });
 };

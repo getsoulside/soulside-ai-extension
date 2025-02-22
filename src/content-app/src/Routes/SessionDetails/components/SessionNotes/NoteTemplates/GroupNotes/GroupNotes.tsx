@@ -21,9 +21,10 @@ import { SoulsideMeetingSessionTranscript } from "@/domains/meeting";
 interface GroupNotesProps {
   sessionId: UUIDString;
   notesData: SessionNotes | null;
+  onNotesChange?: (sessionNotes: SessionNotes) => void;
 }
 
-const GroupNotes = ({ notesData, sessionId }: GroupNotesProps) => {
+const GroupNotes = ({ notesData, sessionId, onNotesChange }: GroupNotesProps) => {
   const groupNotes = notesData?.jsonSoapNote?.[SessionNotesTemplates.GROUP];
   const [textCopiedSection, setTextCopiedSection] = useState("");
   const [speakerMappingOpen, setSpeakerMappingOpen] = useState(false);
@@ -55,24 +56,6 @@ const GroupNotes = ({ notesData, sessionId }: GroupNotesProps) => {
     }
   }, [Object.keys(groupNotes || {}).length]);
   const groupNotesPatients = Object.keys(groupNotes || {});
-  if (!groupNotes || Object.keys(groupNotes).length === 0) {
-    return (
-      <Box
-        sx={{
-          flex: 1,
-          overflow: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          mt: 5,
-        }}
-      >
-        <Typography variant={"subtitle2"}>Notes not generated yet</Typography>
-      </Box>
-    );
-  }
   let copyTimer: any = null;
   const copyText = (key: string, text: string) => {
     copyToClipboard(text);
@@ -83,6 +66,21 @@ const GroupNotes = ({ notesData, sessionId }: GroupNotesProps) => {
     copyTimer = setTimeout(() => {
       setTextCopiedSection("");
     }, 3000);
+  };
+  const onChangeNotes = (patient: string, value: string): void => {
+    const data = {
+      ...(notesData || {}),
+      jsonSoapNote: {
+        ...(notesData?.jsonSoapNote || {}),
+        [SessionNotesTemplates.GROUP]: {
+          ...(notesData?.jsonSoapNote?.[SessionNotesTemplates.GROUP] || {}),
+          [patient]: value,
+        },
+      },
+    };
+    if (onNotesChange) {
+      onNotesChange(data as SessionNotes);
+    }
   };
   return (
     <Box
@@ -175,7 +173,8 @@ const GroupNotes = ({ notesData, sessionId }: GroupNotesProps) => {
           >
             <TextareaAutosize
               value={groupNotes?.[activePatient as keyof typeof groupNotes] as string | ""}
-              readOnly={true}
+              onChange={e => onChangeNotes(activePatient, e.target.value)}
+              readOnly={!onNotesChange}
               minRows={3}
               maxRows={15}
             />

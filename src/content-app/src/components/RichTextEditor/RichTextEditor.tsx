@@ -1,6 +1,7 @@
 import { Box, useTheme } from "@mui/material";
 import { useRef } from "react";
 import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 interface QuillOptions {
   clipboard: {
@@ -11,11 +12,11 @@ interface QuillOptions {
 
 interface RichTextEditorProps {
   value: string;
-  setValue?: (value: string) => void;
+  onChange?: (value: string) => void;
   readOnly?: boolean;
 }
 
-const RichTextEditor = ({ value, setValue, readOnly }: RichTextEditorProps) => {
+const RichTextEditor = ({ value, onChange, readOnly }: RichTextEditorProps) => {
   let modules: QuillOptions = {
     clipboard: {
       matchVisual: true,
@@ -44,7 +45,7 @@ const RichTextEditor = ({ value, setValue, readOnly }: RichTextEditorProps) => {
         ref={quill as React.RefObject<ReactQuill>}
         theme="snow"
         value={value}
-        onChange={setValue}
+        onChange={onChange}
         readOnly={readOnly}
         modules={modules}
         sx={{
