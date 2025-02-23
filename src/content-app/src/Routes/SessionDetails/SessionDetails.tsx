@@ -55,10 +55,6 @@ const SessionDetails: React.FC = (): React.ReactNode => {
   }, [providerSessions?.data]);
   const [activeTab, setActiveTab] = useState("notes");
 
-  const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
-    setActiveTab(newValue);
-  };
-
   const patientName = sessionDetails?.data
     ? `${(sessionDetails.data as IndividualSession).patientFirstName} ${
         (sessionDetails.data as IndividualSession).patientLastName

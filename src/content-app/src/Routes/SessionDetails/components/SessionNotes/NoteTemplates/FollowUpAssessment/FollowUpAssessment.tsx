@@ -17,7 +17,7 @@ import useFollowUpAssessment from "./useFollowUpAssessment";
 import React, { useEffect, useState } from "react";
 import { convertToTitleCase, copyToClipboard } from "@/utils/helpers";
 import { SessionNotes } from "@/domains/sessionNotes";
-import { ContentCopy, DeleteRounded, Link } from "@mui/icons-material";
+import { ContentCopy, DeleteRounded } from "@mui/icons-material";
 
 export interface FollowUpAssessmentProps {
   notesData: SessionNotes | null;
