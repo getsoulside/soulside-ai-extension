@@ -44,7 +44,7 @@ export const generateSessionNotes = async (
   payload: any
 ): Promise<any> => {
   const generateSessionNotesUrls: Record<SessionNotesTemplates, string> = {
-    [SessionNotesTemplates.DEFAULT_SOAP]: `${SESSION_TRANSCRIPT_LLM_API_URL}/transcript/generate-soap-note`,
+    [SessionNotesTemplates.SOAP_PSYCHIATRY]: `${SESSION_TRANSCRIPT_LLM_API_URL}/transcript/generate-soap-note`,
     [SessionNotesTemplates.FOLLOW_UP_ASSESSMENT]: `${SESSION_TRANSCRIPT_LLM_API_URL}/transcript/generate-soap-note/custom/serenity`,
     [SessionNotesTemplates.INTAKE]: `${SESSION_TRANSCRIPT_LLM_API_URL}/transcript/generate-intake-note/custom/hpi-note/v2`,
     [SessionNotesTemplates.BPS]: `${SESSION_TRANSCRIPT_LLM_API_URL}/transcript/generate-intake-note/custom/sagepoint`,

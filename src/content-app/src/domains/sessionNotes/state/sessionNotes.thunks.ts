@@ -40,12 +40,7 @@ export const loadGenerateSessionNotes =
       } catch (error) {
         console.error(error);
       }
-      if (noteTemplate === SessionNotesTemplates.DEFAULT_SOAP) {
-        sessionNotes = {
-          ...sessionNotes,
-          soapNote: generatedNotes,
-        };
-      } else if (noteTemplate === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT) {
+      if (noteTemplate === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT) {
         const followUpAssessmentNotes: FollowUpAssessmentNotes = {};
 
         if (generatedNotes?.Subjective || generatedNotes?.subjective) {
@@ -95,17 +90,19 @@ export const loadGenerateSessionNotes =
   };
 
 export const loadSaveSessionNotes =
-  (sessionId: string, noteTemplate: SessionNotesTemplates, notes: SessionNotes): AppThunk =>
+  (
+    sessionId: string,
+    noteTemplate: SessionNotesTemplates,
+    notes: SessionNotes,
+    silentAction: boolean = false
+  ): AppThunk =>
   async dispatch => {
-    dispatch(toggleSessionNotesLoading({ sessionId, loading: true }));
+    if (!silentAction) {
+      dispatch(toggleSessionNotesLoading({ sessionId, loading: true }));
+    }
     try {
       let sessionNotes: Partial<SessionNotes> | null = await getSessionNotesBySessionId(sessionId);
-      if (noteTemplate === SessionNotesTemplates.DEFAULT_SOAP) {
-        sessionNotes = {
-          ...(sessionNotes || {}),
-          soapNote: notes.soapNote,
-        };
-      } else if (noteTemplate === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT) {
+      if (noteTemplate === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT) {
         const jsonSoapNote = sessionNotes?.jsonSoapNote || {};
         if (notes.jsonSoapNote?.subjective) {
           jsonSoapNote.subjective = notes.jsonSoapNote.subjective;
@@ -135,12 +132,27 @@ export const loadSaveSessionNotes =
           },
         };
       }
+      if (notes?.jsonSoapNote?.notesAddedToEhr) {
+        sessionNotes = {
+          ...(sessionNotes || {}),
+          jsonSoapNote: {
+            ...(sessionNotes?.jsonSoapNote || {}),
+            notesAddedToEhr: notes.jsonSoapNote.notesAddedToEhr || [],
+          },
+        };
+      }
       const savedSessionNotes = await saveSessionNotes(sessionNotes as SessionNotes);
-      toast.success("Notes saved successfully");
+      if (!silentAction) {
+        toast.success("Notes saved successfully");
+      }
       dispatch(addSessionNotes({ sessionId, notes: savedSessionNotes }));
     } catch (error) {
-      toast.error("Failed to save notes");
+      if (!silentAction) {
+        toast.error("Failed to save notes");
+      }
       console.error(error);
     }
-    dispatch(toggleSessionNotesLoading({ sessionId, loading: false }));
+    if (!silentAction) {
+      dispatch(toggleSessionNotesLoading({ sessionId, loading: false }));
+    }
   };

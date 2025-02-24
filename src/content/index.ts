@@ -130,5 +130,7 @@ if (process.env.NODE_ENV === "development") {
     }
   });
 } else {
-  injectTrackingScript();
+  if (!window?.location?.hostname?.includes("advancedmd.com")) {
+    injectTrackingScript();
+  }
 }

@@ -2,8 +2,24 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppointmentType, IndividualSession, Session, SessionCategory } from "@/domains/session";
 import { AppDispatch, RootState } from "@/store";
-import { Box, Button, Divider, MenuItem, Paper, Select, Stack, Typography } from "@mui/material";
-import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNotes.types";
+import {
+  Box,
+  Button,
+  Divider,
+  ListItemText,
+  List,
+  ListItem,
+  MenuItem,
+  Paper,
+  Select,
+  Stack,
+  Typography,
+  Tooltip,
+} from "@mui/material";
+import {
+  NotesAddedToEhr,
+  SessionNotesTemplates,
+} from "@/domains/sessionNotes/models/sessionNotes.types";
 import {
   SoapNotes,
   FollowUpAssessment,
@@ -19,6 +35,8 @@ import GenerateNotes from "./components/GenerateNotes";
 import Loader from "@/components/Loader";
 import { loadSaveSessionNotes } from "@/domains/sessionNotes/state/sessionNotes.thunks";
 import { SessionNotes as SessionNotesType } from "@/domains/sessionNotes/models";
+import { getFormattedDateTime } from "@/utils/date";
+import { InfoRounded } from "@mui/icons-material";
 interface SessionNotesProps {
   session: Session | null;
 }
@@ -51,13 +69,13 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
   const [selectedNoteTemplate, setSelectedNoteTemplate] = useState<SessionNotesTemplates | null>(
     notesTemplates?.find(template => template?.isDefault)?.key || notesTemplates?.[0]?.key || null
   );
-  const [notesAdded, setNotesAdded] = useState<boolean>(false);
   const [notesAddedLoading, setNotesAddedLoading] = useState<boolean>(false);
   const notesGenerated = useMemo(() => {
     const jsonSoapNote = sessionNotesData?.jsonSoapNote;
     const notesStatus = {
       [SessionNotesTemplates.INTAKE]: !!jsonSoapNote?.[SessionNotesTemplates.INTAKE]?.intakeHPINote,
-      [SessionNotesTemplates.DEFAULT_SOAP]: !!sessionNotesData?.soapNote,
+      [SessionNotesTemplates.SOAP_PSYCHIATRY]:
+        !!jsonSoapNote?.[SessionNotesTemplates.SOAP_PSYCHIATRY],
       [SessionNotesTemplates.FOLLOW_UP_ASSESSMENT]:
         !!jsonSoapNote?.chiefCompliantEnhanced ||
         !!jsonSoapNote?.subjective?.chief_complaint?.result ||
@@ -98,11 +116,37 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
       {}
     );
   }, [providerSessionTranscriptData]);
+  const selectedRole = useSelector((state: RootState) => state.userProfile.selectedRole.data);
   const addNotes = async () => {
     if (!ehrClient || !selectedNoteTemplate) return;
     const notesData = sessionNotesData;
     const ehrClientInstance = ehrClient.getInstance();
     setNotesAddedLoading(true);
+    try {
+      const activeSession = await ehrClientInstance?.getActiveSession();
+      if (!activeSession) {
+        throw {
+          message: "Please open this appointment in your EHR to add notes",
+          error_code: "NO_ACTIVE_SESSION_FOUND",
+        };
+      }
+      if (
+        activeSession.id !== sessionId &&
+        (session.sessionCategory !== SessionCategory.INDIVIDUAL ||
+          (session as IndividualSession)?.appointmentType !== AppointmentType.INTAKE)
+      ) {
+        throw {
+          message:
+            "Active appointment is not the same as the appointment you are trying to add notes to. Please open this appointment in your EHR to add notes",
+          error_code: "ACTIVE_SESSION_NOT_SAME_AS_SESSION_TO_ADD_NOTES_TO",
+        };
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error?.message || "Failed to add notes to EHR");
+      setNotesAddedLoading(false);
+      return;
+    }
     try {
       const notesAdded = await ehrClientInstance?.addNotes(
         notesData,
@@ -111,7 +155,28 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
       );
       if (notesAdded) {
         toast.success("Notes added to EHR");
-        setNotesAdded(true);
+        const addedNotesData = {
+          ...(notesData || {}),
+          jsonSoapNote: {
+            ...(notesData?.jsonSoapNote || {}),
+            notesAddedToEhr: [
+              ...(notesData?.jsonSoapNote?.notesAddedToEhr || []),
+              {
+                ehrClient: ehrClient.getEhrClientName(),
+                addedOn: new Date().toISOString(),
+                addedBy: selectedRole || null,
+              },
+            ],
+          },
+        };
+        dispatch(
+          loadSaveSessionNotes(
+            sessionId,
+            selectedNoteTemplate,
+            addedNotesData as SessionNotesType,
+            true
+          )
+        );
       } else {
         toast.error("Failed to add notes to EHR");
       }
@@ -121,6 +186,12 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
     }
     setNotesAddedLoading(false);
   };
+  const notesAdded = useMemo(() => {
+    return (
+      sessionNotesData?.jsonSoapNote?.notesAddedToEhr &&
+      sessionNotesData?.jsonSoapNote?.notesAddedToEhr?.length > 0
+    );
+  }, [sessionNotesData]);
   const saveNotes = () => {
     if (!selectedNoteTemplate || !sessionNotesData) return;
     dispatch(loadSaveSessionNotes(sessionId, selectedNoteTemplate, sessionNotesData));
@@ -142,6 +213,7 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
       <Loader
         loading={sessionNotesLoading || sessionNotesGenerateNotesLoading}
         loadingText={sessionNotesGenerateNotesLoading ? "Generating notes..." : undefined}
+        progressLoader={sessionNotesGenerateNotesLoading}
       >
         <Stack
           direction="column"
@@ -205,7 +277,7 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
               maxHeight: "100%",
             }}
           >
-            {selectedNoteTemplate === SessionNotesTemplates.DEFAULT_SOAP && (
+            {selectedNoteTemplate === SessionNotesTemplates.SOAP_PSYCHIATRY && (
               <SoapNotes
                 notesData={sessionNotesData}
                 sessionId={sessionId}
@@ -254,7 +326,19 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
               mt: 5,
             }}
           >
-            <Typography variant={"subtitle2"}>Notes not generated yet</Typography>
+            <Typography
+              variant={"subtitle2"}
+              align="center"
+            >
+              Notes not generated yet
+            </Typography>
+            <Typography
+              variant={"caption"}
+              align="center"
+            >
+              Notes will be generated automatically in 1-2 minutes after the session ends. You can
+              also generate notes manually by clicking on the "Generate Notes" button.
+            </Typography>
             <GenerateNotes
               noteTemplate={selectedNoteTemplate}
               session={session}
@@ -284,13 +368,29 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
                 : "Add Notes to EHR"}
             </LoadingButton>
             {notesAdded && (
-              <Typography
-                variant="body2"
-                color="success"
-                align="center"
+              <Stack
+                direction={"row"}
+                alignItems={"center"}
+                gap={1}
               >
-                Notes added to EHR
-              </Typography>
+                <Typography
+                  variant="body2"
+                  color="success"
+                  align="center"
+                >
+                  Notes added to EHR
+                </Typography>
+                <Tooltip
+                  placement="top"
+                  title={
+                    <NotesAddedToEhrList
+                      notesAddedToEhr={sessionNotesData?.jsonSoapNote?.notesAddedToEhr || []}
+                    />
+                  }
+                >
+                  <InfoRounded sx={{ fontSize: "1rem" }} />
+                </Tooltip>
+              </Stack>
             )}
             {!notesAdded && (
               <Typography
@@ -309,3 +409,22 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
 };
 
 export default SessionNotes;
+
+const NotesAddedToEhrList = ({ notesAddedToEhr }: { notesAddedToEhr: NotesAddedToEhr[] }) => {
+  return (
+    <List dense>
+      {[...notesAddedToEhr]
+        .sort((a, b) => new Date(b.addedOn).getTime() - new Date(a.addedOn).getTime())
+        .map(note => (
+          <ListItem key={note.addedOn}>
+            <ListItemText>
+              Added by {note.addedBy?.practitionerFirstName || ""}
+              {note.addedBy?.practitionerLastName ? " " : ""}
+              {note.addedBy?.practitionerLastName || ""} on{" "}
+              {getFormattedDateTime(note.addedOn, "MMM DD, YYYY hh:mm A", true)}
+            </ListItemText>
+          </ListItem>
+        ))}
+    </List>
+  );
+};

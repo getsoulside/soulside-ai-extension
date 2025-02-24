@@ -2,6 +2,10 @@ export async function parseCsv(pdfUrl: string): Promise<any> {
   return new Promise((resolve, reject) => {
     if (chrome?.runtime?.id) {
       chrome.runtime.sendMessage({ action: "parseCsv", pdfUrl }, response => {
+        window.postMessage(
+          { type: "ADD_LOG_ROCKET_LOG", message: `parseCsv:`, data: { pdfUrl, response } },
+          "*"
+        );
         if (response.success) {
           resolve(response.value);
         } else {
@@ -44,6 +48,10 @@ export async function unParseCsv(csvData: any): Promise<any> {
   return new Promise((resolve, reject) => {
     if (chrome?.runtime?.id) {
       chrome.runtime.sendMessage({ action: "unParseCsv", csvData }, response => {
+        window.postMessage(
+          { type: "ADD_LOG_ROCKET_LOG", message: `unParseCsv:`, data: { csvData, response } },
+          "*"
+        );
         if (response.success) {
           resolve(response.value);
         } else {

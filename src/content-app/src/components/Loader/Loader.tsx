@@ -1,11 +1,12 @@
 import React from "react";
-import { Box, CircularProgress, Typography } from "@mui/material";
+import { Box, CircularProgress, LinearProgress, Typography } from "@mui/material";
 
 interface LoaderProps {
   loading: boolean;
   size?: string;
   children?: React.ReactNode;
   loadingText?: string;
+  progressLoader?: boolean;
 }
 
 const Loader: React.FC<LoaderProps> = ({
@@ -13,6 +14,7 @@ const Loader: React.FC<LoaderProps> = ({
   size = "medium",
   children,
   loadingText,
+  progressLoader,
 }): React.ReactNode => {
   if (!loading) return children;
   return (
@@ -27,8 +29,22 @@ const Loader: React.FC<LoaderProps> = ({
         height: "100%",
       }}
     >
-      <CircularProgress size={size === "medium" ? 40 : size === "large" ? 60 : 20} />
-      {loadingText && <Typography variant="subtitle2">{loadingText}</Typography>}
+      {!progressLoader ? (
+        <CircularProgress size={size === "medium" ? 40 : size === "large" ? 60 : 20} />
+      ) : (
+        <LinearProgress
+          sx={{ width: "100%" }}
+          color="primary"
+        />
+      )}
+      {loadingText && (
+        <Typography
+          variant="subtitle2"
+          align="center"
+        >
+          {loadingText}
+        </Typography>
+      )}
     </Box>
   );
 };

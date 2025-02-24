@@ -9,13 +9,14 @@ import {
   toggleSpeakerAudiosLoading,
   toggleTranscriptLoading,
 } from "./meeting.slice";
-import { checkTodaySession, SessionCategory } from "@/domains/session";
+import { checkTodaySession, Session, SessionCategory } from "@/domains/session";
 import {
   getReconciledIndividualProviderSessions,
   getReconciledGroupProviderSessions,
   getProviderSessionTranscriptData,
   getProviderSessionSpeakerAudioUrl,
   updateProviderSessionTranscript,
+  reEnrollSpeakerAudio,
 } from "../services";
 import {
   SoulsideMeetingSession,
@@ -138,6 +139,7 @@ export const loadTranscript =
 
 export const saveProviderSessionTranscript =
   (
+    session: Session | null,
     providerSession: SoulsideMeetingSession,
     providerSessionTranscriptData: SoulsideMeetingSessionTranscript[]
   ): AppThunk =>
@@ -159,6 +161,38 @@ export const saveProviderSessionTranscript =
     );
     try {
       await updateProviderSessionTranscript(providerSession, providerSessionTranscriptData);
+      if (sessionCategory === SessionCategory.INDIVIDUAL) {
+        let patientVoiceReEnrolled = false;
+        let providerVoiceReEnrolled = false;
+        for (const transcript of providerSessionTranscriptData) {
+          if (transcript.participantName.toLowerCase() === "patient" && !patientVoiceReEnrolled) {
+            patientVoiceReEnrolled = true;
+            try {
+              await reEnrollSpeakerAudio(
+                session,
+                providerSession,
+                transcript.providerParticipantId.replace("Speaker ", ""),
+                false
+              );
+            } catch (error) {
+              console.error(error);
+            }
+          }
+          if (transcript.participantName.toLowerCase() === "provider" && !providerVoiceReEnrolled) {
+            providerVoiceReEnrolled = true;
+            try {
+              await reEnrollSpeakerAudio(
+                session,
+                providerSession,
+                transcript.providerParticipantId.replace("Speaker ", ""),
+                true
+              );
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        }
+      }
       dispatch(
         addTranscriptData({
           sessionId,

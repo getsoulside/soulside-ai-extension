@@ -73,7 +73,7 @@ export default class AdvancedMD {
 
     // Find the chart viewer iframe
     const chartViewerIframe = chartViewerDoc.querySelector(
-      `iframe[src*="${this.IFRAME_TYPES.CHART_VIEWER_DETAIL}"]`
+      `amds-tab-view:not(.amds-hidden-view) iframe[src*="${this.IFRAME_TYPES.CHART_VIEWER_DETAIL}"]`
     ) as HTMLIFrameElement;
     if (!chartViewerIframe) return null;
 
@@ -150,36 +150,46 @@ export default class AdvancedMD {
     );
   }
 
-  private addAiIconToLabel(label: Element): void {
+  private addAiIconToLabel(label: Element, explanation?: string): void {
     const labelRect = label.getBoundingClientRect();
     if (!label.isConnected || labelRect?.width === 0 || labelRect?.height === 0) return;
-    const icon = document.createElement("span");
-    icon.classList.add("soulside-ai-icon");
-    icon.style.position = "absolute";
-    icon.style.left = `calc(${labelRect.right}px + 5px)`; // 5px spacing from label
-    icon.style.top = `calc(${labelRect.top}px - ${
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "absolute";
+    wrapper.style.left = `calc(${labelRect.right}px + 5px)`; // 5px spacing from label
+    wrapper.style.top = `calc(${labelRect.top}px - ${
       label.parentElement?.getBoundingClientRect().top || 0
-    }px)`;
-    icon.style.display = "inline-block";
-    icon.style.verticalAlign = "middle";
-    icon.setAttribute("title", `Added by Soulside AI`);
-    icon.innerHTML = `
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g clip-path="url(#clip0_2124_1291)">
-        <path d="M4.73387 7.74472C5.14692 5.57619 5.71487 5.00825 7.88339 4.59519C8.14156 4.54358 8.29645 4.33706 8.29645 4.07889C8.29645 3.82072 8.14156 3.61422 7.88339 3.56258C5.71487 3.14953 5.14692 2.58158 4.73387 0.413053C4.68225 0.154895 4.47573 0 4.21756 0C3.95939 0 3.75289 0.154895 3.70125 0.413053C3.2882 2.58158 2.72025 3.14953 0.551725 3.56258C0.345197 3.61422 0.138672 3.82072 0.138672 4.07889C0.138672 4.33706 0.293566 4.54358 0.551725 4.59519C2.72025 5.00825 3.2882 5.57619 3.70125 7.74472C3.75289 8.00289 3.95939 8.15778 4.21756 8.15778C4.47573 8.15778 4.68225 7.95125 4.73387 7.74472Z" fill="#FFD700"/>
-        <path d="M9.89751 11.3572C8.45182 11.0474 8.14204 10.7377 7.83223 9.29196C7.78062 9.0338 7.57409 8.87891 7.31593 8.87891C7.05776 8.87891 6.85123 9.0338 6.79962 9.29196C6.48982 10.7377 6.18004 11.0474 4.73434 11.3572C4.47621 11.4089 4.32129 11.6154 4.32129 11.8735C4.32129 12.1317 4.47621 12.3382 4.73434 12.3899C6.18004 12.6996 6.48982 13.0094 6.79962 14.4551C6.85123 14.7133 7.05776 14.8682 7.31593 14.8682C7.57409 14.8682 7.78062 14.7133 7.83223 14.4551C8.14204 13.0094 8.45182 12.6996 9.89751 12.3899C10.1557 12.3382 10.3106 12.1317 10.3106 11.8735C10.3106 11.6154 10.104 11.4089 9.89751 11.3572Z" fill="#FFD700"/>
-        <path d="M13.6146 6.19723C12.4787 5.99071 12.2206 5.73254 12.014 4.59665C11.9624 4.33851 11.7559 4.18359 11.4977 4.18359C11.2396 4.18359 11.033 4.33851 10.9814 4.59665C10.7749 5.73254 10.5167 5.99071 9.3808 6.19723C9.12266 6.24887 8.96777 6.4554 8.96777 6.71354C8.96777 6.97171 9.12266 7.17823 9.3808 7.22987C10.5167 7.4364 10.7749 7.69454 10.9814 8.83045C11.033 9.08859 11.2396 9.24351 11.4977 9.24351C11.7559 9.24351 11.9624 9.08859 12.014 8.83045C12.2206 7.69454 12.4787 7.4364 13.6146 7.22987C13.8727 7.17823 14.0277 6.97171 14.0277 6.71354C14.0277 6.4554 13.8727 6.24887 13.6146 6.19723Z" fill="#FFD700"/>
-        <path d="M1.48125 10.4812C1.32636 10.3263 1.11983 10.2747 0.913304 10.378C0.861674 10.378 0.810041 10.4296 0.75841 10.4812C0.70678 10.5328 0.655146 10.5845 0.655146 10.6361C0.603516 10.6877 0.603516 10.791 0.603516 10.8426C0.603516 10.8943 0.603516 10.9975 0.655146 11.0491C0.706779 11.1008 0.70678 11.1524 0.75841 11.2041C0.810041 11.2557 0.861674 11.3073 0.913304 11.3073C0.964935 11.359 1.0682 11.359 1.11983 11.359C1.17146 11.359 1.27473 11.359 1.32636 11.3073C1.37799 11.2557 1.42962 11.2557 1.48125 11.2041C1.53288 11.1524 1.58452 11.1008 1.58452 11.0491C1.63615 10.9975 1.63615 10.8943 1.63615 10.8426C1.63615 10.791 1.63615 10.6877 1.58452 10.6361C1.58452 10.5845 1.53288 10.5328 1.48125 10.4812Z" fill="#FFD700"/>
-        <path d="M12.9948 2.58222C13.1497 2.58222 13.253 2.53059 13.3563 2.42733C13.4595 2.32406 13.5112 2.2208 13.5112 2.06591C13.5112 1.91101 13.4595 1.80775 13.3563 1.70449C13.3046 1.65286 13.253 1.60122 13.2014 1.60122C13.0981 1.54959 12.9432 1.54959 12.7883 1.60122C12.7367 1.60122 12.685 1.65286 12.6334 1.70449C12.5302 1.80775 12.4785 1.91101 12.4785 2.06591C12.4785 2.2208 12.5302 2.32406 12.6334 2.42733C12.7367 2.53059 12.8399 2.58222 12.9948 2.58222Z" fill="#FFD700"/>
-        </g>
-        <defs>
-        <clipPath id="clip0_2124_1291">
-        <rect width="14.1667" height="15" fill="white"/>
-        </clipPath>
-        </defs>
-        </svg>
-    `;
-    label?.parentElement?.appendChild(icon);
+    }px - 2px)`;
+    wrapper.style.display = "flex";
+    wrapper.style.alignItems = "center";
+    wrapper.style.gap = "5px";
+
+    const box = document.createElement("div");
+    box.style.display = "inline-block";
+    box.style.fontSize = "9px";
+    box.style.padding = "3px 5px";
+    box.style.borderRadius = "3px";
+    box.style.backgroundColor = "#eee";
+    box.style.color = "#000";
+    box.style.border = "0.5px solid #ccc";
+    box.setAttribute("title", `Added by Soulside AI`);
+    box.textContent = "Added by Soulside AI";
+    wrapper.appendChild(box);
+    if (explanation) {
+      const iconSpan = document.createElement("span");
+      iconSpan.style.cursor = "pointer";
+      iconSpan.style.display = "inline-block";
+      iconSpan.setAttribute("title", explanation);
+      const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      icon.setAttribute("width", "10");
+      icon.setAttribute("height", "10");
+      icon.setAttribute("viewBox", "0 0 10 10");
+      icon.setAttribute("fill", "none");
+      icon.innerHTML =
+        '<path d="M5 0C2.24 0 0 2.24 0 5C0 7.76 2.24 10 5 10C7.76 10 10 7.76 10 5C10 2.24 7.76 0 5 0ZM5 7.5C4.725 7.5 4.5 7.275 4.5 7V5C4.5 4.725 4.725 4.5 5 4.5C5.275 4.5 5.5 4.725 5.5 5V7C5.5 7.275 5.275 7.5 5 7.5ZM5.5 3.5H4.5V2.5H5.5V3.5Z" fill="#7a7a7a"/>';
+      iconSpan.appendChild(icon);
+      wrapper.appendChild(iconSpan);
+    }
+    label?.parentElement?.appendChild(wrapper);
   }
 
   public async addNotes(
@@ -251,7 +261,7 @@ export default class AdvancedMD {
               }
               if (valueToAdd) {
                 textarea.value = (textarea.value ? textarea.value + "\n\n" : "") + valueToAdd;
-                this.addAiIconToLabel(label);
+                this.addAiIconToLabel(label, fieldData.explanation);
               }
             } else if (fieldType === "single_choice_answer") {
               const radioInputs = label.nextElementSibling?.querySelectorAll('input[type="radio"]');
@@ -265,7 +275,7 @@ export default class AdvancedMD {
                       fieldData.result?.trim()?.toLowerCase()
                   ) {
                     radioInput.checked = true;
-                    this.addAiIconToLabel(label);
+                    this.addAiIconToLabel(label, fieldData.explanation);
                     break;
                   }
                 }
@@ -310,7 +320,7 @@ export default class AdvancedMD {
                   }
                 }
                 if (checkBoxChecked) {
-                  this.addAiIconToLabel(label);
+                  this.addAiIconToLabel(label, fieldData.explanation);
                 }
               }
             }

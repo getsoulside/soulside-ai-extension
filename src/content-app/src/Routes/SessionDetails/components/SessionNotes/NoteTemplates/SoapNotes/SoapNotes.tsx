@@ -1,5 +1,6 @@
 import RichTextEditor from "@/components/RichTextEditor";
 import { SessionNotes } from "@/domains/sessionNotes";
+import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNotes.types";
 import { copyToClipboard } from "@/utils/helpers";
 import { ContentCopy } from "@mui/icons-material";
 import { Box, Button, Stack } from "@mui/material";
@@ -14,7 +15,7 @@ interface SoapNotesProps {
 const SoapNotes: React.FC<SoapNotesProps> = ({ notesData, onNotesChange }): React.ReactNode => {
   const [textCopied, setTextCopied] = useState(false);
   const copyData = () => {
-    let text = notesData?.soapNote ?? "";
+    let text = notesData?.jsonSoapNote?.[SessionNotesTemplates.SOAP_PSYCHIATRY] ?? "";
     copyToClipboard(text);
     setTextCopied(true);
     setTimeout(() => {
@@ -24,7 +25,10 @@ const SoapNotes: React.FC<SoapNotesProps> = ({ notesData, onNotesChange }): Reac
   const onChange = (value: string) => {
     const data = {
       ...(notesData || {}),
-      soapNote: value,
+      jsonSoapNote: {
+        ...(notesData?.jsonSoapNote || {}),
+        [SessionNotesTemplates.SOAP_PSYCHIATRY]: value,
+      },
     };
     if (onNotesChange) {
       onNotesChange(data as SessionNotes);
@@ -57,7 +61,7 @@ const SoapNotes: React.FC<SoapNotesProps> = ({ notesData, onNotesChange }): Reac
         </Button>
       </Stack>
       <RichTextEditor
-        value={notesData?.soapNote ?? ""}
+        value={notesData?.jsonSoapNote?.[SessionNotesTemplates.SOAP_PSYCHIATRY] ?? ""}
         onChange={onChange}
         readOnly={!onNotesChange}
       />

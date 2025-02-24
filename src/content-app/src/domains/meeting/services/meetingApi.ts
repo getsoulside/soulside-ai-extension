@@ -1,4 +1,4 @@
-import { SessionCategory } from "@/domains/session";
+import { Session, SessionCategory, IndividualSession } from "@/domains/session";
 import httpClient from "@/utils/httpClient";
 import { SoulsideMeetingSession, SoulsideMeetingSessionTranscript } from "../models";
 import { parseCsv, unParseCsv } from "@/utils/parseCsv";
@@ -86,4 +86,26 @@ export const updateProviderSessionTranscript = async (
       proxy: true,
     },
   });
+};
+
+export const reEnrollSpeakerAudio = async (
+  session: Session | null,
+  providerSession: SoulsideMeetingSession,
+  speakerIdInDiarizedTranscript: string,
+  isProvider: boolean
+) => {
+  const url = `practitioner-role/meeting-session/speaker-audio-workflow/re-enroll-speaker-audio`;
+  const payload = {
+    providerSessionId: providerSession.providerSessionId,
+    patientId: "",
+    practitionerRoleId: "",
+    speakerIdInDiarizedTranscript,
+    speakerLabel: isProvider ? "provider" : "patient",
+  };
+  if (!isProvider) {
+    payload.patientId = (session as IndividualSession).patientId || "";
+  } else {
+    payload.practitionerRoleId = (session as IndividualSession).practitionerRoleId || "";
+  }
+  await httpClient.post(url, payload, { headers: { proxy: true } });
 };

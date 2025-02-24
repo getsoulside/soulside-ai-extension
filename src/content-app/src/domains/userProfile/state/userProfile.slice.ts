@@ -126,7 +126,7 @@ export const updateNoteTemplateLibraryByOrganizationId = (
               ?.filter(
                 template =>
                   template.key === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT ||
-                  template.key === SessionNotesTemplates.DEFAULT_SOAP
+                  template.key === SessionNotesTemplates.SOAP_PSYCHIATRY
               )
               .map(template => ({
                 ...template,
@@ -146,7 +146,7 @@ export const updateNoteTemplateLibraryByOrganizationId = (
               ?.filter(
                 template =>
                   template.key === SessionNotesTemplates.BPS ||
-                  template.key === SessionNotesTemplates.DEFAULT_SOAP
+                  template.key === SessionNotesTemplates.SOAP_PSYCHIATRY
               )
               .map(template => ({
                 ...template,
@@ -155,10 +155,10 @@ export const updateNoteTemplateLibraryByOrganizationId = (
             [AppointmentType.FOLLOW_UP]: noteTemplateLibrary?.[SessionCategory.INDIVIDUAL]?.[
               AppointmentType.FOLLOW_UP
             ]
-              ?.filter(template => template.key === SessionNotesTemplates.DEFAULT_SOAP)
+              ?.filter(template => template.key === SessionNotesTemplates.SOAP_PSYCHIATRY)
               .map(template => ({
                 ...template,
-                isDefault: template.key === SessionNotesTemplates.DEFAULT_SOAP,
+                isDefault: template.key === SessionNotesTemplates.SOAP_PSYCHIATRY,
               })),
           },
         };

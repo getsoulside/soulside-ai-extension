@@ -128,23 +128,27 @@ const AppointmentListPagination: React.FC<AppointmentListPaginationProps> = ({
         title="Previous"
         placement="top"
       >
-        <IconButton
-          onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
-          disabled={pagination.page === 1}
-        >
-          <ArrowBackIosRounded sx={{ fontSize: "1rem" }} />
-        </IconButton>
+        <Box>
+          <IconButton
+            onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
+            disabled={pagination.page === 1}
+          >
+            <ArrowBackIosRounded sx={{ fontSize: "1rem" }} />
+          </IconButton>
+        </Box>
       </Tooltip>
       <Tooltip
         title="Next"
         placement="top"
       >
-        <IconButton
-          onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
-          disabled={pagination.page * pagination.pageSize >= data.length}
-        >
-          <ArrowForwardIos sx={{ fontSize: "1rem" }} />
-        </IconButton>
+        <Box>
+          <IconButton
+            onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
+            disabled={pagination.page * pagination.pageSize >= data.length}
+          >
+            <ArrowForwardIos sx={{ fontSize: "1rem" }} />
+          </IconButton>
+        </Box>
       </Tooltip>
     </Box>
   );
@@ -195,24 +199,29 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
         }}
       >
         <Stack gap={1}>
-          <Stack
-            direction={"row"}
-            gap={0.5}
-          >
-            <Typography variant="body2">
+          <Box sx={{ display: "flex", alignItems: "flex-start" }}>
+            <Typography
+              variant="body2"
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
               {appointment.sessionCategory === SessionCategory.INDIVIDUAL ? patientName : groupName}
+              <Tooltip title="Open on Soulside Platform">
+                <IconButton
+                  component="a"
+                  href={soulsidePlatformSessionDetailsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ ml: 0.5, p: 0 }}
+                >
+                  <OpenInNew sx={{ fontSize: "0.8rem", color: "primary.main" }} />
+                </IconButton>
+              </Tooltip>
             </Typography>
-            <Tooltip title="Open on Soulside Platform">
-              <IconButton
-                component="a"
-                href={soulsidePlatformSessionDetailsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <OpenInNew sx={{ fontSize: "0.8rem", color: "primary.main" }} />
-              </IconButton>
-            </Tooltip>
-          </Stack>
+          </Box>
           <Stack
             flexDirection={"row"}
             gap={1}

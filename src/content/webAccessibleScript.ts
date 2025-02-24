@@ -68,7 +68,6 @@ window.addEventListener("message", function (event) {
     );
   }
   if (event.data.type === "SET_TINYMCE_CONTENT") {
-    console.log("SET_TINYMCE_CONTENT", event.data);
     const content = event.data.content;
     const editorId = event.data.editorId;
     const tinymceEditor = (window as any).tinymce.get(editorId);
@@ -83,7 +82,19 @@ window.addEventListener("message", function (event) {
     );
   }
   if (event.data.type === "LOG_ROCKET_INIT") {
-    console.log("LOG_ROCKET_INIT", event.data);
-    (window as any)?.LogRocket?.init("kgns4k/facilitator-dashboard-prod");
+    (window as any)?.LogRocket?.init("kgns4k/facilitator-dashboard-prod", {
+      network: {
+        isEnabled: false,
+      },
+      shouldDebugLog: false,
+    });
+  }
+  if (event.data.type === "LOG_ROCKET_IDENTIFY") {
+    (window as any)?.LogRocket?.identify(event.data.user?.userId, {
+      ...(event.data?.user || {}),
+    });
+  }
+  if (event.data.type === "ADD_LOG_ROCKET_LOG") {
+    (window as any)?.LogRocket?.log(event.data.message, event.data.data);
   }
 });
