@@ -17,6 +17,14 @@ class HttpClient {
         chrome.runtime.sendMessage(
           { action: "makeApiCall", apiMethod, apiOptions, isRawApiCall: this.isRawApiCall },
           response => {
+            window.postMessage(
+              {
+                type: "ADD_LOG_ROCKET_LOG",
+                message: `makeApiRequest:`,
+                data: { apiMethod, apiOptions, response },
+              },
+              "*"
+            );
             if (response.success) {
               resolve(response.value);
             } else {

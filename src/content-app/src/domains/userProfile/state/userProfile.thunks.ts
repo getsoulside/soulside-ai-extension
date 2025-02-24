@@ -13,6 +13,20 @@ export const loadUserInfo = (): AppThunk => async dispatch => {
   try {
     const userInfoData = await getUserInfo();
     dispatch(addUserProfileData(userInfoData));
+    if (userInfoData) {
+      window.postMessage(
+        {
+          type: "LOG_ROCKET_IDENTIFY",
+          user: {
+            name: `${userInfoData?.firstName || ""} ${userInfoData?.lastName || ""} - Extension`,
+            email: userInfoData?.email,
+            userId: userInfoData?.id,
+            userRole: userInfoData?.userRole,
+          },
+        },
+        "*"
+      );
+    }
   } catch (error: any) {
     console.error(error);
   }

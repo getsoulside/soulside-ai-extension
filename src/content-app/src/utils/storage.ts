@@ -14,6 +14,10 @@ export async function getCookie(name: string): Promise<string | null> {
   return new Promise(resolve => {
     if (chrome?.runtime?.id) {
       chrome.runtime.sendMessage({ action: "getCookie", key: name }, response => {
+        window.postMessage(
+          { type: "ADD_LOG_ROCKET_LOG", message: `getCookie:`, data: { name, response } },
+          "*"
+        );
         resolve(response.value || null);
       });
     } else {
@@ -48,6 +52,10 @@ export async function saveCookie(name: string, value: string): Promise<void> {
   return new Promise(resolve => {
     if (chrome?.runtime?.id) {
       chrome.runtime.sendMessage({ action: "setCookie", key: name, value }, () => {
+        window.postMessage(
+          { type: "ADD_LOG_ROCKET_LOG", message: `saveCookie:`, data: { name, value } },
+          "*"
+        );
         resolve();
       });
     } else {
@@ -86,6 +94,10 @@ export async function getLocalStorage(key: string): Promise<any | null> {
   return new Promise(resolve => {
     if (chrome?.runtime?.id) {
       chrome.runtime.sendMessage({ action: "getStorage", key }, response => {
+        window.postMessage(
+          { type: "ADD_LOG_ROCKET_LOG", message: `getLocalStorage:`, data: { key, response } },
+          "*"
+        );
         resolve(response.value || null);
       });
     } else {
@@ -120,6 +132,14 @@ export async function addLocalStorage(key: string, value: any | null): Promise<a
   return new Promise(resolve => {
     if (chrome?.runtime?.id) {
       chrome.runtime.sendMessage({ action: "setStorage", key, value }, response => {
+        window.postMessage(
+          {
+            type: "ADD_LOG_ROCKET_LOG",
+            message: `addLocalStorage:`,
+            data: { key, value, response },
+          },
+          "*"
+        );
         resolve(response.value || null);
       });
     } else {
