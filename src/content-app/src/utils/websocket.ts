@@ -14,7 +14,7 @@ export default class WebsocketClient {
   private constructor(props: WebsocketClientProps) {
     this.namespace = props.url;
     this.socket = io(`${IN_SESSION_SOCKET_URL}/${props.url}`, {
-      reconnection: true,
+      reconnection: false,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: 10,

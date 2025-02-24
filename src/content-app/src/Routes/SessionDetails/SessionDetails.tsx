@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
+  checkTodaySession,
   IndividualSession,
   ModeOfDelivery,
   SessionCategory,
@@ -31,6 +32,11 @@ const SessionDetails: React.FC = (): React.ReactNode => {
     (state: RootState) => state.meeting.providerSessions[sessionId]
   );
   const transcriptData = useSelector((state: RootState) => state.meeting.transcript[sessionId]);
+  const isTodaySessionTranscriptLoading = providerSessions?.data.some(
+    providerSession =>
+      checkTodaySession(providerSession) &&
+      transcriptData?.[providerSession.providerSessionId || ""]?.loading
+  );
   useEffect(() => {
     loadData();
   }, [sessionId]);
@@ -88,6 +94,10 @@ const SessionDetails: React.FC = (): React.ReactNode => {
     providerSessions?.loading ||
     transcriptLoading ||
     ehrSessionNotesLoading;
+  const loadingText = isTodaySessionTranscriptLoading
+    ? "Please wait while we fetch the session transcript. It usually takes around 1-2 minutes to generate the transcript after the session ends."
+    : undefined;
+  const progressLoader = isTodaySessionTranscriptLoading;
   const tabs = [
     {
       label: "Notes",
@@ -123,7 +133,7 @@ const SessionDetails: React.FC = (): React.ReactNode => {
         overflow: "auto",
       }}
     >
-      <Loader loading={loading}>
+      <Loader loading={sessionDetails?.loading || providerSessions?.loading}>
         <Stack
           direction={"row"}
           justifyContent={"space-between"}
@@ -176,52 +186,58 @@ const SessionDetails: React.FC = (): React.ReactNode => {
             {getFormattedDateTime(sessionDetails?.data?.startTime || null, "MMM DD, h:mm A")}
           </Typography>
         </Stack>
-        <Box
-          sx={{
-            width: "100%",
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            mt: 1,
-            maxHeight: "100%",
-            overflow: "auto",
-          }}
+        <Loader
+          loading={loading}
+          loadingText={loadingText}
+          progressLoader={progressLoader}
         >
-          {providerSessions?.data.length > 0 ? (
-            <Tabs
-              tabs={tabs}
-              activeTab={activeTab}
-              onChange={setActiveTab}
-              rightAction={refreshNotesButton}
-            />
-          ) : (
-            <Box
-              sx={{
-                flex: 1,
-                overflow: "auto",
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-                maxHeight: "100%",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Typography variant={"subtitle2"}>Session not started yet</Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                component={"a"}
-                href={soulsidePlatformStartSessionUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+          <Box
+            sx={{
+              width: "100%",
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              mt: 1,
+              maxHeight: "100%",
+              overflow: "auto",
+            }}
+          >
+            {providerSessions?.data.length > 0 ? (
+              <Tabs
+                tabs={tabs}
+                activeTab={activeTab}
+                onChange={setActiveTab}
+                rightAction={refreshNotesButton}
+              />
+            ) : (
+              <Box
+                sx={{
+                  flex: 1,
+                  overflow: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  maxHeight: "100%",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                Start Session on Soulside Platform
-              </Button>
-            </Box>
-          )}
-        </Box>
+                <Typography variant={"subtitle2"}>Session not started yet</Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  component={"a"}
+                  href={soulsidePlatformStartSessionUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Start Session on Soulside Platform
+                </Button>
+              </Box>
+            )}
+          </Box>
+        </Loader>
       </Loader>
     </Box>
   );

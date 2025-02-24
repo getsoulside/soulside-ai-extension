@@ -4,8 +4,8 @@ import {
   getGroupSessionsByOrgId,
   getIndividualSessionsByPractitionerRoleId,
   getGroupSessionsByPractitionerRoleId,
-  joinSessionPatientRooms,
-  joinSessionGroupRooms,
+  // joinSessionPatientRooms,
+  // joinSessionGroupRooms,
   checkTodaySession,
   scheduleSession,
   editSession,
@@ -22,7 +22,6 @@ import {
   Session,
   SessionCategory,
   IndividualSession,
-  SoulsideSession,
   ScheduleSessionPayload,
   SessionNotesStatus,
   AppointmentType,
@@ -101,20 +100,20 @@ export const loadSessions =
       }
     }
 
-    const patientIds = sessionsList
-      .filter(
-        (i): i is IndividualSession =>
-          checkTodaySession(i) && i.sessionCategory === SessionCategory.INDIVIDUAL
-      )
-      .map(i => i.patientId);
-    const groupIds = sessionsList
-      .filter(
-        (i): i is SoulsideSession =>
-          checkTodaySession(i) && i.sessionCategory === SessionCategory.GROUP
-      )
-      .map(i => i.groupId);
-    joinSessionPatientRooms(patientIds);
-    joinSessionGroupRooms(groupIds);
+    // const patientIds = sessionsList
+    //   .filter(
+    //     (i): i is IndividualSession =>
+    //       checkTodaySession(i) && i.sessionCategory === SessionCategory.INDIVIDUAL
+    //   )
+    //   .map(i => i.patientId);
+    // const groupIds = sessionsList
+    //   .filter(
+    //     (i): i is SoulsideSession =>
+    //       checkTodaySession(i) && i.sessionCategory === SessionCategory.GROUP
+    //   )
+    //   .map(i => i.groupId);
+    // joinSessionPatientRooms(patientIds);
+    // joinSessionGroupRooms(groupIds);
 
     dispatch(addSessionsData(sessionsList));
     dispatch(toggleSessionsLoading(false));
@@ -129,9 +128,9 @@ export const loadScheduleSession =
         dispatch(addScheduleSessionData(newSession));
         if (checkTodaySession(newSession)) {
           if (newSession.sessionCategory === SessionCategory.INDIVIDUAL) {
-            joinSessionPatientRooms([(newSession as IndividualSession).patientId]);
+            // joinSessionPatientRooms([(newSession as IndividualSession).patientId]);
           } else {
-            joinSessionGroupRooms([(newSession as SoulsideSession).groupId]);
+            // joinSessionGroupRooms([(newSession as SoulsideSession).groupId]);
           }
         }
         return newSession;
@@ -153,9 +152,9 @@ export const loadEditSession =
         dispatch(editSessionData(session));
         if (checkTodaySession(session)) {
           if (session.sessionCategory === SessionCategory.INDIVIDUAL) {
-            joinSessionPatientRooms([(session as IndividualSession).patientId]);
+            // joinSessionPatientRooms([(session as IndividualSession).patientId]);
           } else {
-            joinSessionGroupRooms([(session as SoulsideSession).groupId]);
+            // joinSessionGroupRooms([(session as SoulsideSession).groupId]);
           }
         }
         return session;

@@ -118,10 +118,30 @@ if (process.env.NODE_ENV !== "development") {
 // Listener for tab updates
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete" && tab.url && isAllowedUrl(tab.url)) {
-    chrome.scripting.executeScript({
-      target: { tabId },
-      files: contentScripts,
-    });
+    // Only execute scripts if they haven't been injected yet
+    chrome.scripting
+      .executeScript({
+        target: { tabId },
+        func: () => {
+          const scriptTag = document.querySelector('script[data-soulside-scripts="injected"]');
+          if (!scriptTag) {
+            const marker = document.createElement("script");
+            marker.setAttribute("data-soulside-scripts", "injected");
+            document.head.appendChild(marker);
+            return true;
+          }
+          return false;
+        },
+      })
+      .then(results => {
+        // Only inject if the marker wasn't found
+        if (results[0].result) {
+          chrome.scripting.executeScript({
+            target: { tabId },
+            files: contentScripts,
+          });
+        }
+      });
   }
   if (
     changeInfo.status === "complete" &&

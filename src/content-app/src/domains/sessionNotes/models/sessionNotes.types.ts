@@ -1,3 +1,6 @@
+import { EhrClient } from "@/ehrClients/ehrClients.types";
+import { PractitionerRole } from "@/domains/practitionerRole";
+
 export enum SessionNotesTemplates {
   "INTAKE" = "intake-assessment",
   "BPS" = "bps-assessment",
@@ -24,4 +27,10 @@ export interface GroupNotes {
 
 export interface GroupExtendedNotes {
   [section: string]: string | null;
+}
+
+export interface NotesAddedToEhr {
+  ehrClient: EhrClient;
+  addedOn: ISO8601String;
+  addedBy: PractitionerRole | null;
 }

@@ -419,14 +419,16 @@ export class Alleva {
                   ? (fieldForm.querySelector(valueItem.ehrFields?.selector) as HTMLInputElement)
                   : null;
                 if (inputField && value[valueItem.key]) {
-                  inputField.value = value[valueItem.key];
+                  if (!valueItem.autoComplete) {
+                    inputField.value = value[valueItem.key];
+                    inputField.dispatchEvent(new Event("change"));
+                  }
                   // if (valueItem.autoComplete) {
                   //   const firstItem = findMatchingListFirstItem(value[valueItem.key]);
                   //   if (firstItem) {
                   //     inputField.value = firstItem;
                   //   }
                   // }
-                  inputField.dispatchEvent(new Event("change"));
                 }
               });
             });

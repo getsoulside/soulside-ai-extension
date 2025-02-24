@@ -179,7 +179,13 @@ const SpeakerMapping = ({ open, onClose, sessionId }: SpeakerMappingProps) => {
                 ]?.participantName,
             };
           }) || [];
-        dispatch(saveProviderSessionTranscript(providerSession, providerSessionTranscriptData));
+        dispatch(
+          saveProviderSessionTranscript(
+            sessionDetailsData,
+            providerSession,
+            providerSessionTranscriptData
+          )
+        );
       });
     }
   };

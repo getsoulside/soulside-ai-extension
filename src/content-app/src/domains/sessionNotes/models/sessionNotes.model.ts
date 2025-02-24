@@ -4,6 +4,7 @@ import {
   GroupNotes,
   GroupExtendedNotes,
   SessionNotesTemplateNames,
+  NotesAddedToEhr,
 } from "./sessionNotes.types";
 import FollowUpAssessmentNotes, {
   FollowUpAssessmentNotesValue,
@@ -44,6 +45,7 @@ export interface JSONSoapNote {
   Assessment?: Record<string, FollowUpAssessmentNotesValue> | null;
   plan?: Record<string, FollowUpAssessmentNotesValue> | null;
   Plan?: Record<string, FollowUpAssessmentNotesValue> | null;
+  notesAddedToEhr?: NotesAddedToEhr[] | null;
   [key: string]: any;
 }
 
