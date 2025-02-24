@@ -123,7 +123,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       files: contentScripts,
     });
   }
-  if (changeInfo.status === "complete" && tab.url && tab.url.includes("soulsidehealth.com")) {
+  if (
+    changeInfo.status === "complete" &&
+    tab.url &&
+    (tab.url.includes("soulsidehealth.com") || tab.url.includes("localhost"))
+  ) {
     chrome.scripting.executeScript({
       target: { tabId },
       func: () => {
