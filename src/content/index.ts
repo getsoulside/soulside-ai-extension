@@ -128,6 +128,72 @@ if (process.env.NODE_ENV === "development") {
     if (event.data.type === "SOULSIDE_LOGGED_OUT") {
       chrome.runtime.sendMessage({ action: "loggedOut" });
     }
+
+    if (event.data.type === "SOULSIDE_WEBSOCKET_CONNECT") {
+      const { namespace, query } = event.data;
+      chrome.runtime.sendMessage({
+        action: "websocket",
+        value: {
+          socketAction: "connect",
+          namespace,
+          query,
+        },
+      });
+    }
+
+    if (event.data.type === "SOULSIDE_WEBSOCKET_DISCONNECT") {
+      const { namespace, query } = event.data;
+      chrome.runtime.sendMessage({
+        action: "websocket",
+        value: {
+          socketAction: "disconnect",
+          namespace,
+          query,
+        },
+      });
+    }
+
+    if (event.data.type === "SOULSIDE_WEBSOCKET_EMIT") {
+      const { namespace, query, event: wsEvent, data } = event.data;
+      chrome.runtime.sendMessage({
+        action: "websocket",
+        value: {
+          socketAction: "emit",
+          namespace,
+          query,
+          event: wsEvent,
+          data,
+        },
+      });
+    }
+
+    if (event.data.type === "SOULSIDE_WEBSOCKET_ON") {
+      const { namespace, query, event: wsEvent } = event.data;
+      chrome.runtime.sendMessage({
+        action: "websocket",
+        value: {
+          socketAction: "on",
+          namespace,
+          query,
+          event: wsEvent,
+        },
+      });
+    }
+
+    if (event.data.type === "SOULSIDE_FETCH_REMOTE_FILE_DATA_URL") {
+      const { remoteFileUrl, requestId } = event.data;
+      chrome.runtime.sendMessage({ action: "fetchRemoteFileDataUrl", remoteFileUrl }, response => {
+        window.postMessage(
+          {
+            type: "SOULSIDE_FETCH_REMOTE_FILE_DATA_URL_RESULT",
+            requestId,
+            value: response.value,
+            success: response.success,
+          },
+          "*"
+        );
+      });
+    }
   });
 } else {
   if (!window?.location?.hostname?.includes("advancedmd.com")) {

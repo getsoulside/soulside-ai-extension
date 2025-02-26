@@ -23,6 +23,7 @@ import { getFormattedDateTime } from "@/utils/date";
 import { useEffect, useMemo, useState } from "react";
 import { saveProviderSessionTranscript } from "@/domains/meeting/state/meeting.thunks";
 import { SessionCategory, SessionPatientMember, SoulsideSession } from "@/domains/session";
+import AudioPlayer from "@/components/AudioPlayer";
 
 interface SpeakerMappingProps {
   open: boolean;
@@ -289,21 +290,7 @@ const SpeakerMapping = ({ open, onClose, sessionId }: SpeakerMappingProps) => {
                               justifyContent="space-between"
                             >
                               <Typography variant="subtitle2">{speakerId}</Typography>
-                              <audio
-                                controls
-                                style={{
-                                  backgroundColor: "rgb(221, 221, 221)",
-                                  height: "40px",
-                                  borderRadius: "30px",
-                                  boxShadow: "rgba(0, 0, 0, 0.1) 0px 2px 4px 0px",
-                                }}
-                              >
-                                <source
-                                  src={speakerAudio.audioFileUrl || ""}
-                                  type="audio/wav"
-                                />
-                                Your browser does not support the audio element.
-                              </audio>
+                              <AudioPlayer url={speakerAudio.audioFileUrl || ""} />
                             </Stack>
                             <FormControl>
                               <RadioGroup

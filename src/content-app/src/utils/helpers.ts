@@ -75,3 +75,60 @@ export const openActiveSessionNotes = async ({
     toggleEhrSessionNotesLoading(false);
   }
 };
+
+export async function fetchRemoteFileDataUrl(remoteFileUrl: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    if (chrome?.runtime?.id) {
+      chrome.runtime.sendMessage({ action: "fetchRemoteFileDataUrl", remoteFileUrl }, response => {
+        window.postMessage(
+          {
+            type: "ADD_LOG_ROCKET_LOG",
+            message: `fetchRemoteFileDataUrl:`,
+            data: { remoteFileUrl, response },
+          },
+          "*"
+        );
+        console.log("response helpers", response);
+        if (response.success) {
+          resolve(response.value);
+        } else {
+          reject(response.value);
+        }
+      });
+    } else {
+      const requestId = Date.now() + Math.random(); // Generate a unique requestId
+
+      // Create a message listener
+      function handleMessage(event: MessageEvent): void {
+        const data = event.data;
+        // Ensure the message contains the requestId
+        if (
+          data.type === "SOULSIDE_FETCH_REMOTE_FILE_DATA_URL_RESULT" &&
+          data.requestId === requestId
+        ) {
+          window.removeEventListener("message", handleMessage); // Clean up the listener
+          if (data.success) {
+            resolve(data.value);
+          } else {
+            reject(data.value);
+          }
+        }
+      }
+
+      // Listen for the response
+      window.addEventListener("message", handleMessage);
+
+      // Post the request to the window
+      window.postMessage(
+        { type: "SOULSIDE_FETCH_REMOTE_FILE_DATA_URL", remoteFileUrl, requestId },
+        "*"
+      );
+
+      // Optional: Add a timeout to reject the promise if no response is received
+      setTimeout(() => {
+        window.removeEventListener("message", handleMessage);
+        reject("Request timed out");
+      }, 10 * 1000);
+    }
+  });
+}

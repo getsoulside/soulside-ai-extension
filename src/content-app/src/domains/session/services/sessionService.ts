@@ -1,11 +1,10 @@
-import { Socket } from "socket.io-client";
-import WebsocketClient from "@/utils/websocket";
+import WebsocketClient from "@/utils/websocketClient";
 import { store } from "@/store";
 import { Session } from "../models";
 import { getDateTime } from "@/utils/date";
 import { SoulsideMeetingSession } from "@/domains/meeting";
 
-export const getSessionPatientSocket = (): Socket => {
+export const getSessionPatientSocket = (): WebsocketClient => {
   const selectedRole = store.getState().userProfile.selectedRole.data;
   let organizationId = selectedRole?.organizationId || "";
   let practitionerRoleId = selectedRole?.id || "";
@@ -15,11 +14,11 @@ export const getSessionPatientSocket = (): Socket => {
     practitionerRoleId,
     practitionerRoleClient: true,
   };
-  const patientSocket = WebsocketClient.getInstance({ url, query }).getSocket();
+  const patientSocket = WebsocketClient.getInstance({ url, query });
   return patientSocket;
 };
 
-export const getSessionGroupSocket = (): Socket => {
+export const getSessionGroupSocket = (): WebsocketClient => {
   const selectedRole = store.getState().userProfile.selectedRole.data;
   let organizationId = selectedRole?.organizationId || "";
   let practitionerRoleId = selectedRole?.id || "";
@@ -29,7 +28,7 @@ export const getSessionGroupSocket = (): Socket => {
     practitionerRoleId,
     practitionerRoleClient: true,
   };
-  const groupSocket = WebsocketClient.getInstance({ url, query }).getSocket();
+  const groupSocket = WebsocketClient.getInstance({ url, query });
   return groupSocket;
 };
 

@@ -1,6 +1,7 @@
 import { changeStorageValue, getCookie, getStorageValue, setCookie } from "./utils/storage";
 import httpClient, { rawHttpClient } from "./utils/httpClient";
 import parseCsv, { unParseCsv } from "./utils/parseCsv";
+import WebsocketClient from "./utils/websocketClient";
 
 interface Message {
   action: string;
@@ -11,6 +12,7 @@ interface Message {
   isRawApiCall: boolean;
   pdfUrl: string;
   csvData: any;
+  remoteFileUrl: string;
 }
 
 chrome.runtime.onMessage.addListener(
@@ -84,6 +86,94 @@ chrome.runtime.onMessage.addListener(
     }
     if (message.action === "loggedOut" || message.action === "loggedIn") {
       httpClient.reinitialize();
+    }
+    if (message.action === "websocket") {
+      const { socketAction, namespace, query, event, data } = message.value;
+
+      if (socketAction === "connect") {
+        const client = WebsocketClient.getInstance({ url: namespace, query });
+        sendResponse({ success: true, value: "connected" });
+      } else if (socketAction === "disconnect") {
+        const client = WebsocketClient.getInstance({ url: namespace, query });
+        client.disconnect();
+        sendResponse({ success: true, value: "disconnected" });
+      } else if (socketAction === "emit") {
+        const client = WebsocketClient.getInstance({ url: namespace, query });
+        client.getSocket().emit(event, data);
+        sendResponse({ success: true });
+      } else if (socketAction === "on") {
+        const client = WebsocketClient.getInstance({ url: namespace, query });
+        client.getSocket().on(event, (responseData: any) => {
+          // Send message to content script
+          if (sender.tab?.id) {
+            // If the request came from a tab (content script), send directly to that tab
+            chrome.tabs.sendMessage(sender.tab.id, {
+              type: "SOULSIDE_WEBSOCKET_EVENT",
+              namespace,
+              event,
+              data: responseData,
+            });
+          } else {
+            // If the request didn't come from a tab (e.g., web accessible resources),
+            // broadcast to all tabs matching our allowed URLs
+            chrome.tabs.query({ url: ALLOWED_URL_PATTERNS }, tabs => {
+              tabs.forEach(tab => {
+                if (tab.id) {
+                  chrome.tabs.sendMessage(tab.id, {
+                    type: "SOULSIDE_WEBSOCKET_EVENT",
+                    namespace,
+                    event,
+                    data: responseData,
+                  });
+
+                  // Also inject a script to broadcast via window.postMessage
+                  chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    func: eventData => {
+                      window.postMessage(eventData, "*");
+                    },
+                    args: [
+                      {
+                        type: "SOULSIDE_WEBSOCKET_EVENT",
+                        namespace,
+                        event,
+                        data: responseData,
+                      },
+                    ],
+                  });
+                }
+              });
+            });
+          }
+        });
+        sendResponse({ success: true });
+      }
+      return true;
+    }
+    if (message.action === "fetchRemoteFileDataUrl") {
+      rawHttpClient
+        .get({ url: message.remoteFileUrl, config: { responseType: "blob" } })
+        .then((response: any) => {
+          // Convert blob to base64
+          console.log("response", response);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            sendResponse({
+              success: true,
+              value: {
+                audioData: reader.result,
+                type: response.data.type,
+              },
+            });
+          };
+          reader.readAsArrayBuffer(response.data);
+          return true;
+        })
+        .catch(error => {
+          console.error("Error fetching remote file data:", error);
+          sendResponse({ success: false, value: error.message });
+        });
+      return true; // Will respond asynchronously
     }
   }
 );

@@ -41,6 +41,7 @@
   "dependencies": {
     "@sentry/browser": "^8.41.0",
     "axios": "^1.7.7",
-    "papaparse": "^5.5.1"
+    "papaparse": "^5.5.1",
+    "socket.io-client": "^4.8.1"
   }
 }

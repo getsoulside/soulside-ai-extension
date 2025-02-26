@@ -1,5 +1,5 @@
 import { io, Socket } from "socket.io-client";
-import { IN_SESSION_SOCKET_URL } from "@/constants";
+import { IN_SESSION_SOCKET_URL } from "../constants";
 
 interface WebsocketClientProps {
   url: string;
@@ -12,15 +12,17 @@ export default class WebsocketClient {
   private namespace: string;
 
   private constructor(props: WebsocketClientProps) {
+    console.log("WebsocketClient constructor", props);
     this.namespace = props.url;
     this.socket = io(`${IN_SESSION_SOCKET_URL}/${props.url}`, {
-      reconnection: false,
+      // tryAllTransports: true, // Force WebSocket transport
+      reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: 10,
       query: props.query || {},
     });
-
+    console.log("WebsocketClient url", `${IN_SESSION_SOCKET_URL}/${props.url}`);
     // Handle connection errors
     this.socket.on("connect_error", error => {
       console.error(`Connection error for namespace ${props.url}:`, error);
