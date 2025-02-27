@@ -78,7 +78,7 @@ const GenerateNotes = ({ session, noteTemplate, regenerate }: GenerateNotesProps
   const generateNotes = async () => {
     const combinedTranscripts = getCombinedTranscripts();
     if (!combinedTranscripts.length) {
-      toast.error("No transcripts found jere");
+      toast.error("No transcripts found");
       return;
     }
     const transcriptText = getTranscriptFormattedText(combinedTranscripts);

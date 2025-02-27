@@ -128,6 +128,45 @@ if (process.env.NODE_ENV === "development") {
     if (event.data.type === "SOULSIDE_LOGGED_OUT") {
       chrome.runtime.sendMessage({ action: "loggedOut" });
     }
+
+    if (event.data.type === "SOULSIDE_START_SESSION") {
+      const { startSessionOptions, requestId } = event.data;
+      chrome.runtime.sendMessage(
+        {
+          action: "startSoulsideSession",
+          startSessionOptions: startSessionOptions,
+        },
+        response => {
+          window.postMessage(
+            {
+              type: "SOULSIDE_START_SESSION_RESULT",
+              requestId,
+              value: response.value,
+              success: response.success,
+            },
+            "*"
+          );
+        }
+      );
+    }
+
+    if (event.data.type === "SOULSIDE_CLOSE_SESSION") {
+      chrome.runtime.sendMessage({ action: "closeSoulsideSession" });
+    }
+
+    if (event.data.type === "SOULSIDE_GO_BACK_TO_EHR") {
+      chrome.runtime.sendMessage({ action: "goBackToEHR" });
+    }
+
+    if (event.data.type === "SOULSIDE_GET_SESSION_TAB_ID") {
+      const { requestId } = event.data;
+      chrome.runtime.sendMessage({ action: "getSessionTabId" }, response => {
+        window.postMessage(
+          { type: "SOULSIDE_GET_SESSION_TAB_ID_RESULT", requestId, value: response.value },
+          "*"
+        );
+      });
+    }
   });
 } else {
   if (!window?.location?.hostname?.includes("advancedmd.com")) {

@@ -168,9 +168,9 @@ export default class AdvancedMD {
     box.style.fontSize = "9px";
     box.style.padding = "3px 5px";
     box.style.borderRadius = "3px";
-    box.style.backgroundColor = "#eee";
+    box.style.backgroundColor = "#f4f44d";
     box.style.color = "#000";
-    box.style.border = "0.5px solid #ccc";
+    box.style.border = "0.5px solid #b8b822";
     box.setAttribute("title", `Added by Soulside AI`);
     box.textContent = "Added by Soulside AI";
     wrapper.appendChild(box);
