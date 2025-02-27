@@ -13,6 +13,7 @@ import { SessionNotes } from "../models";
 import { SessionNotesTemplates } from "../models/sessionNotes.types";
 import FollowUpAssessmentNotes from "../models/sessionNotes.follow_up_assessment.types";
 import { toast } from "react-toastify";
+import { IndividualSession, Session, SoulsideSession } from "@/domains/session/models";
 
 export const loadSessionNotes =
   (sessionId: string): AppThunk =>
@@ -28,15 +29,29 @@ export const loadSessionNotes =
   };
 
 export const loadGenerateSessionNotes =
-  (sessionId: string, noteTemplate: SessionNotesTemplates, payload: any): AppThunk =>
+  (session: Session, noteTemplate: SessionNotesTemplates, payload: any): AppThunk =>
   async dispatch => {
+    const sessionId = session.id || "";
     dispatch(toggleGenerateSessionNotesLoading({ sessionId, loading: true }));
     try {
       const generatedNotes = await generateSessionNotes(noteTemplate, payload);
       toast.success("Notes generated successfully");
-      let sessionNotes: Partial<SessionNotes> = {};
+      let sessionNotes: Partial<SessionNotes> | null = null;
       try {
-        sessionNotes = (await getSessionNotesBySessionId(sessionId)) || {};
+        sessionNotes = await getSessionNotesBySessionId(sessionId);
+        if (!sessionNotes) {
+          sessionNotes = {
+            sessionId: sessionId,
+            groupId: (session as SoulsideSession).groupId,
+            bulletPoints: null,
+            soapNote: null,
+            jsonSoapNote: null,
+            behaviouralHealthPredictions: null,
+            patientId: (session as IndividualSession).patientId,
+            practitionerRoleId: session.practitionerRoleId,
+            organizationId: session.organizationId,
+          };
+        }
       } catch (error) {
         console.error(error);
       }
@@ -91,17 +106,31 @@ export const loadGenerateSessionNotes =
 
 export const loadSaveSessionNotes =
   (
-    sessionId: string,
+    session: Session,
     noteTemplate: SessionNotesTemplates,
     notes: SessionNotes,
     silentAction: boolean = false
   ): AppThunk =>
   async dispatch => {
+    const sessionId = session.id || "";
     if (!silentAction) {
       dispatch(toggleSessionNotesLoading({ sessionId, loading: true }));
     }
     try {
       let sessionNotes: Partial<SessionNotes> | null = await getSessionNotesBySessionId(sessionId);
+      if (!sessionNotes) {
+        sessionNotes = {
+          sessionId: sessionId,
+          groupId: (session as SoulsideSession).groupId,
+          bulletPoints: null,
+          soapNote: null,
+          jsonSoapNote: null,
+          behaviouralHealthPredictions: null,
+          patientId: (session as IndividualSession).patientId,
+          practitionerRoleId: session.practitionerRoleId,
+          organizationId: session.organizationId,
+        };
+      }
       if (noteTemplate === SessionNotesTemplates.FOLLOW_UP_ASSESSMENT) {
         const jsonSoapNote = sessionNotes?.jsonSoapNote || {};
         if (notes.jsonSoapNote?.subjective) {

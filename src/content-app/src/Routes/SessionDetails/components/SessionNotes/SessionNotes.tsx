@@ -171,7 +171,7 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
         };
         dispatch(
           loadSaveSessionNotes(
-            sessionId,
+            session,
             selectedNoteTemplate,
             addedNotesData as SessionNotesType,
             true
@@ -194,7 +194,7 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
   }, [sessionNotesData]);
   const saveNotes = () => {
     if (!selectedNoteTemplate || !sessionNotesData) return;
-    dispatch(loadSaveSessionNotes(sessionId, selectedNoteTemplate, sessionNotesData));
+    dispatch(loadSaveSessionNotes(session, selectedNoteTemplate, sessionNotesData));
   };
   const onChangeSessionNotes = (sessionNotes: SessionNotesType) => {
     setSessionNotesData(sessionNotes);
