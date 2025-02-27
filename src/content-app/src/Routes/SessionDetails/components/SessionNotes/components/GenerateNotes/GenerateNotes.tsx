@@ -104,7 +104,7 @@ const GenerateNotes = ({ session, noteTemplate, regenerate }: GenerateNotesProps
         });
       payload.transcriptCSVRows = transcriptCSVRows;
     }
-    dispatch(loadGenerateSessionNotes(sessionId, noteTemplate, payload));
+    dispatch(loadGenerateSessionNotes(session, noteTemplate, payload));
   };
   return (
     <Box>
