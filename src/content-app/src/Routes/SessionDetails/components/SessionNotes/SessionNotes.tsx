@@ -36,7 +36,7 @@ import Loader from "@/components/Loader";
 import { loadSaveSessionNotes } from "@/domains/sessionNotes/state/sessionNotes.thunks";
 import { SessionNotes as SessionNotesType } from "@/domains/sessionNotes/models";
 import { getFormattedDateTime } from "@/utils/date";
-import { InfoRounded } from "@mui/icons-material";
+import { HistoryRounded } from "@mui/icons-material";
 interface SessionNotesProps {
   session: Session | null;
 }
@@ -388,7 +388,10 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
                     />
                   }
                 >
-                  <InfoRounded sx={{ fontSize: "1rem" }} />
+                  <HistoryRounded
+                    sx={{ fontSize: "1.2rem", fontWeight: "bold" }}
+                    color="info"
+                  />
                 </Tooltip>
               </Stack>
             )}
@@ -412,7 +415,10 @@ export default SessionNotes;
 
 const NotesAddedToEhrList = ({ notesAddedToEhr }: { notesAddedToEhr: NotesAddedToEhr[] }) => {
   return (
-    <List dense>
+    <List
+      dense
+      sx={{ maxHeight: "300px", overflow: "auto" }}
+    >
       {[...notesAddedToEhr]
         .sort((a, b) => new Date(b.addedOn).getTime() - new Date(a.addedOn).getTime())
         .map(note => (

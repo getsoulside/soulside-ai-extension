@@ -1,11 +1,5 @@
-import React from "react";
-import {
-  ArrowBackIosRounded,
-  ArrowForwardIos,
-  OpenInNew,
-  Room,
-  Videocam,
-} from "@mui/icons-material";
+import React, { useState } from "react";
+import { ArrowBackIosRounded, ArrowForwardIos, Room, Videocam } from "@mui/icons-material";
 import {
   Session,
   SessionCategory,
@@ -16,7 +10,12 @@ import {
 } from "@/domains/session";
 import {
   Box,
+  Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   Link,
   List,
@@ -163,6 +162,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   appointment,
   notesExists,
 }): React.ReactNode => {
+  const [showSessionActiveWarning, setShowSessionActiveWarning] = useState(false);
   const patientName =
     appointment.sessionCategory === SessionCategory.INDIVIDUAL
       ? `${(appointment as IndividualSession)?.patientFirstName || ""}${
@@ -176,7 +176,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
         : (appointment as SoulsideSession)?.groupName || ""
       : "";
   const ModeIcon = appointment.modeOfDelivery === ModeOfDelivery.IN_PERSON ? Room : Videocam;
-  const soulsidePlatformSessionDetailsUrl = `${PLATFORM_URL}/session-details/${
+  const soulsidePlatformStartSessionUrl = `${PLATFORM_URL}/session/${
     appointment.sessionCategory === SessionCategory.INDIVIDUAL ? "individual" : "group"
   }/${appointment.modeOfDelivery === ModeOfDelivery.IN_PERSON ? "in-person" : "virtual"}/${
     appointment.id
@@ -184,7 +184,61 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
     appointment.sessionCategory === SessionCategory.INDIVIDUAL
       ? (appointment as IndividualSession)?.patientId
       : (appointment as SoulsideSession)?.groupId
-  }`;
+  }?source=soulside-ai-extension`;
+  const startSession = (forceStart: boolean = false) => {
+    if (chrome?.runtime?.id) {
+      chrome.runtime.sendMessage(
+        {
+          action: "startSoulsideSession",
+          startSessionOptions: {
+            sessionUrl: soulsidePlatformStartSessionUrl,
+            forceStart,
+          },
+        },
+        response => {
+          if (response?.success) {
+            setShowSessionActiveWarning(false);
+          } else {
+            if (response?.value?.errorCode === "SESSION_ALREADY_ACTIVE") {
+              setShowSessionActiveWarning(true);
+            }
+          }
+        }
+      );
+    } else {
+      const requestId = Date.now() + Math.random(); // Generate a unique requestId
+
+      // Create a message listener
+      function handleMessage(event: MessageEvent): void {
+        const data = event.data;
+        // Ensure the message contains the requestId
+        if (data.type === "SOULSIDE_START_SESSION_RESULT" && data.requestId === requestId) {
+          window.removeEventListener("message", handleMessage); // Clean up the listener
+          if (data.success) {
+            setShowSessionActiveWarning(false);
+          } else {
+            if (data?.value?.errorCode === "SESSION_ALREADY_ACTIVE") {
+              setShowSessionActiveWarning(true);
+            }
+          }
+        }
+      }
+
+      // Listen for the response
+      window.addEventListener("message", handleMessage);
+      window.postMessage(
+        {
+          type: "SOULSIDE_START_SESSION",
+          startSessionOptions: {
+            sessionUrl: soulsidePlatformStartSessionUrl,
+            forceStart,
+          },
+          requestId,
+        },
+        "*"
+      );
+    }
+  };
   return (
     <ListItem sx={{ padding: 0 }}>
       <Paper
@@ -200,26 +254,8 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
       >
         <Stack gap={1}>
           <Box sx={{ display: "flex", alignItems: "flex-start" }}>
-            <Typography
-              variant="body2"
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                flexWrap: "wrap",
-              }}
-            >
+            <Typography variant="body2">
               {appointment.sessionCategory === SessionCategory.INDIVIDUAL ? patientName : groupName}
-              <Tooltip title="Open on Soulside Platform">
-                <IconButton
-                  component="a"
-                  href={soulsidePlatformSessionDetailsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{ ml: 0.5, p: 0 }}
-                >
-                  <OpenInNew sx={{ fontSize: "0.8rem", color: "primary.main" }} />
-                </IconButton>
-              </Tooltip>
             </Typography>
           </Box>
           <Stack
@@ -266,13 +302,27 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
               />
             )}
           </Stack>
-          {notesExists && (
-            <Chip
-              label="Notes Ready"
-              size="small"
-              color="success"
-            />
-          )}
+          <Stack
+            flexDirection={"row"}
+            gap={1}
+            alignItems={"center"}
+          >
+            {!window?.location?.hostname?.includes("advancedmd.com") && (
+              <Link
+                component={NavLink}
+                to={`/session-details/${appointment.sessionCategory}/${appointment.modeOfDelivery}/${appointment.id}`}
+              >
+                <Typography variant="body2">View Notes</Typography>
+              </Link>
+            )}
+            {notesExists && (
+              <Chip
+                label="Notes Ready"
+                size="small"
+                color="success"
+              />
+            )}
+          </Stack>
         </Stack>
         <Stack
           alignItems={"flex-end"}
@@ -282,14 +332,66 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
           <Typography variant="body2">
             {getFormattedDateTime(appointment.startTime, "h:mm A")}
           </Typography>
-          <Link
-            component={NavLink}
-            to={`/session-details/${appointment.sessionCategory}/${appointment.modeOfDelivery}/${appointment.id}`}
-          >
-            <Typography variant="body2">View Notes</Typography>
-          </Link>
+          {!window?.location?.hostname?.includes("advancedmd.com") ? (
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              onClick={() => startSession(false)}
+              disableElevation
+            >
+              Start Session
+            </Button>
+          ) : (
+            <Link
+              component={NavLink}
+              to={`/session-details/${appointment.sessionCategory}/${appointment.modeOfDelivery}/${appointment.id}`}
+            >
+              <Typography variant="body2">View Notes</Typography>
+            </Link>
+          )}
         </Stack>
       </Paper>
+      <SessionActiveWarning
+        showSessionActiveWarning={showSessionActiveWarning}
+        setShowSessionActiveWarning={setShowSessionActiveWarning}
+        startSession={startSession}
+      />
     </ListItem>
+  );
+};
+
+interface SessionActiveWarningProps {
+  showSessionActiveWarning: boolean;
+  setShowSessionActiveWarning: (showSessionActiveWarning: boolean) => void;
+  startSession: (forceStart: boolean) => void;
+}
+
+const SessionActiveWarning: React.FC<SessionActiveWarningProps> = ({
+  showSessionActiveWarning,
+  setShowSessionActiveWarning,
+  startSession,
+}): React.ReactNode => {
+  return (
+    <Dialog
+      open={showSessionActiveWarning}
+      onClose={() => setShowSessionActiveWarning(false)}
+    >
+      <DialogTitle>Session is already active</DialogTitle>
+      <DialogContent>
+        <Typography variant="body2">
+          A session is already active. Would you like to end it and start a new one?
+        </Typography>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setShowSessionActiveWarning(false)}>Cancel</Button>
+        <Button
+          onClick={() => startSession(true)}
+          variant="contained"
+        >
+          Start New Session
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };

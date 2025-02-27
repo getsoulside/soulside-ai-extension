@@ -1,6 +1,13 @@
 import { changeStorageValue, getCookie, getStorageValue, setCookie } from "./utils/storage";
 import httpClient, { rawHttpClient } from "./utils/httpClient";
 import parseCsv, { unParseCsv } from "./utils/parseCsv";
+import {
+  closeSoulsideSession,
+  getSessionTabId,
+  goBackToEHR,
+  goToActiveSession,
+  startSoulsideSession,
+} from "./utils/soulsideSession";
 
 interface Message {
   action: string;
@@ -11,6 +18,10 @@ interface Message {
   isRawApiCall: boolean;
   pdfUrl: string;
   csvData: any;
+  startSessionOptions: {
+    sessionUrl: string;
+    forceStart?: boolean;
+  };
 }
 
 chrome.runtime.onMessage.addListener(
@@ -85,10 +96,39 @@ chrome.runtime.onMessage.addListener(
     if (message.action === "loggedOut" || message.action === "loggedIn") {
       httpClient.reinitialize();
     }
+    if (message.action === "startSoulsideSession") {
+      startSoulsideSession(message.startSessionOptions)
+        .then(response => {
+          sendResponse({ success: true, value: response });
+        })
+        .catch(error => {
+          sendResponse({ success: false, value: error });
+        });
+      return true;
+    }
+    if (message.action === "closeSoulsideSession") {
+      closeSoulsideSession();
+    }
+    if (message.action === "goBackToEHR") {
+      goBackToEHR();
+    }
+    if (message.action === "goToActiveSession") {
+      goToActiveSession();
+    }
+    if (message.action === "getSessionTabId") {
+      const sessionTabId = getSessionTabId();
+      sendResponse({
+        success: !!sessionTabId,
+        value: sessionTabId
+          ? { sessionTabId }
+          : { error_code: "SESSION_NOT_FOUND", message: "No active session found" },
+      });
+      return true;
+    }
   }
 );
 
-const ALLOWED_URL_PATTERNS = [
+export const ALLOWED_URL_PATTERNS = [
   "https://*.advancedmd.com/*",
   "https://*.allevasoft.com/*",
   "https://*.allevasoft.io/*",
