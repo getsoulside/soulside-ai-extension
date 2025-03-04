@@ -380,7 +380,7 @@ const SessionActiveWarning: React.FC<SessionActiveWarningProps> = ({
       <DialogTitle>Session is already active</DialogTitle>
       <DialogContent>
         <Typography variant="body2">
-          A session is already active. Would you like to end it and start a new one?
+          A session is already active. Please end the current session and start a new one.
         </Typography>
       </DialogContent>
       <DialogActions>
@@ -389,7 +389,7 @@ const SessionActiveWarning: React.FC<SessionActiveWarningProps> = ({
           onClick={() => startSession(true)}
           variant="contained"
         >
-          Start New Session
+          Go to Active Session
         </Button>
       </DialogActions>
     </Dialog>

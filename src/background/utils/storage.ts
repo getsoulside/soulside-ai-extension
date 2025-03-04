@@ -103,3 +103,16 @@ export const changeStorageValue = async (key: string, value: Record<string, any>
   const storageValue = await storagePromise;
   return storageValue;
 };
+
+export const getSoulsideSessionTabs = async () => {
+  const tabsOptions: chrome.tabs.QueryInfo = {
+    url: `${PLATFORM_URL}/session/*`,
+  };
+  const tabsPromise: Promise<chrome.tabs.Tab[]> = new Promise(resolve => {
+    chrome.tabs.query(tabsOptions, function (tabs) {
+      resolve(tabs);
+    });
+  });
+  const tabs = await tabsPromise;
+  return tabs;
+};

@@ -1,13 +1,7 @@
 import { changeStorageValue, getCookie, getStorageValue, setCookie } from "./utils/storage";
 import httpClient, { rawHttpClient } from "./utils/httpClient";
 import parseCsv, { unParseCsv } from "./utils/parseCsv";
-import {
-  closeSoulsideSession,
-  getSessionTabId,
-  goBackToEHR,
-  goToActiveSession,
-  startSoulsideSession,
-} from "./utils/soulsideSession";
+import { goBackToEHR, goToActiveSession, startSoulsideSession } from "./utils/soulsideSession";
 
 interface Message {
   action: string;
@@ -106,24 +100,11 @@ chrome.runtime.onMessage.addListener(
         });
       return true;
     }
-    if (message.action === "closeSoulsideSession") {
-      closeSoulsideSession();
-    }
     if (message.action === "goBackToEHR") {
       goBackToEHR();
     }
     if (message.action === "goToActiveSession") {
       goToActiveSession();
-    }
-    if (message.action === "getSessionTabId") {
-      const sessionTabId = getSessionTabId();
-      sendResponse({
-        success: !!sessionTabId,
-        value: sessionTabId
-          ? { sessionTabId }
-          : { error_code: "SESSION_NOT_FOUND", message: "No active session found" },
-      });
-      return true;
     }
   }
 );

@@ -1,3 +1,5 @@
+import { getSoulsideSessionTabs } from "./storage";
+
 let sessionTabId: number | null = null;
 let sourceTabId: number | null = null;
 
@@ -8,75 +10,58 @@ const startSoulsideSession = async ({
   sessionUrl: string;
   forceStart?: boolean;
 }): Promise<any> => {
-  if (sessionTabId) {
+  const soulsideSessionTabs = await getSoulsideSessionTabs();
+  const soulsideActiveSession = soulsideSessionTabs.find(tab =>
+    tab.url?.includes("session-status=joined")
+  );
+  if (soulsideActiveSession && soulsideActiveSession.id) {
     if (!forceStart) {
       return Promise.reject({
         errorCode: "SESSION_ALREADY_ACTIVE",
         message: "Session already active",
       });
     } else {
-      closeSoulsideSession();
+      goToActiveSession();
     }
-  }
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    sourceTabId = tabs[0].id ?? null;
+  } else {
+    if (soulsideSessionTabs.length > 0) {
+      soulsideSessionTabs.forEach(tab => {
+        if (tab.id) {
+          closeTab(tab.id);
+        }
+      });
+    }
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      sourceTabId = tabs[0].id ?? null;
 
-    // Open session in new tab
-    chrome.tabs.create({ url: sessionUrl }, tab => {
-      sessionTabId = tab.id ?? null;
-      chrome.tabs.onUpdated.addListener(checkSessionStatus);
-      chrome.tabs.onRemoved.addListener(checkSessionStatusOnRemoved);
+      // Open session in new tab
+      chrome.tabs.create({ url: sessionUrl }, tab => {
+        sessionTabId = tab.id ?? null;
+        chrome.tabs.onUpdated.addListener(checkSessionStatus);
+      });
     });
-  });
+  }
   return Promise.resolve({ success: true, sessionTabId });
 };
 
 const checkSessionStatus = (tabId: number, changeInfo: any, tab: any) => {
-  // Only check the session tab
-  if (tabId !== sessionTabId) return;
-
   // If the URL is being updated
-  if (changeInfo.url) {
+  if (changeInfo.url?.includes("source=soulside-ai-extension")) {
     // Check if the URL contains the session-ended parameter
     if (changeInfo.url.includes("session-status=ended")) {
       // Close the tab
-      closeSoulsideSession();
+      closeTab(tabId);
+      goBackToEHR();
     }
-    if (!changeInfo.url.includes("source=soulside-ai-extension")) {
-      resetSoulsideSession();
-    }
-  }
-  // If the tab is being removed
-  if (changeInfo.status === "complete" && !tab.url) {
-    // Tab was closed
-    closeSoulsideSession();
   }
 };
 
-const checkSessionStatusOnRemoved = (tabId: number, removeInfo: any) => {
-  console.log("checkSessionStatusOnRemoved", tabId, removeInfo);
-  if (tabId !== sessionTabId) return;
-  closeSoulsideSession();
-};
-
-const closeSoulsideSession = () => {
-  if (!sessionTabId) return;
+const closeTab = (tabId: number) => {
   try {
-    chrome.tabs.remove(sessionTabId);
+    chrome.tabs.remove(tabId);
   } catch (error) {
     console.error("Error removing tab", error);
   }
-  resetSoulsideSession();
-  goBackToEHR();
-};
-
-const resetSoulsideSession = () => {
-  chrome.tabs.onUpdated.removeListener(checkSessionStatus);
-  chrome.tabs.onRemoved.removeListener(checkSessionStatusOnRemoved);
-  sessionTabId = null;
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    sourceTabId = tabs[0].id ?? null;
-  });
 };
 
 const goBackToEHR = () => {
@@ -84,20 +69,14 @@ const goBackToEHR = () => {
   chrome.tabs.update(sourceTabId, { active: true });
 };
 
-const goToActiveSession = () => {
-  if (!sessionTabId) return;
-  chrome.tabs.update(sessionTabId, { active: true });
+const goToActiveSession = async () => {
+  const soulsideSessionTabs = await getSoulsideSessionTabs();
+  const soulsideActiveSession = soulsideSessionTabs.find(tab =>
+    tab.url?.includes("session-status=joined")
+  );
+  if (soulsideActiveSession && soulsideActiveSession.id) {
+    chrome.tabs.update(soulsideActiveSession.id, { active: true });
+  }
 };
 
-const getSessionTabId = () => {
-  return sessionTabId;
-};
-
-export {
-  startSoulsideSession,
-  closeSoulsideSession,
-  resetSoulsideSession,
-  goBackToEHR,
-  goToActiveSession,
-  getSessionTabId,
-};
+export { startSoulsideSession, goBackToEHR, goToActiveSession };

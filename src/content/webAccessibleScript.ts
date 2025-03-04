@@ -82,12 +82,38 @@ window.addEventListener("message", function (event) {
     );
   }
   if (event.data.type === "LOG_ROCKET_INIT") {
-    (window as any)?.LogRocket?.init("kgns4k/facilitator-dashboard-prod", {
+    const ALLEVA_URL_PATTERNS = [
+      "https://*.allevasoft.com/*",
+      "https://*.allevasoft.io/*",
+      "https://*.alleva.io/*",
+    ];
+    const isAllowedUrl = (url: string): boolean => {
+      // Extract domain from URL
+      const urlObj = new URL(url);
+      const domain = urlObj.hostname;
+
+      return ALLEVA_URL_PATTERNS.some(pattern => {
+        // Convert wildcard pattern to regex pattern
+        const patternDomain = new URL(pattern.replace("*.", "")).hostname.replace("*.", "");
+        return domain.endsWith(patternDomain);
+      });
+    };
+    const isAllevaUrl = isAllowedUrl(window.location.href);
+    let logRocketInitOptions: any = {
       network: {
         isEnabled: false,
       },
       shouldDebugLog: false,
-    });
+    };
+    if (isAllevaUrl) {
+      logRocketInitOptions = {
+        ...logRocketInitOptions,
+        rootHostname: "allevasoft.com",
+        childDomains: ["*.allevasoft.com", "*.allevasoft.io", "*.alleva.io"],
+        parentDomain: "allevasoft.com",
+      };
+    }
+    (window as any)?.LogRocket?.init("kgns4k/facilitator-dashboard-prod", logRocketInitOptions);
   }
   if (event.data.type === "LOG_ROCKET_IDENTIFY") {
     (window as any)?.LogRocket?.identify(event.data.user?.userId, {
