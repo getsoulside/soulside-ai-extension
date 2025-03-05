@@ -46,7 +46,7 @@ const SessionDetails: React.FC = (): React.ReactNode => {
     dispatch(loadSessionNotes(sessionId));
   };
   useEffect(() => {
-    if (providerSessions?.data.length > 0) {
+    if (providerSessions?.data.length > 0 && sessionDetails?.data) {
       providerSessions?.data.forEach(providerSession => {
         if (
           providerSession.id &&
@@ -54,11 +54,11 @@ const SessionDetails: React.FC = (): React.ReactNode => {
           (!transcriptData?.[providerSession.id]?.data ||
             transcriptData?.[providerSession.id]?.data?.length === 0)
         ) {
-          dispatch(loadTranscript(providerSession));
+          dispatch(loadTranscript(providerSession, sessionDetails?.data));
         }
       });
     }
-  }, [providerSessions?.data]);
+  }, [providerSessions?.data, sessionDetails?.data]);
   const [activeTab, setActiveTab] = useState("notes");
 
   const patientName = sessionDetails?.data

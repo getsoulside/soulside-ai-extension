@@ -4,7 +4,7 @@ import {
   SoulsideMeetingSession,
   SoulsideMeetingSessionTranscript,
 } from "@/domains/meeting";
-import { IndividualSession, Session, SessionCategory } from "@/domains/session";
+import { IndividualSession, ModeOfDelivery, Session, SessionCategory } from "@/domains/session";
 import { getFormattedDateTime } from "@/utils/date";
 import { EditRounded } from "@mui/icons-material";
 import { Box, Divider, IconButton, Stack, Tooltip, Typography } from "@mui/material";
@@ -28,6 +28,10 @@ const SessionTranscript = ({
   const patientName = `${(session as IndividualSession)?.patientFirstName || ""}${
     (session as IndividualSession)?.patientLastName ? " " : ""
   }${(session as IndividualSession)?.patientLastName || ""}`;
+  const organizationName = session?.organizationName;
+  const isSerenityOrg = organizationName?.toLowerCase()?.includes("serenity");
+  const modeOfDelivery = session?.modeOfDelivery;
+  const hideSpeakerMapping = !isSerenityOrg && modeOfDelivery === ModeOfDelivery.VIRTUAL;
   const [speakerMappingOpen, setSpeakerMappingOpen] = useState(false);
   return (
     <Box
@@ -107,11 +111,13 @@ const SessionTranscript = ({
                           >
                             {participantName}
                           </Typography>
-                          <Tooltip title="Change Speaker Mapping">
-                            <IconButton onClick={() => setSpeakerMappingOpen(true)}>
-                              <EditRounded sx={{ fontSize: "1rem", opacity: 0.7 }} />
-                            </IconButton>
-                          </Tooltip>
+                          {!hideSpeakerMapping && (
+                            <Tooltip title="Change Speaker Mapping">
+                              <IconButton onClick={() => setSpeakerMappingOpen(true)}>
+                                <EditRounded sx={{ fontSize: "1rem", opacity: 0.7 }} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </Stack>
                         <Typography
                           variant={"subtitle2"}

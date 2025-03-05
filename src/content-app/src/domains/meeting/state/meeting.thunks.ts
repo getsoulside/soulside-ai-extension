@@ -67,7 +67,7 @@ export const loadProviderSessions =
   };
 
 export const loadTranscript =
-  (providerSession: SoulsideMeetingSession): AppThunk =>
+  (providerSession: SoulsideMeetingSession, sessionDetails: Session | null): AppThunk =>
   async dispatch => {
     const sessionCategory = providerSession.sessionCategory;
     const sessionId =
@@ -95,7 +95,10 @@ export const loadTranscript =
 
         while (Date.now() - startTime < timeout) {
           try {
-            transcriptData = await getProviderSessionTranscriptData(providerSession);
+            transcriptData = await getProviderSessionTranscriptData(
+              providerSession,
+              sessionDetails
+            );
             break; // Exit loop if successful
           } catch (error) {
             if (Date.now() - startTime + interval >= timeout) {
@@ -106,7 +109,7 @@ export const loadTranscript =
         }
       } else {
         try {
-          transcriptData = await getProviderSessionTranscriptData(providerSession);
+          transcriptData = await getProviderSessionTranscriptData(providerSession, sessionDetails);
         } catch (error) {
           console.error(error);
         }

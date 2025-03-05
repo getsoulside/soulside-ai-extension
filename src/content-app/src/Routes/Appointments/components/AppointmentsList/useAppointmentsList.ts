@@ -12,6 +12,7 @@ const useAppointmentsList = (props: AppointmentsListProps) => {
   }, [props.data]);
 
   const sessionNotesStatus = useSelector((state: RootState) => state.session.sessionNotesStatus);
+  const selectedRole = useSelector((state: RootState) => state.userProfile.selectedRole?.data);
 
   const sessionsList = useMemo(() => {
     let data = props.data.slice(
@@ -39,6 +40,7 @@ const useAppointmentsList = (props: AppointmentsListProps) => {
     sessionsList,
     pagination,
     setPagination,
+    selectedRole,
   };
 };
 

@@ -1,4 +1,4 @@
-import { Session, SessionCategory, IndividualSession } from "@/domains/session";
+import { Session, SessionCategory, IndividualSession, ModeOfDelivery } from "@/domains/session";
 import httpClient from "@/utils/httpClient";
 import { SoulsideMeetingSession, SoulsideMeetingSessionTranscript } from "../models";
 import { parseCsv, unParseCsv } from "@/utils/parseCsv";
@@ -21,28 +21,47 @@ export const getReconciledGroupProviderSessions = async (
 };
 
 export const getProviderSessionTranscriptData = async (
-  providerSession: SoulsideMeetingSession
+  providerSession: SoulsideMeetingSession,
+  sessionDetails: Session | null
 ): Promise<SoulsideMeetingSessionTranscript[]> => {
-  const url =
+  let url =
     providerSession.sessionCategory === SessionCategory.INDIVIDUAL
       ? `practitioner-role/meeting-session/individual-session/${providerSession.individualSessionId}/provider-session-id/${providerSession.providerSessionId}/transcript-from-audio`
       : `practitioner-role/meeting-session/group/${providerSession.sessionId}/provider-session-id/${providerSession.providerSessionId}/transcript-from-audio`;
+  const organizationName = providerSession?.organizationName;
+  const isSerenityOrg = organizationName?.toLowerCase()?.includes("serenity");
+  if (!isSerenityOrg && providerSession?.modeOfDelivery === ModeOfDelivery.VIRTUAL) {
+    url =
+      providerSession.sessionCategory === SessionCategory.INDIVIDUAL
+        ? `practitioner-role/meeting-session/individual-session/${providerSession.individualSessionId}/provider-session-id/${providerSession.providerSessionId}/transcript`
+        : `practitioner-role/meeting-session/group/${providerSession.sessionId}/provider-session-id/${providerSession.providerSessionId}/transcript`;
+  }
+  const practitionerRoleId = sessionDetails?.practitionerRoleId;
   const response = await httpClient.get(url);
   const transcriptUrl = response.data.trim();
   const csvData = await parseCsv(transcriptUrl);
   const transcriptData: SoulsideMeetingSessionTranscript[] =
     csvData.data
       ?.filter((transcript: any) => !!transcript && !!transcript[0])
-      ?.map(
-        (transcript: any): SoulsideMeetingSessionTranscript => ({
-          timestamp: Number(transcript[0]),
-          providerParticipantId: transcript[1],
-          providerPeerId: transcript[2],
-          participantId: transcript[3],
-          participantName: transcript[4],
-          transcriptText: transcript[5],
-        })
-      ) || [];
+      ?.map((transcript: any): SoulsideMeetingSessionTranscript => {
+        const timestamp = Number(transcript[0]);
+        const providerParticipantId = transcript[1];
+        const providerPeerId = transcript[2];
+        const participantId = transcript[3];
+        let participantName = transcript[4];
+        if (practitionerRoleId && practitionerRoleId === participantId) {
+          participantName = `Provider`;
+        }
+        const transcriptText = transcript[5];
+        return {
+          timestamp,
+          providerParticipantId,
+          providerPeerId,
+          participantId,
+          participantName,
+          transcriptText,
+        };
+      }) || [];
   return transcriptData;
 };
 

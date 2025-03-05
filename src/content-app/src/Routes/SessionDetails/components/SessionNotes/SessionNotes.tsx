@@ -310,6 +310,7 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
                 notesData={sessionNotesData}
                 sessionId={sessionId}
                 onNotesChange={onChangeSessionNotes}
+                session={session}
               />
             )}
           </Box>

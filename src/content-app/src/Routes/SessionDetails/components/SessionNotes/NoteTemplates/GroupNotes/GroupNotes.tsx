@@ -17,14 +17,16 @@ import SpeakerMapping from "../../../SpeakerMapping/SpeakerMapping";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { SoulsideMeetingSessionTranscript } from "@/domains/meeting";
+import { ModeOfDelivery, Session } from "@/domains/session";
 
 interface GroupNotesProps {
   sessionId: UUIDString;
   notesData: SessionNotes | null;
   onNotesChange?: (sessionNotes: SessionNotes) => void;
+  session: Session | null;
 }
 
-const GroupNotes = ({ notesData, sessionId, onNotesChange }: GroupNotesProps) => {
+const GroupNotes = ({ notesData, sessionId, onNotesChange, session }: GroupNotesProps) => {
   const groupNotes = notesData?.jsonSoapNote?.[SessionNotesTemplates.GROUP];
   const [textCopiedSection, setTextCopiedSection] = useState("");
   const [speakerMappingOpen, setSpeakerMappingOpen] = useState(false);
@@ -82,6 +84,10 @@ const GroupNotes = ({ notesData, sessionId, onNotesChange }: GroupNotesProps) =>
       onNotesChange(data as SessionNotes);
     }
   };
+  const organizationName = session?.organizationName;
+  const isSerenityOrg = organizationName?.toLowerCase()?.includes("serenity");
+  const modeOfDelivery = session?.modeOfDelivery;
+  const hideSpeakerMapping = !isSerenityOrg && modeOfDelivery === ModeOfDelivery.VIRTUAL;
   return (
     <Box
       sx={{
@@ -99,14 +105,16 @@ const GroupNotes = ({ notesData, sessionId, onNotesChange }: GroupNotesProps) =>
         gap={1}
       >
         <Typography variant={"subtitle2"}>Patient Progress Notes</Typography>
-        <Button
-          component={Typography}
-          color="primary"
-          size="small"
-          onClick={() => setSpeakerMappingOpen(true)}
-        >
-          Change Speaker Mapping
-        </Button>
+        {!hideSpeakerMapping && (
+          <Button
+            component={Typography}
+            color="primary"
+            size="small"
+            onClick={() => setSpeakerMappingOpen(true)}
+          >
+            Change Speaker Mapping
+          </Button>
+        )}
         <SpeakerMapping
           open={speakerMappingOpen}
           onClose={() => setSpeakerMappingOpen(false)}

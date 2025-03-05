@@ -30,6 +30,7 @@ import { getFormattedDateTime } from "@/utils/date";
 import useAppointmentsList from "./useAppointmentsList";
 import Loader from "@/components/Loader";
 import { PLATFORM_URL } from "@/constants/envVariables";
+import { BusinessFunction, PractitionerRole } from "@/domains/practitionerRole";
 
 export interface AppointmentsListProps {
   data: Session[];
@@ -37,10 +38,11 @@ export interface AppointmentsListProps {
 }
 
 const AppointmentsList: React.FC<AppointmentsListProps> = ({ data, loading }): React.ReactNode => {
-  const { sessionsList, pagination, setPagination, sessionNotesStatus } = useAppointmentsList({
-    data,
-    loading,
-  });
+  const { sessionsList, pagination, setPagination, sessionNotesStatus, selectedRole } =
+    useAppointmentsList({
+      data,
+      loading,
+    });
   return (
     <Box
       sx={{
@@ -70,6 +72,7 @@ const AppointmentsList: React.FC<AppointmentsListProps> = ({ data, loading }): R
                   <AppointmentCard
                     key={appointment.id}
                     appointment={appointment}
+                    selectedRole={selectedRole}
                     notesExists={
                       appointment.id
                         ? sessionNotesStatus?.data?.[appointment.id]?.notesExists || false
@@ -156,11 +159,13 @@ const AppointmentListPagination: React.FC<AppointmentListPaginationProps> = ({
 interface AppointmentCardProps {
   appointment: Session;
   notesExists: boolean;
+  selectedRole: PractitionerRole | null;
 }
 
 const AppointmentCard: React.FC<AppointmentCardProps> = ({
   appointment,
   notesExists,
+  selectedRole,
 }): React.ReactNode => {
   const [showSessionActiveWarning, setShowSessionActiveWarning] = useState(false);
   const patientName =
@@ -185,6 +190,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
       ? (appointment as IndividualSession)?.patientId
       : (appointment as SoulsideSession)?.groupId
   }?source=soulside-ai-extension`;
+  const isAdmin = selectedRole?.businessFunction !== BusinessFunction.CLINICAL_CARE;
   const startSession = (forceStart: boolean = false) => {
     if (chrome?.runtime?.id) {
       chrome.runtime.sendMessage(
@@ -302,6 +308,18 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
               />
             )}
           </Stack>
+          {!!isAdmin && (
+            <Stack
+              flexDirection={"row"}
+              gap={1}
+              alignItems={"center"}
+            >
+              <Typography variant="body2">Provider:</Typography>
+              <Typography variant="body2">
+                {appointment?.practitionerFirstName} {appointment?.practitionerLastName}
+              </Typography>
+            </Stack>
+          )}
           <Stack
             flexDirection={"row"}
             gap={1}
