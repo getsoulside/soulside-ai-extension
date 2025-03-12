@@ -123,6 +123,11 @@ export default class AdvancedMD {
     }
   }
 
+  public async checkIfOnNotesScreen(): Promise<boolean> {
+    const activeChartNotesIframe = this.getActiveChartNotesIframe();
+    return !!activeChartNotesIframe;
+  }
+
   public async getActiveTemplateType(): Promise<SessionNotesTemplates | null> {
     const activeChartNotesIframe = this.getActiveChartNotesIframe();
     if (!activeChartNotesIframe) return null;

@@ -178,7 +178,7 @@ export class Alleva {
     try {
       const currentUrl = window.location.href;
 
-      if (currentUrl.includes("clientPsychIntake")) {
+      if (currentUrl.includes("clientPsychIntake") || currentUrl.includes("bioPsychSocialIntake")) {
         return await this.handleIntakeAssessment();
       }
 
@@ -191,6 +191,42 @@ export class Alleva {
       console.error("Error in getActiveSession:", error);
       return null;
     }
+  }
+
+  public async checkIfOnNotesScreen(notesTemplate: SessionNotesTemplates): Promise<boolean> {
+    const currentUrl = window.location.href;
+    if (notesTemplate === SessionNotesTemplates.BPS) {
+      return (
+        currentUrl.includes("clientPsychIntake") || currentUrl.includes("bioPsychSocialIntake")
+      );
+    }
+    if (notesTemplate === SessionNotesTemplates.SOAP_PSYCHIATRY) {
+      const isOnNotesScreen = currentUrl.includes("Scheduler");
+      if (!isOnNotesScreen) {
+        return false;
+      }
+      const appointmentScope = await this.getAngularScope("[ng-if='showClientSessionScreen']");
+      const appointmentInfo = appointmentScope?.appointment;
+      if (!appointmentInfo) {
+        console.warn("Not on notes screen");
+        return false;
+      }
+      return true;
+    }
+    if (notesTemplate === SessionNotesTemplates.GROUP) {
+      const isOnNotesScreen = currentUrl.includes("Scheduler");
+      if (!isOnNotesScreen) {
+        return false;
+      }
+      const appointmentScope = await this.getAngularScope("[ng-if='showGroupSessionScreen']");
+      const appointmentInfo = appointmentScope?.appointment;
+      if (!appointmentInfo) {
+        console.warn("Not on notes screen");
+        return false;
+      }
+      return true;
+    }
+    return false;
   }
 
   public async getActiveTemplateType(): Promise<SessionNotesTemplates | null> {
@@ -224,7 +260,7 @@ export class Alleva {
     const currentUrl = window.location.href;
     const isGroupSession = !!(await this.getAngularScope("[ng-if='showGroupSessionScreen']"));
     if (notesTemplate === SessionNotesTemplates.BPS) {
-      if (currentUrl.includes("clientPsychIntake")) {
+      if (currentUrl.includes("clientPsychIntake") || currentUrl.includes("bioPsychSocialIntake")) {
         return this.handleBPSAssessment(notesData);
       } else {
         return Promise.reject({ message: "Not on BPS assessment screen" });

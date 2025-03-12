@@ -123,24 +123,31 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
     const ehrClientInstance = ehrClient.getInstance();
     setNotesAddedLoading(true);
     try {
-      const activeSession = await ehrClientInstance?.getActiveSession();
-      if (!activeSession) {
+      const isOnNotesScreen = await ehrClientInstance?.checkIfOnNotesScreen(selectedNoteTemplate);
+      if (!isOnNotesScreen) {
         throw {
           message: "Please open this appointment in your EHR to add notes",
-          error_code: "NO_ACTIVE_SESSION_FOUND",
+          error_code: "NOT_ON_NOTES_SCREEN",
         };
       }
-      if (
-        activeSession.id !== sessionId &&
-        (session.sessionCategory !== SessionCategory.INDIVIDUAL ||
-          (session as IndividualSession)?.appointmentType !== AppointmentType.INTAKE)
-      ) {
-        throw {
-          message:
-            "Active appointment is not the same as the appointment you are trying to add notes to. Please open this appointment in your EHR to add notes",
-          error_code: "ACTIVE_SESSION_NOT_SAME_AS_SESSION_TO_ADD_NOTES_TO",
-        };
-      }
+      // const activeSession = await ehrClientInstance?.getActiveSession();
+      // if (!activeSession) {
+      //   throw {
+      //     message: "Please open this appointment in your EHR to add notes",
+      //     error_code: "NO_ACTIVE_SESSION_FOUND",
+      //   };
+      // }
+      // if (
+      //   activeSession.id !== sessionId &&
+      //   (session.sessionCategory !== SessionCategory.INDIVIDUAL ||
+      //     (session as IndividualSession)?.appointmentType !== AppointmentType.INTAKE)
+      // ) {
+      //   throw {
+      //     message:
+      //       "Active appointment is not the same as the appointment you are trying to add notes to. Please open this appointment in your EHR to add notes",
+      //     error_code: "ACTIVE_SESSION_NOT_SAME_AS_SESSION_TO_ADD_NOTES_TO",
+      //   };
+      // }
     } catch (error: any) {
       console.error(error);
       toast.error(error?.message || "Failed to add notes to EHR");
