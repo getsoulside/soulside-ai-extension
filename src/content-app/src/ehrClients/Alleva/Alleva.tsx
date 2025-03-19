@@ -488,12 +488,12 @@ export class Alleva {
           if (typeof value === "string" || typeof value === "number") {
             value = value.toString();
           } else if (Array.isArray(value || null)) {
-            value = field.type === "textarea" ? value.join("\n") : value.join(", ");
+            value = field.ehrFields?.type === "textarea" ? value.join("\n") : value.join(", ");
           }
           if (inputField && value) {
             inputField.value =
               (inputField.value
-                ? `${inputField.value} ${field.type === "textarea" ? "\n" : ""}`
+                ? `${inputField.value} ${field.ehrFields?.type === "textarea" ? "\n" : ""}`
                 : "") + value;
             inputField.dispatchEvent(new Event("change"));
           }
@@ -521,12 +521,13 @@ export class Alleva {
               if (typeof value === "string" || typeof value === "number") {
                 value = value.toString();
               } else if (Array.isArray(value || null)) {
-                value = subField.type === "textarea" ? value.join("\n") : value.join(", ");
+                value =
+                  subField.ehrFields?.type === "textarea" ? value.join("\n") : value.join(", ");
               }
               if (inputField && value) {
                 inputField.value =
                   (inputField.value
-                    ? `${inputField.value} ${subField.type === "textarea" ? "\n" : ""}`
+                    ? `${inputField.value} ${subField.ehrFields?.type === "textarea" ? "\n" : ""}`
                     : "") + value;
                 inputField.dispatchEvent(new Event("change"));
               }
@@ -544,12 +545,17 @@ export class Alleva {
                   if (typeof value === "string" || typeof value === "number") {
                     value = value.toString();
                   } else if (Array.isArray(value || null)) {
-                    value = subSubField.type === "textarea" ? value.join("\n") : value.join(", ");
+                    value =
+                      subSubField.ehrFields?.type === "textarea"
+                        ? value.join("\n")
+                        : value.join(", ");
                   }
                   if (inputField && value) {
                     inputField.value =
                       (inputField.value
-                        ? `${inputField.value} ${subSubField.type === "textarea" ? "\n" : ""}`
+                        ? `${inputField.value} ${
+                            subSubField.ehrFields?.type === "textarea" ? "\n" : ""
+                          }`
                         : "") + value;
                     inputField.dispatchEvent(new Event("change"));
                   }

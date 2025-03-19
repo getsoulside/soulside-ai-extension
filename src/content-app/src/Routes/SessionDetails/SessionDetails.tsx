@@ -20,6 +20,7 @@ import SessionNotes from "./components/SessionNotes";
 import SessionTranscript from "./components/SessionTranscript";
 import { PLATFORM_URL } from "@/constants/envVariables";
 import Tabs from "@/components/Tabs/Tabs";
+import { loadOrgPatients } from "@/domains/patient";
 
 const SessionDetails: React.FC = (): React.ReactNode => {
   const dispatch: AppDispatch = useDispatch();
@@ -28,6 +29,7 @@ const SessionDetails: React.FC = (): React.ReactNode => {
   const { modeOfDelivery } = useParams<{ modeOfDelivery: string }>();
   if (!sessionId || !sessionCategory) return <></>;
   const sessionDetails = useSelector((state: RootState) => state.meeting.sessionDetails[sessionId]);
+  const patientsList = useSelector((state: RootState) => state.patient.patientsList);
   const providerSessions = useSelector(
     (state: RootState) => state.meeting.providerSessions[sessionId]
   );
@@ -44,6 +46,13 @@ const SessionDetails: React.FC = (): React.ReactNode => {
     dispatch(loadSessionDetails(sessionId, sessionCategory as SessionCategory));
     dispatch(loadProviderSessions(sessionId, sessionCategory as SessionCategory));
     dispatch(loadSessionNotes(sessionId));
+    if (
+      sessionCategory === SessionCategory.GROUP &&
+      patientsList.data.length === 0 &&
+      !patientsList.loading
+    ) {
+      dispatch(loadOrgPatients());
+    }
   };
   useEffect(() => {
     if (providerSessions?.data.length > 0 && sessionDetails?.data) {
@@ -183,7 +192,7 @@ const SessionDetails: React.FC = (): React.ReactNode => {
             </Tooltip>
           </Stack>
           <Typography variant={"subtitle2"}>
-            {getFormattedDateTime(sessionDetails?.data?.startTime || null, "MMM DD, h:mm A")}
+            {getFormattedDateTime(sessionDetails?.data?.startTime || null, "MMM DD, h:mm A", true)}
           </Typography>
         </Stack>
         <Loader

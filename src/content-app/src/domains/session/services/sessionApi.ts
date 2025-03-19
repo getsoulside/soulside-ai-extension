@@ -18,7 +18,9 @@ export const getIndividualSessionsByOrgId = async (
   if (!startDateTime || !endDateTime) {
     return Promise.reject("Date Range is required");
   }
-  const url = `practitioner-role/individual-session/find-all-by-org-and-date-range/${organizationId}?startDateTime=${startDateTime}&endDateTime=${endDateTime}`;
+  const url = `practitioner-role/individual-session/find-all-by-org-and-date-range/${organizationId}?startDateTime=${window.encodeURIComponent(
+    startDateTime
+  )}&endDateTime=${window.encodeURIComponent(endDateTime)}`;
   const response = await httpClient.get(url, {
     headers: { apiId: "getIndividualSessionsByOrgId" },
   });
@@ -36,7 +38,9 @@ export const getIndividualSessionsByPractitionerRoleId = async (
   if (!startDateTime || !endDateTime) {
     return Promise.reject("Date Range is required");
   }
-  const url = `practitioner-role/individual-session/find-all-by-practitioner-role-and-date-range/${organizationId}?startDateTime=${startDateTime}&endDateTime=${endDateTime}`;
+  const url = `practitioner-role/individual-session/find-all-by-practitioner-role-and-date-range/${organizationId}?startDateTime=${window.encodeURIComponent(
+    startDateTime
+  )}&endDateTime=${window.encodeURIComponent(endDateTime)}`;
   const response = await httpClient.get(url, {
     headers: { apiId: "getIndividualSessionsByPractitionerRoleId" },
   });
@@ -54,7 +58,9 @@ export const getGroupSessionsByOrgId = async (
   if (!startDateTime || !endDateTime) {
     return Promise.reject("Date Range is required");
   }
-  const url = `practitioner-role/sessions/find-all-by-org-and-date-range/${organizationId}?startDateTime=${startDateTime}&endDateTime=${endDateTime}`;
+  const url = `practitioner-role/sessions/find-all-by-org-and-date-range/${organizationId}?startDateTime=${window.encodeURIComponent(
+    startDateTime
+  )}&endDateTime=${window.encodeURIComponent(endDateTime)}`;
   const response = await httpClient.get(url, { headers: { apiId: "getGroupSessionsByOrgId" } });
   return response.data;
 };
@@ -70,7 +76,9 @@ export const getGroupSessionsByPractitionerRoleId = async (
   if (!startDateTime || !endDateTime) {
     return Promise.reject("Date Range is required");
   }
-  const url = `practitioner-role/sessions/find-all-by-practitioner-role-and-date-range/${organizationId}?startDateTime=${startDateTime}&endDateTime=${endDateTime}`;
+  const url = `practitioner-role/sessions/find-all-by-practitioner-role-and-date-range/${organizationId}?startDateTime=${window.encodeURIComponent(
+    startDateTime
+  )}&endDateTime=${window.encodeURIComponent(endDateTime)}`;
   const response = await httpClient.get(url, {
     headers: { apiId: "getGroupSessionsByPractitionerRoleId" },
   });

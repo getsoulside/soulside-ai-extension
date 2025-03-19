@@ -49,7 +49,8 @@ const SessionTranscript = ({
         const providerSessionId = providerSession.providerSessionId || "";
         const providerSessionStartTime = getFormattedDateTime(
           providerSession.startedAt,
-          "MMM DD, YYYY | h:mm a"
+          "MMM DD, YYYY | h:mm a",
+          true
         );
         return (
           <Box

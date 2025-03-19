@@ -10,10 +10,8 @@ import {
   Divider,
   FormControl,
   FormControlLabel,
-  MenuItem,
   Radio,
   RadioGroup,
-  Select,
   Stack,
 } from "@mui/material";
 import { Typography } from "@mui/material";
@@ -23,6 +21,8 @@ import { getFormattedDateTime } from "@/utils/date";
 import { useEffect, useMemo, useState } from "react";
 import { saveProviderSessionTranscript } from "@/domains/meeting/state/meeting.thunks";
 import { SessionCategory, SessionPatientMember, SoulsideSession } from "@/domains/session";
+import { Patient } from "@/domains/patient";
+import { DropdownFilter } from "@/components/Filters";
 
 interface SpeakerMappingProps {
   open: boolean;
@@ -53,9 +53,10 @@ const SpeakerMapping = ({ open, onClose, sessionId }: SpeakerMappingProps) => {
   const sessionDetailsData = useSelector(
     (state: RootState) => state.meeting.sessionDetails[sessionId]?.data
   );
+  const patientsListData = useSelector(
+    (state: RootState) => state.patient.patientsList?.data || []
+  );
   const sessionCategory = sessionDetailsData?.sessionCategory;
-  const sessionPatientMembers =
-    (sessionDetailsData as SoulsideSession)?.sessionPatientMemberDtos || [];
   const [speakerMapping, setSpeakerMapping] = useState<{
     [providerSessionId: UUIDString]: { [speakerId: string]: SpeakerMapping };
   }>({});
@@ -144,7 +145,7 @@ const SpeakerMapping = ({ open, onClose, sessionId }: SpeakerMappingProps) => {
   const onPatientSelect = (
     providerSessionId: UUIDString,
     speakerId: string,
-    patient: SessionPatientMember | null
+    patient: Patient | null
   ) => {
     setSpeakerMapping(prev => ({
       ...prev,
@@ -152,10 +153,10 @@ const SpeakerMapping = ({ open, onClose, sessionId }: SpeakerMappingProps) => {
         ...prev[providerSessionId],
         [speakerId]: {
           ...prev[providerSessionId]?.[speakerId],
-          participantId: patient?.patientId || speakerId,
+          participantId: patient?.id || speakerId,
           participantName:
-            `${patient?.patientFirstName || ""}${patient?.patientLastName ? " " : ""}${
-              patient?.patientLastName || ""
+            `${patient?.firstName || ""}${patient?.lastName ? " " : ""}${
+              patient?.lastName || ""
             }` || speakerId,
         },
       },
@@ -222,7 +223,8 @@ const SpeakerMapping = ({ open, onClose, sessionId }: SpeakerMappingProps) => {
             const providerSessionId = providerSession.providerSessionId || "";
             const providerSessionStartTime = getFormattedDateTime(
               providerSession.startedAt,
-              "MMM DD, YYYY | h:mm a"
+              "MMM DD, YYYY | h:mm a",
+              true
             );
             return (
               <Box
@@ -248,23 +250,23 @@ const SpeakerMapping = ({ open, onClose, sessionId }: SpeakerMappingProps) => {
                     {speakerAudios?.[providerSessionId]?.data?.length > 0 ? (
                       speakerAudios?.[providerSessionId]?.data?.map((speakerAudio, index) => {
                         const speakerId = speakerAudio.speakerId || "";
-                        const patientName = sessionPatientMembers.find(
+                        const patientName = patientsListData.find(
                           member =>
-                            member.patientId ===
+                            member.id ===
                             speakerMapping[providerSessionId]?.[speakerId]?.participantId
                         )
                           ? `${
-                              sessionPatientMembers.find(
+                              patientsListData.find(
                                 member =>
-                                  member.patientId ===
+                                  member.id ===
                                   speakerMapping[providerSessionId]?.[speakerId]?.participantId
-                              )?.patientFirstName || ""
+                              )?.firstName || ""
                             } ${
-                              sessionPatientMembers.find(
+                              patientsListData.find(
                                 member =>
-                                  member.patientId ===
+                                  member.id ===
                                   speakerMapping[providerSessionId]?.[speakerId]?.participantId
-                              )?.patientLastName || ""
+                              )?.lastName || ""
                             }`
                           : speakerMapping[providerSessionId]?.[speakerId]?.participantName;
                         return (
@@ -374,41 +376,17 @@ const SpeakerMapping = ({ open, onClose, sessionId }: SpeakerMappingProps) => {
                             {sessionCategory === SessionCategory.GROUP &&
                               speakerMapping[providerSessionId]?.[speakerId]?.participantType ===
                                 ParticipantType.PATIENT && (
-                                <Stack
-                                  direction="row"
-                                  spacing={1}
-                                  alignItems="center"
-                                >
-                                  <Typography variant="body1">Patient:</Typography>
-                                  <Select
-                                    value={patientName}
-                                    onChange={e =>
-                                      onPatientSelect(
-                                        providerSessionId,
-                                        speakerId,
-                                        sessionPatientMembers.find(
-                                          member => member.patientId === e.target.value
-                                        ) || null
-                                      )
-                                    }
-                                    displayEmpty
-                                    renderValue={value => (value ? value : "Select Patient")}
-                                    sx={{
-                                      flex: 1,
-                                    }}
-                                  >
-                                    {sessionPatientMembers?.map(patient => (
-                                      <MenuItem
-                                        key={patient.patientId || ""}
-                                        value={patient.patientId || ""}
-                                      >
-                                        {`${patient.patientFirstName || ""}${
-                                          patient.patientLastName ? " " : ""
-                                        }${patient.patientLastName || ""}`}
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                </Stack>
+                                <PatientSelect
+                                  patientName={patientName}
+                                  patientsListData={patientsListData}
+                                  onPatientSelect={patient =>
+                                    onPatientSelect(providerSessionId, speakerId, patient)
+                                  }
+                                  sessionPatientMemberDtos={
+                                    (sessionDetailsData as SoulsideSession)
+                                      ?.sessionPatientMemberDtos || []
+                                  }
+                                />
                               )}
                           </Box>
                         );
@@ -445,3 +423,65 @@ const SpeakerMapping = ({ open, onClose, sessionId }: SpeakerMappingProps) => {
 };
 
 export default SpeakerMapping;
+
+interface PatientSelectProps {
+  patientName: string;
+  patientsListData: Patient[];
+  sessionPatientMemberDtos: SessionPatientMember[];
+  onPatientSelect: (patient: Patient | null) => void;
+}
+
+const PatientSelect = ({
+  patientName,
+  patientsListData,
+  sessionPatientMemberDtos,
+  onPatientSelect,
+}: PatientSelectProps) => {
+  const patientsData = [...(patientsListData || [])];
+  const sortedPatients = useMemo(() => {
+    return patientsData.sort(patient => {
+      const patientId = patient.id;
+      const sessionPatientMemberDto = sessionPatientMemberDtos?.find(
+        dto => dto.patientId === patientId
+      );
+      return sessionPatientMemberDto ? -1 : 1;
+    });
+  }, [patientsListData, sessionPatientMemberDtos]);
+  return (
+    <Stack
+      direction="row"
+      spacing={1}
+      alignItems="center"
+    >
+      <Typography variant="body1">Patient:</Typography>
+      <DropdownFilter
+        options={sortedPatients}
+        selectedValue={
+          sortedPatients.find(
+            patient =>
+              `${patient.firstName || ""}${patient.lastName ? " " : ""}${
+                patient.lastName || ""
+              }` === patientName
+          ) || null
+        }
+        keyLabel="id"
+        valueLabel="firstName"
+        dropdownLabel={patientName || "Select Patient"}
+        onSelect={patient => onPatientSelect(patient)}
+        optionRenderer={patient =>
+          `${patient.firstName || ""}${patient.lastName ? " " : ""}${patient.lastName || ""}`
+        }
+        titleRenderer={patient =>
+          patient
+            ? `${patient.firstName || ""}${patient.lastName ? " " : ""}${patient.lastName || ""}`
+            : patientName || "Select Patient"
+        }
+        searchContexts={[
+          (patient: Patient) =>
+            `${patient.firstName || ""}${patient.lastName ? " " : ""}${patient.lastName || ""}`,
+        ]}
+        limitListLength={20}
+      />
+    </Stack>
+  );
+};

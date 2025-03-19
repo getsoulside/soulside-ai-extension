@@ -172,11 +172,19 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     chrome.scripting.executeScript({
       target: { tabId },
       func: () => {
-        const extensionInstalledDiv = document.createElement("input");
-        extensionInstalledDiv.type = "hidden";
-        extensionInstalledDiv.id = "soulside-ai-extension-installed";
-        extensionInstalledDiv.value = "true";
-        document.body.appendChild(extensionInstalledDiv);
+        if (!document.getElementById("soulside-ai-extension-installed")) {
+          const extensionInstalledDiv = document.createElement("input");
+          extensionInstalledDiv.type = "hidden";
+          extensionInstalledDiv.id = "soulside-ai-extension-installed";
+          extensionInstalledDiv.value = "true";
+          document.body.appendChild(extensionInstalledDiv);
+
+          const extensionVersionDiv = document.createElement("input");
+          extensionVersionDiv.type = "hidden";
+          extensionVersionDiv.id = "soulside-ai-extension-version";
+          extensionVersionDiv.value = chrome.runtime.getManifest().version;
+          document.body.appendChild(extensionVersionDiv);
+        }
       },
     });
   }

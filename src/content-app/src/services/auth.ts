@@ -18,7 +18,7 @@ export async function login(email: string, password: string): Promise<void> {
       method: "POST",
       apiOptions: {
         data: {
-          email,
+          email: email.toLowerCase(),
           password,
         },
       },

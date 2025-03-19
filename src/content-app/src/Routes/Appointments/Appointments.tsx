@@ -100,8 +100,10 @@ const Appointments: React.FC = (): React.ReactNode => {
               keyLabel="id"
               valueLabel="practitionerFirstName"
               searchContexts={[
-                "practitionerFirstName",
-                "practitionerLastName",
+                (provider: PractitionerRole) =>
+                  `${provider.practitionerFirstName || ""}${
+                    provider.practitionerLastName ? " " : ""
+                  }${provider.practitionerLastName || ""}`,
                 "practitionerEmail",
               ]}
               selectedValues={selectedProviders}

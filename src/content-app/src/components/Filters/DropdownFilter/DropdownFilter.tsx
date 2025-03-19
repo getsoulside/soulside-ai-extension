@@ -1,7 +1,7 @@
 import Loader from "@/components/Loader";
 import Search from "@/components/Search";
 import { ClearAllRounded } from "@mui/icons-material";
-import { Box, IconButton, MenuItem, MenuList, Select, Tooltip } from "@mui/material";
+import { Box, IconButton, MenuItem, MenuList, Select, SxProps, Tooltip } from "@mui/material";
 import React, { useMemo, useRef } from "react";
 
 interface DropdownFilterProps {
@@ -15,8 +15,9 @@ interface DropdownFilterProps {
   optionRenderer?: (value: string | any | null) => React.ReactNode;
   loading?: boolean;
   noDataText?: string;
-  searchContexts?: string[];
+  searchContexts?: (string | ((option: any) => string))[];
   limitListLength?: number;
+  sx?: SxProps;
 }
 
 const DropdownFilter: React.FC<DropdownFilterProps> = ({
@@ -32,6 +33,7 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
   noDataText = "No data",
   searchContexts = [],
   limitListLength,
+  sx,
 }): React.ReactNode => {
   const [searchTerm, setSearchTerm] = React.useState<string>("");
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -42,9 +44,12 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
         if (typeof option === "string") {
           return option.toLowerCase().includes(searchTerm.toLowerCase());
         }
-        return searchContexts?.some(context =>
-          option[context]?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        return searchContexts?.some(context => {
+          if (typeof context === "function") {
+            return context(option).toLowerCase().includes(searchTerm.toLowerCase());
+          }
+          return option[context]?.toLowerCase().includes(searchTerm.toLowerCase());
+        });
       });
     }
     if (limitListLength) {
@@ -84,6 +89,7 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
       MenuProps={{
         autoFocus: false,
       }}
+      sx={sx}
     >
       <Box
         sx={{

@@ -188,7 +188,7 @@ const timeZoneAbbrMapping = {
   "America/New_York": "ET",
 };
 
-export const timezones: TimeZone[] = moment.tz
+export let timezones: TimeZone[] = moment.tz
   .zonesForCountry("US", true)
   .filter(
     i =>
@@ -205,12 +205,26 @@ export const timezones: TimeZone[] = moment.tz
     };
   });
 
+const deviceTz = moment.tz.guess();
+const deviceTzTimezone = {
+  name: deviceTz,
+  offset: moment.tz(deviceTz).utcOffset() / 60,
+  abbr: moment.tz(deviceTz).zoneAbbr(),
+};
+
+if (deviceTz && !timezones.find(i => i.name === deviceTz)) {
+  timezones = [deviceTzTimezone, ...timezones];
+}
+
 export const getDefaultValueForTimezone = (): TimeZone => {
-  return timezones.find(i => i.name === "America/Chicago") || timezones[0];
+  return timezones.find(i => i.name === deviceTz) || timezones[0];
 };
 
 export const getSelectedTimezoneFromLocal = async (): Promise<TimeZone> => {
   let selectedTimezone: TimeZone = await getLocalStorage(LOCAL_STORAGE_KEYS.SELECTED_TIMEZONE);
+  if (!selectedTimezone || !timezones.find(i => i.name === selectedTimezone.name)) {
+    selectedTimezone = getDefaultValueForTimezone();
+  }
   moment.tz.setDefault(selectedTimezone?.name || "America/Chicago");
   return selectedTimezone || timezones.find(i => i.name === "America/Chicago");
 };

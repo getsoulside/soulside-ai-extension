@@ -149,7 +149,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
             kind: "text",
             label: "Previous Psychological Treatment:",
             ehrFields: {
-              type: "input",
+              type: "textarea",
               selector: 'div[data-guid="7c441203-3880-4fc4-9a62-6c6ca94edd53"] textarea',
             },
           },
@@ -159,8 +159,18 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
             kind: "text",
             label: "Symptoms and Behaviors:",
             ehrFields: {
-              type: "input",
+              type: "textarea",
               selector: 'div[data-guid="d4602a95-1c5f-4f73-aa89-3d59ae3afccd"] textarea',
+            },
+          },
+          {
+            key: "currentMentalHealthProviders",
+            type: "textarea",
+            kind: "text",
+            label: "Current Mental Health Providers? I.e. Psychiatrist, Therapist, etc",
+            ehrFields: {
+              type: "textarea",
+              selector: 'div[data-guid="91ffc01c-64a3-406b-aff9-14926ae8be1e"] textarea',
             },
           },
           {
@@ -219,7 +229,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
             kind: "text",
             label: "Trauma History:",
             ehrFields: {
-              type: "input",
+              type: "textarea",
               selector: 'div[data-guid="8426aced-67c7-46d1-afa9-12e5bb7508c3"] textarea',
             },
           },
@@ -256,7 +266,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
             kind: "text",
             label: "Children:",
             ehrFields: {
-              type: "input",
+              type: "textarea",
               selector: 'div[data-guid="79a53498-193a-4208-b19b-53d7132199a8"] textarea',
             },
           },
@@ -280,6 +290,16 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
               selector: 'div[data-guid="35822bc0-3183-4e49-8ad0-8437410de126"] input',
             },
           },
+          {
+            key: "militaryService",
+            type: "textarea",
+            kind: "text",
+            label: "Have you ever served in the Military?",
+            ehrFields: {
+              type: "input",
+              selector: 'div[data-guid="150db139-0879-46b5-b9be-cd5eedf640c2"] input',
+            },
+          },
         ],
       },
       {
@@ -293,7 +313,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
             kind: "text",
             label: "Medical History:",
             ehrFields: {
-              type: "input",
+              type: "textarea",
               selector: 'div[data-guid="df7654d3-53b5-4409-9273-973f4aa5726f"] textarea',
             },
           },
@@ -303,17 +323,17 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
             kind: "text",
             label: "Are you taking any medication?",
             ehrFields: {
-              type: "input",
+              type: "textarea",
               selector: 'div[data-guid="556265f1-fdf3-464d-9b9a-a310ffcd6df6"] textarea',
             },
           },
           {
-            key: "familyMedicalHistory",
+            key: "familyMentalAndSubstanceDisorderHistory",
             type: "textarea",
             kind: "text",
-            label: "Family Medical History:",
+            label: "Family Mental Health and SUD History:",
             ehrFields: {
-              type: "input",
+              type: "textarea",
               selector: 'div[data-guid="70c8737b-e3b7-4639-833b-75c84a49eb44"] textarea',
             },
           },
@@ -325,6 +345,16 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
             ehrFields: {
               type: "input",
               selector: 'div[data-guid="cad9baad-a8c4-4616-8014-4e3161e4b1ee"] input',
+            },
+          },
+          {
+            key: "autismSpectrumDisorderDiagnosis",
+            type: "textarea",
+            kind: "text",
+            label: "Have you ever been diagnosed on the Autism Spectrum Disorder (ASD)?",
+            ehrFields: {
+              type: "input",
+              selector: 'div[data-guid="6afacdd5-e523-40c7-8e5d-a2f319f3fa87"] input',
             },
           },
         ],
@@ -340,7 +370,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
             kind: "text",
             label: "Family Relationships:",
             ehrFields: {
-              type: "input",
+              type: "textarea",
               selector: 'div[data-guid="8ca31b53-41e1-4088-85c4-97232a4b674b"] textarea',
             },
           },
@@ -350,15 +380,15 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
             kind: "text",
             label: "Social Support Network:",
             ehrFields: {
-              type: "input",
+              type: "textarea",
               selector: 'div[data-guid="d9df548f-8aa5-44b9-a49c-58f3790b36b9"] textarea',
             },
           },
           {
-            key: "socialAndCulturalInfluences",
+            key: "socialCulturalOrSpiritualInfluences",
             type: "textarea",
             kind: "text",
-            label: "Social and Cultural Influences:",
+            label: "Social/Cultural/Spiritual Influences:",
             ehrFields: {
               type: "input",
               selector: 'div[data-guid="0225a982-83d3-4f17-bfbe-1432e2b9e215"] input',
@@ -454,16 +484,6 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
             label: "Protective Factors",
             value: [
               {
-                key: "strengths",
-                type: "textarea",
-                kind: "text",
-                label: "Strengths:",
-                ehrFields: {
-                  type: "input",
-                  selector: 'div[data-guid="0bd3aab1-287c-42e1-b2b4-bcc37c0ccb1c"] input',
-                },
-              },
-              {
                 key: "hobbies",
                 type: "textarea",
                 kind: "text",
@@ -512,16 +532,6 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
               selector: 'div[data-guid="ecec4dd9-c655-43a1-9377-242f14e6fe11"] input',
             },
           },
-          {
-            key: "followUpPlans",
-            type: "textarea",
-            kind: "text",
-            label: "Follow-up Plans:",
-            ehrFields: {
-              type: "input",
-              selector: 'div[data-guid="3ee83d5e-997b-4144-bd29-5f0026d8db0c"] input',
-            },
-          },
         ],
       },
       {
@@ -535,7 +545,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
             kind: "text",
             label: "Clinical Impressions:",
             ehrFields: {
-              type: "input",
+              type: "textarea",
               selector: 'div[data-guid="3a67b188-57b7-4260-9b0f-7b76ef15ec7a"] textarea',
             },
           },
@@ -739,7 +749,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
         kind: "text",
         label: "Plan for Pain 8 or higher",
         ehrFields: {
-          type: "input",
+          type: "textarea",
           selector: 'textarea[ng-model="bioIntakePhysicalPainModel.PainPlan"]',
         },
       },
@@ -809,7 +819,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
         kind: "text",
         label: "Strengths",
         ehrFields: {
-          type: "input",
+          type: "textarea",
           selector: 'textarea[ng-model="bioIntakeSNAPModel.Strengths"]',
         },
       },
@@ -819,7 +829,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
         kind: "text",
         label: "Needs",
         ehrFields: {
-          type: "input",
+          type: "textarea",
           selector: 'textarea[ng-model="bioIntakeSNAPModel.Needs"]',
         },
       },
@@ -829,7 +839,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
         kind: "text",
         label: "Abilities",
         ehrFields: {
-          type: "input",
+          type: "textarea",
           selector: 'textarea[ng-model="bioIntakeSNAPModel.Abilities"]',
         },
       },
@@ -839,7 +849,7 @@ let bpsTemplateSchema: BpsTemplateSchema[] = [
         kind: "text",
         label: "Goals",
         ehrFields: {
-          type: "input",
+          type: "textarea",
           selector: 'textarea[ng-model="bioIntakeSNAPModel.Preferences"]',
         },
       },

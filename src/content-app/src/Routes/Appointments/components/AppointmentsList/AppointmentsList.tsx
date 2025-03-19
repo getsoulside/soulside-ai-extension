@@ -348,7 +348,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
           gap={1}
         >
           <Typography variant="body2">
-            {getFormattedDateTime(appointment.startTime, "h:mm A")}
+            {getFormattedDateTime(appointment.startTime, "h:mm A", true)}
           </Typography>
           {!window?.location?.hostname?.includes("advancedmd.com") ? (
             <Button
@@ -357,6 +357,9 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
               size="small"
               onClick={() => startSession(false)}
               disableElevation
+              sx={{
+                minWidth: "110px",
+              }}
             >
               Start Session
             </Button>
