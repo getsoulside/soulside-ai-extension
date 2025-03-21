@@ -122,50 +122,47 @@ const GroupNotes = ({ notesData, sessionId, onNotesChange, session }: GroupNotes
         />
       </Stack>
       <Stack
-        direction="column"
+        direction="row"
+        alignItems="center"
         spacing={1}
-        justifyContent="center"
+        justifyContent="space-between"
       >
         <Stack
           direction="row"
           alignItems="center"
-          justifyContent="space-between"
           gap={1}
         >
           <Typography variant="body1">Patient:</Typography>
-          {activePatient && (
-            <Button
-              variant="text"
-              color="primary"
-              onClick={() =>
-                copyText(
-                  activePatient,
-                  groupNotes?.[activePatient as keyof typeof groupNotes] as string | ""
-                )
-              }
-              size="small"
-              startIcon={<ContentCopy />}
-            >
-              {textCopiedSection === activePatient ? "Copied" : "Copy"}
-            </Button>
-          )}
+          <Select
+            value={activePatient}
+            onChange={e => setActivePatient(e.target.value)}
+          >
+            {groupNotesPatients.map(patient => (
+              <MenuItem
+                key={patient}
+                value={patient}
+              >
+                {getPatientName(patient)}
+              </MenuItem>
+            ))}
+          </Select>
         </Stack>
-        <Select
-          value={activePatient}
-          onChange={e => setActivePatient(e.target.value)}
-          sx={{
-            flex: 1,
-          }}
-        >
-          {groupNotesPatients.map(patient => (
-            <MenuItem
-              key={patient}
-              value={patient}
-            >
-              {getPatientName(patient)}
-            </MenuItem>
-          ))}
-        </Select>
+        {activePatient && (
+          <Button
+            variant="text"
+            color="primary"
+            onClick={() =>
+              copyText(
+                activePatient,
+                groupNotes?.[activePatient as keyof typeof groupNotes] as string | ""
+              )
+            }
+            size="small"
+            startIcon={<ContentCopy />}
+          >
+            {textCopiedSection === activePatient ? "Copied" : "Copy"}
+          </Button>
+        )}
       </Stack>
       {activePatient && (
         <Box

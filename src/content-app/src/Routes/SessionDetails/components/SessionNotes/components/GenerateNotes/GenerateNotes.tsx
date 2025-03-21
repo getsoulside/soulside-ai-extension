@@ -3,7 +3,7 @@ import { SessionNotesTemplates } from "@/domains/sessionNotes/models/sessionNote
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
 import { IndividualSession, Session } from "@/domains/session";
-import { SessionCategory } from "@/domains/session/models/session.types";
+import { ModeOfDelivery, SessionCategory } from "@/domains/session/models/session.types";
 import { SoulsideMeetingSessionTranscript } from "@/domains/meeting";
 import { AutoAwesomeRounded } from "@mui/icons-material";
 import { toast } from "react-toastify";
@@ -22,6 +22,7 @@ const GenerateNotes = ({ session, noteTemplate, regenerate }: GenerateNotesProps
 
   const sessionId = session?.id || "";
   const sessionCategory = session?.sessionCategory;
+  const modeOfDelivery = session?.modeOfDelivery;
 
   const sessionTranscriptData = useSelector(
     (state: RootState) => state.meeting.transcript[sessionId]
@@ -36,7 +37,14 @@ const GenerateNotes = ({ session, noteTemplate, regenerate }: GenerateNotesProps
     providerSessions?.forEach((providerSession, index) => {
       if (!providerSession.providerSessionId) return;
 
-      if (sessionCategory === SessionCategory.GROUP && index > 0) return;
+      //For in person group sessions, we only want to use the first provider session transcript because the speaker mapping can be different for each provider session
+      if (
+        sessionCategory === SessionCategory.GROUP &&
+        modeOfDelivery === ModeOfDelivery.IN_PERSON &&
+        index > 0
+      ) {
+        return;
+      }
 
       const providerSessionTranscripts =
         sessionTranscriptData[providerSession.providerSessionId]?.data || [];

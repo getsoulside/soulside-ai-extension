@@ -183,6 +183,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
           extensionVersionDiv.type = "hidden";
           extensionVersionDiv.id = "soulside-ai-extension-version";
           extensionVersionDiv.value = chrome.runtime.getManifest().version;
+          extensionVersionDiv.setAttribute("data-version", chrome.runtime.getManifest().version);
           document.body.appendChild(extensionVersionDiv);
         }
       },

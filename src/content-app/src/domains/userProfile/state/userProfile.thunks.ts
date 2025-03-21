@@ -22,6 +22,7 @@ export const loadUserInfo = (): AppThunk => async dispatch => {
             email: userInfoData?.email,
             userId: userInfoData?.id,
             userRole: userInfoData?.userRole,
+            version: chrome?.runtime?.getManifest?.()?.version || "unknown",
           },
         },
         "*"

@@ -226,29 +226,31 @@ const SessionNotes: React.FC<SessionNotesProps> = ({ session }): React.ReactNode
           direction="column"
           spacing={1}
         >
-          <Stack
-            direction={"row"}
-            alignItems={"center"}
-            gap={1}
-          >
-            <Typography variant="body1">Note Template:</Typography>
-            <Select
-              value={selectedNoteTemplate}
-              onChange={e => setSelectedNoteTemplate(e.target.value as SessionNotesTemplates)}
-              sx={{
-                flex: 1,
-              }}
+          {sessionCategory !== SessionCategory.GROUP && (
+            <Stack
+              direction={"row"}
+              alignItems={"center"}
+              gap={1}
             >
-              {notesTemplates?.map(template => (
-                <MenuItem
-                  key={template.key}
-                  value={template.key}
-                >
-                  {template.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </Stack>
+              <Typography variant="body1">Note Template:</Typography>
+              <Select
+                value={selectedNoteTemplate}
+                onChange={e => setSelectedNoteTemplate(e.target.value as SessionNotesTemplates)}
+                sx={{
+                  flex: 1,
+                }}
+              >
+                {notesTemplates?.map(template => (
+                  <MenuItem
+                    key={template.key}
+                    value={template.key}
+                  >
+                    {template.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Stack>
+          )}
           {notesGenerated && (
             <Stack
               direction={"row"}
